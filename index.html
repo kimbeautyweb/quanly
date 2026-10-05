@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kim Beauty - POS Quản Lý Spa</title>
+    <title>Kim Beauty - POS Quản Lý Spa Online</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -12,10 +12,10 @@
                 extend: {
                     colors: {
                         brand: {
-                            green: '#708238', // Xanh mạ/rêu chủ đạo
+                            green: '#708238',
                             darkgreen: '#4D5A23',
-                            cream: '#F7F5F0',  // Kem ngà nền chính
-                            card: '#EFECE6',   // Kem đậm cho thẻ
+                            cream: '#F7F5F0',
+                            card: '#EFECE6',
                             text: '#2D3748'
                         }
                     }
@@ -25,321 +25,512 @@
     </script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK v9 Compat -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <!-- Thư viện Xuất File Excel (SheetJS) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
     <style>
-        /* Tối ưu trải nghiệm ứng dụng di động */
-        body {
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        body { -webkit-tap-highlight-color: transparent; user-select: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-brand-cream text-brand-text font-sans antialiased min-h-screen pb-24 md:pb-6">
+<body class="bg-brand-cream text-brand-text font-sans antialiased min-h-screen pb-24 md:pb-8">
 
-    <!-- HEADER TOP (BAR CỐ ĐỊNH TRÊN CÙNG) -->
+    <!-- HEADER TOP -->
     <header class="sticky top-0 z-40 bg-brand-darkgreen text-white px-4 py-3.5 shadow-md flex items-center justify-between">
         <div class="flex items-center gap-3">
             <img src="logo.jpg" onerror="this.src='https://ui-avatars.com/api/?name=Kim+Beauty&background=708238&color=fff'" alt="Logo" class="w-10 h-10 rounded-full object-cover border border-white/30 shadow-sm">
             <div>
                 <h1 class="font-bold text-base leading-tight tracking-wide">KIM BEAUTY POS</h1>
-                <p class="text-[11px] text-white/80">Quản lý nội bộ Spa</p>
+                <p class="text-[11px] text-white/80">Hệ thống Cloud Realtime</p>
             </div>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="bg-white/20 text-white text-xs px-2.5 py-1 rounded-full font-medium">
-                <i class="fa-solid fa-circle text-[8px] text-green-400 mr-1"></i> Ca sáng
-            </span>
-        </div>
+        <span class="bg-green-600 text-white text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1 shadow">
+            <i class="fa-solid fa-cloud text-[10px]"></i> Online
+        </span>
     </header>
 
-    <!-- NỘI DUNG CHÍNH (MAIN CONTAINER) -->
+    <!-- MAIN CONTAINER -->
     <main class="max-w-4xl mx-auto p-4 space-y-6">
 
-        <!-- 1. TAB KHÁCH HÀNG (CUSTOMER POS) -->
-        <div id="tab-customers" class="tab-content space-y-4">
-            
-            <!-- Thanh tìm kiếm & Nút thêm nhanh -->
-            <div class="flex items-center gap-2">
-                <div class="relative flex-1">
-                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400"></i>
-                    <input type="text" id="searchCust" onkeyup="filterCustomers()" placeholder="Tìm tên khách hoặc SĐT..." class="w-full pl-11 pr-4 py-3 bg-white rounded-2xl border border-brand-green/20 focus:outline-none focus:border-brand-green shadow-sm text-sm">
-                </div>
-                <button onclick="openAddCustomerModal()" class="bg-brand-green hover:bg-brand-darkgreen text-white px-4 py-3 rounded-2xl font-semibold text-sm flex items-center gap-1.5 shadow-md active:scale-95 transition">
-                    <i class="fa-solid fa-plus"></i>
-                    <span class="hidden sm:inline">Thêm khách</span>
-                </button>
+        <!-- 1. TAB TRANG CHỦ -->
+        <div id="tab-home" class="tab-content space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-bold text-brand-darkgreen uppercase">Trang Chủ Hoạt Động</h2>
+                <span class="text-xs font-semibold text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">Thời gian thực</span>
             </div>
 
-            <!-- Thống kê nhanh chỉ số top -->
             <div class="grid grid-cols-2 gap-3">
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-brand-green/10 flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl bg-brand-green/10 text-brand-darkgreen flex items-center justify-center text-lg font-bold">
+                    <div class="w-11 h-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center text-lg font-bold shrink-0">
                         <i class="fa-solid fa-users"></i>
                     </div>
                     <div>
-                        <div class="text-xs text-gray-500 font-medium">Khách hàng</div>
-                        <div class="text-lg font-bold text-brand-darkgreen">245</div>
+                        <div class="text-xs text-gray-500 font-medium">Tổng số khách</div>
+                        <div id="statTotalCust" class="text-lg font-bold text-green-700">0 khách</div>
                     </div>
                 </div>
 
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-brand-green/10 flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-700 flex items-center justify-center text-lg font-bold">
-                        <i class="fa-solid fa-dong-sign"></i>
+                    <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg font-bold shrink-0">
+                        <i class="fa-solid fa-calendar-day"></i>
                     </div>
                     <div>
-                        <div class="text-xs text-gray-500 font-medium">Tổng thu</div>
-                        <div class="text-lg font-bold text-green-700">128.5 Tr</div>
+                        <div class="text-xs text-gray-500 font-medium">Lịch hẹn hiện có</div>
+                        <div id="statTotalBookings" class="text-lg font-bold text-brand-darkgreen">0 lịch</div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Danh sách thẻ Khách hàng dạng Thẻ POS -->
-            <div class="space-y-3" id="customerList">
-                
-                <!-- Thẻ Khách 1 -->
-                <div onclick="showCustomerDetails('Nguyễn Thị Mai', '0988.123.456', '4.500.000 đ', '5 buổi', [
-                    {date: '02/10/2026', name: 'Facial Chăm Sóc Da Y Khoa', price: '800.000 đ'},
-                    {date: '15/09/2026', name: 'Điều Trị Nám Laser Toning', price: '2.200.000 đ'},
-                    {date: '01/08/2026', name: 'Massage Cổ Vai Gáy Dưỡng Sinh', price: '1.500.000 đ'}
-                ])" class="cust-card bg-white p-4 rounded-2xl shadow-sm border border-brand-green/10 active:bg-brand-cream/60 transition cursor-pointer flex items-center justify-between">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-12 h-12 rounded-2xl bg-brand-green text-white font-bold flex items-center justify-center text-base shadow-sm">
-                            NT
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-brand-darkgreen text-base">Nguyễn Thị Mai</h3>
-                            <p class="text-xs text-gray-500">📞 0988.123.456</p>
-                            <span class="inline-block mt-1 text-[11px] bg-brand-green/10 text-brand-darkgreen px-2 py-0.5 rounded-md font-semibold">Đã làm 5 buổi</span>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-xs text-gray-400">Tổng chi tiêu</div>
-                        <div class="text-base font-extrabold text-green-700">4.500.000 đ</div>
-                        <span class="text-xs text-brand-green font-semibold">Xem chi tiết ➔</span>
-                    </div>
-                </div>
-
-                <!-- Thẻ Khách 2 -->
-                <div onclick="showCustomerDetails('Trần Vân Anh', '0905.888.999', '9.200.000 đ', '8 buổi', [
-                    {date: '05/10/2026', name: 'Massage Cổ Vai Gáy Dưỡng Sinh', price: '1.200.000 đ'},
-                    {date: '20/09/2026', name: 'Gói Setup Chăm Sóc Trị Liệu Spa', price: '8.000.000 đ'}
-                ])" class="cust-card bg-white p-4 rounded-2xl shadow-sm border border-brand-green/10 active:bg-brand-cream/60 transition cursor-pointer flex items-center justify-between">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-12 h-12 rounded-2xl bg-brand-darkgreen text-white font-bold flex items-center justify-center text-base shadow-sm">
-                            TV
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-brand-darkgreen text-base">Trần Vân Anh</h3>
-                            <p class="text-xs text-gray-500">📞 0905.888.999</p>
-                            <span class="inline-block mt-1 text-[11px] bg-brand-green/10 text-brand-darkgreen px-2 py-0.5 rounded-md font-semibold">Đã làm 8 buổi</span>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-xs text-gray-400">Tổng chi tiêu</div>
-                        <div class="text-base font-extrabold text-green-700">9.200.000 đ</div>
-                        <span class="text-xs text-brand-green font-semibold">Xem chi tiết ➔</span>
-                    </div>
-                </div>
-
             </div>
         </div>
 
-        <!-- 2. TAB ĐẶT LỊCH HẸN (BOOKING) -->
+        <!-- 2. TAB LỊCH HẸN -->
         <div id="tab-booking" class="tab-content hidden space-y-4">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-brand-green/10 space-y-4">
-                <h2 class="text-lg font-bold text-brand-darkgreen flex items-center gap-2">
-                    <i class="fa-solid fa-calendar-plus text-brand-green"></i>
-                    Đặt Lịch Hẹn Cho Khách Hàng
-                </h2>
-                
-                <form onsubmit="alert('Đã tạo lịch hẹn thành công!'); return false;" class="space-y-3.5">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Tên khách hàng *</label>
-                        <input type="text" required placeholder="Nhập tên khách" class="w-full px-4 py-3 bg-brand-cream/50 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-green text-sm">
-                    </div>
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-bold text-brand-darkgreen uppercase">Danh Sách Lịch Hẹn</h2>
+                <button onclick="openBookingModal()" class="bg-brand-green text-white text-xs px-3.5 py-2 rounded-xl font-bold flex items-center gap-1 shadow">
+                    <i class="fa-solid fa-plus"></i> Tạo lịch hẹn
+                </button>
+            </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Số điện thoại *</label>
-                        <input type="tel" required placeholder="Nhập SĐT" class="w-full px-4 py-3 bg-brand-cream/50 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-green text-sm">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Chọn dịch vụ Spa</label>
-                        <select class="w-full px-4 py-3 bg-brand-cream/50 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-green text-sm">
-                            <option>Facial Chăm Sóc Da Y Khoa</option>
-                            <option>Massage Cổ Vai Gáy Dưỡng Sinh</option>
-                            <option>Điều Trị Da Công Nghệ Cao (Laser, Nám)</option>
-                            <option>Gội Đầu Dưỡng Sinh Thảo Dược</option>
-                        </select>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Ngày hẹn</label>
-                            <input type="date" required class="w-full px-3 py-3 bg-brand-cream/50 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-green text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Giờ hẹn</label>
-                            <input type="time" required class="w-full px-3 py-3 bg-brand-cream/50 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-green text-sm">
-                        </div>
-                    </div>
-
-                    <button type="submit" class="w-full bg-brand-green hover:bg-brand-darkgreen text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm">
-                        XÁC NHẬN LỊCH HẸN
-                    </button>
-                </form>
+            <div class="space-y-3" id="bookingList">
+                <p class="text-center text-gray-400 text-xs py-4">Đang tải lịch hẹn từ đám mây...</p>
             </div>
         </div>
 
-        <!-- 3. TAB THÊM DỊCH VỤ SPA -->
-        <div id="tab-services" class="tab-content hidden space-y-4">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-brand-green/10 space-y-4">
-                <h2 class="text-lg font-bold text-brand-darkgreen flex items-center gap-2">
-                    <i class="fa-solid fa-spa text-brand-green"></i>
-                    Thêm Dịch Vụ Mới
-                </h2>
+        <!-- 3. TAB KHÁCH HÀNG -->
+        <div id="tab-customers" class="tab-content hidden space-y-4">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400"></i>
+                    <input type="text" id="searchCust" onkeyup="filterCustomers()" placeholder="Tìm tên khách, SĐT, địa chỉ..." class="w-full pl-11 pr-4 py-3 bg-white rounded-2xl border border-brand-green/20 focus:outline-none focus:border-brand-green shadow-sm text-sm">
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="openAddCustomerModal()" class="flex-1 sm:flex-initial bg-brand-green hover:bg-brand-darkgreen text-white px-4 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-1.5 shadow-md shrink-0">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Thêm khách</span>
+                    </button>
+                    <!-- Nút Xuất Excel trực tiếp -->
+                    <button onclick="exportCustomersToExcel()" class="flex-1 sm:flex-initial bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-1.5 shadow-md shrink-0">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>Xuất Excel</span>
+                    </button>
+                </div>
+            </div>
 
-                <form onsubmit="alert('Đã lưu dịch vụ mới!'); return false;" class="space-y-3.5">
+            <div class="space-y-3" id="customerList">
+                <p class="text-center text-gray-400 text-xs py-4">Đang tải danh sách khách hàng từ đám mây...</p>
+            </div>
+        </div>
+
+        <!-- 4. TAB QUẢN LÝ DỊCH VỤ -->
+        <div id="tab-services" class="tab-content hidden space-y-6">
+            <div class="bg-white p-5 rounded-3xl shadow-sm border border-brand-green/10 space-y-4">
+                <h2 class="text-lg font-bold text-brand-darkgreen flex items-center gap-2">
+                    <i class="fa-solid fa-plus text-brand-green"></i> Thêm Dịch Vụ Mới
+                </h2>
+                <form onsubmit="addNewService(event)" class="space-y-3">
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Tên Dịch vụ Spa *</label>
-                        <input type="text" required placeholder="Tên gói dịch vụ..." class="w-full px-4 py-3 bg-brand-cream/50 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-green text-sm">
+                        <input type="text" id="servName" required placeholder="Tên gói dịch vụ..." class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
                     </div>
-
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Giá niêm yết (VNĐ) *</label>
-                        <input type="number" required placeholder="Nhập số tiền..." class="w-full px-4 py-3 bg-brand-cream/50 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-green text-sm">
+                        <input type="number" id="servPrice" required placeholder="Nhập số tiền..." class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
                     </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Ghi chú dịch vụ</label>
-                        <textarea placeholder="Mô tả liệu trình..." class="w-full px-4 py-3 bg-brand-cream/50 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-green text-sm h-20"></textarea>
-                    </div>
-
-                    <button type="submit" class="w-full bg-brand-green hover:bg-brand-darkgreen text-white font-bold py-3.5 rounded-xl shadow-md transition text-sm">
-                        + LƯU DỊCH VỤ MỚI
+                    <button type="submit" class="w-full bg-brand-green hover:bg-brand-darkgreen text-white font-bold py-3 rounded-xl shadow-md text-sm">
+                        + LƯU DỊCH VỤ VÀO CLOUD
                     </button>
                 </form>
+            </div>
+
+            <div class="bg-white p-5 rounded-3xl shadow-sm border border-brand-green/10 space-y-3">
+                <h3 class="text-sm font-bold text-brand-darkgreen flex items-center gap-2">
+                    <i class="fa-solid fa-list text-brand-green"></i> Danh Mục Dịch Vụ Trên Đám Mây
+                </h3>
+                <div class="space-y-2.5" id="serviceListContainer">
+                    <p class="text-center text-gray-400 text-xs py-2">Đang tải danh mục dịch vụ...</p>
+                </div>
             </div>
         </div>
 
     </main>
 
-    <!-- THANH ĐIỀU HƯỚNG ĐÁY MÀN HÌNH (BOTTOM NAVIGATION BAR CHUẨN APP MOBILE) -->
-    <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-brand-green/20 px-6 py-2 flex justify-around items-center z-40 shadow-lg md:max-w-md md:mx-auto md:bottom-4 md:rounded-full">
-        <button onclick="switchTab('customers')" id="btn-customers" class="nav-tab text-brand-green flex flex-col items-center gap-1 font-bold text-[11px]">
+    <!-- BOTTOM NAVIGATION BAR -->
+    <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-brand-green/20 px-4 py-2 flex justify-around items-center z-40 shadow-lg md:max-w-md md:mx-auto md:bottom-4 md:rounded-full">
+        <button onclick="switchTab('home')" id="btn-home" class="nav-tab text-brand-green flex flex-col items-center gap-1 font-bold text-[11px]">
+            <i class="fa-solid fa-house text-lg"></i>
+            <span>Trang chủ</span>
+        </button>
+        <button onclick="switchTab('booking')" id="btn-booking" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[11px]">
+            <i class="fa-solid fa-calendar-check text-lg"></i>
+            <span>Lịch hẹn</span>
+        </button>
+        <button onclick="switchTab('customers')" id="btn-customers" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[11px]">
             <i class="fa-solid fa-users text-lg"></i>
             <span>Khách hàng</span>
         </button>
-
-        <button onclick="switchTab('booking')" id="btn-booking" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[11px]">
-            <i class="fa-solid fa-calendar-check text-lg"></i>
-            <span>Đặt lịch</span>
-        </button>
-
         <button onclick="switchTab('services')" id="btn-services" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[11px]">
             <i class="fa-solid fa-spa text-lg"></i>
             <span>Dịch vụ</span>
         </button>
     </nav>
 
-    <!-- POPUP TRUỢT CHI TIẾT KHÁCH HÀNG (BOTTOM SHEET / MODAL) -->
+    <!-- POPUP FORM THÊM KHÁCH HÀNG -->
+    <div id="addCustModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-lg text-brand-darkgreen">Thêm Khách Hàng Mới</h3>
+                <button onclick="closeAddCustomerModal()" class="text-gray-400 text-lg font-bold">✕</button>
+            </div>
+            <form onsubmit="saveNewCustomer(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Tên khách hàng *</label>
+                    <input type="text" id="newCustName" required placeholder="Nguyễn Văn A" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Số điện thoại *</label>
+                    <input type="tel" id="newCustPhone" required placeholder="0901234567" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Địa chỉ *</label>
+                    <input type="text" id="newCustAddress" required placeholder="Tây Mỗ, Nam Từ Liêm, Hà Nội" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
+                </div>
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="closeAddCustomerModal()" class="w-1/2 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl text-sm">Hủy</button>
+                    <button type="submit" class="w-1/2 py-3 bg-brand-green text-white font-bold rounded-xl text-sm shadow">LƯU KHÁCH HÀNG</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- POPUP TẠO LỊCH HẸN MỚI -->
+    <div id="addBookingModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-lg text-brand-darkgreen">Đặt Lịch Hẹn Mới</h3>
+                <button onclick="closeBookingModal()" class="text-gray-400 text-lg font-bold">✕</button>
+            </div>
+            <form onsubmit="saveNewBooking(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Tên khách hàng *</label>
+                    <input type="text" id="bookCustName" required placeholder="Tên khách" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Số điện thoại *</label>
+                    <input type="tel" id="bookCustPhone" required placeholder="SĐT" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Chọn Dịch vụ Spa *</label>
+                    <select id="bookService" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
+                        <option>Facial Chăm Sóc Da Y Khoa</option>
+                        <option>Massage Cổ Vai Gáy Dưỡng Sinh</option>
+                        <option>Điều Trị Da Công Nghệ Cao (Laser, Nám)</option>
+                        <option>Gội Đầu Dưỡng Sinh Thảo Dược</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Giờ hẹn</label>
+                        <input type="time" id="bookTime" required class="w-full px-3 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Trạng thái</label>
+                        <select id="bookStatus" class="w-full px-3 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
+                            <option value="Đang chờ">Đang chờ</option>
+                            <option value="Đã xong">Đã xong</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="closeBookingModal()" class="w-1/2 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl text-sm">Hủy</button>
+                    <button type="submit" class="w-1/2 py-3 bg-brand-green text-white font-bold rounded-xl text-sm shadow">XÁC NHẬN HẸN</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- POPUP CHI TIẾT KHÁCH HÀNG -->
     <div id="custModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl p-6 space-y-5 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
-            
-            <!-- Header Modal -->
+        <div class="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl p-6 space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-start border-b border-gray-100 pb-3">
                 <div>
                     <h2 id="modalCustName" class="text-xl font-bold text-brand-darkgreen">Tên Khách Hàng</h2>
                     <p id="modalCustPhone" class="text-xs text-gray-500">📞 0988.xxx.xxx</p>
+                    <p id="modalCustAddress" class="text-xs text-gray-500 mt-0.5">📍 Địa chỉ: ...</p>
                 </div>
-                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center font-bold">
-                    ✕
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center font-bold">✕</button>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button onclick="deleteCurrentCustomer()" class="w-1/3 py-3 bg-red-50 text-red-600 font-bold rounded-2xl text-xs hover:bg-red-100 transition">
+                    🗑 Xóa khách
+                </button>
+                <button onclick="closeModal()" class="w-2/3 py-3 bg-gray-100 font-bold text-gray-700 rounded-2xl text-sm">
+                    Đóng màn hình
                 </button>
             </div>
-
-            <!-- Tổng chi tiêu -->
-            <div class="bg-brand-card/70 p-4 rounded-2xl flex justify-between items-center border border-brand-green/20">
-                <div>
-                    <div class="text-xs text-gray-500">Tổng chi tiêu dịch vụ</div>
-                    <div id="modalTotalSpent" class="text-xl font-extrabold text-green-700">0 đ</div>
-                </div>
-                <div id="modalBuoi" class="bg-brand-green text-white text-xs px-3 py-1.5 rounded-xl font-bold">
-                    5 buổi
-                </div>
-            </div>
-
-            <!-- Danh sách Dịch vụ KH đã sử dụng -->
-            <div>
-                <h3 class="text-sm font-bold text-brand-darkgreen mb-2.5 flex items-center gap-1.5">
-                    <i class="fa-solid fa-receipt text-brand-green"></i>
-                    Lịch sử dịch vụ đã làm:
-                </h3>
-                <div id="modalServiceList" class="space-y-2">
-                    <!-- JS sẽ điền danh sách dịch vụ vào đây -->
-                </div>
-            </div>
-
-            <button onclick="closeModal()" class="w-full py-3 bg-gray-100 font-bold text-gray-700 rounded-2xl text-sm">
-                Đóng màn hình
-            </button>
-
         </div>
     </div>
 
-    <!-- SCRIPT CHUYỂN TAB & XỬ LÝ DỮ LIỆU -->
+    <!-- SCRIPT CHÍNH FIREBASE & XUẤT EXCEL -->
     <script>
-        // Hàm chuyển Tab
+        // ⚙️ ĐÃ CẬP NHẬT FIREBASE CỦA DỰ ÁN KIMBEAUTY-11B61
+        const firebaseConfig = {
+            apiKey: "AIzaSyCzIUPf2Wghh6voay899bdDGN9rQVhHGsU",
+            authDomain: "kimbeauty-11b61.firebaseapp.com",
+            databaseURL: "https://kimbeauty-11b61-default-rtdb.firebaseio.com",
+            projectId: "kimbeauty-11b61",
+            storageBucket: "kimbeauty-11b61.firebasestorage.app",
+            messagingSenderId: "1074549280539",
+            appId: "1:1074549280539:web:0bbef93442aed637e7cdbe",
+            measurementId: "G-WYF12RE8ZV"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let currentActiveCustKey = null;
+
+        // 1. Tải Khách Hàng từ Cloud Realtime
+        db.ref('customers').on('value', (snapshot) => {
+            const data = snapshot.val();
+            const container = document.getElementById('customerList');
+            container.innerHTML = '';
+            let count = 0;
+
+            if(!data) {
+                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Chưa có khách hàng nào trên Cloud</p>';
+                document.getElementById('statTotalCust').innerText = '0 khách';
+                return;
+            }
+
+            Object.keys(data).forEach(key => {
+                count++;
+                const c = data[key];
+                const cardHTML = `
+                    <div id="cust-${key}" onclick="showCustomerDetails('${key}', '${c.name}', '${c.phone}', '${c.address}')" class="cust-card bg-white p-4 rounded-2xl shadow-sm border border-brand-green/10 cursor-pointer flex items-center justify-between">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-brand-green text-white font-bold flex items-center justify-center text-base shadow-sm">${c.name ? c.name.substring(0,2).toUpperCase() : 'KH'}</div>
+                            <div>
+                                <h3 class="font-bold text-brand-darkgreen text-base">${c.name}</h3>
+                                <p class="text-xs text-gray-500">📞 ${c.phone}</p>
+                                <p class="text-[11px] text-gray-400">📍 ${c.address}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-brand-green font-semibold">Chi tiết ➔</span>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('afterbegin', cardHTML);
+            });
+            document.getElementById('statTotalCust').innerText = count + ' khách';
+        });
+
+        // 2. Tải Lịch Hẹn từ Cloud Realtime
+        db.ref('bookings').on('value', (snapshot) => {
+            const data = snapshot.val();
+            const container = document.getElementById('bookingList');
+            container.innerHTML = '';
+            let count = 0;
+
+            if(!data) {
+                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Chưa có lịch hẹn nào</p>';
+                document.getElementById('statTotalBookings').innerText = '0 lịch';
+                return;
+            }
+
+            Object.keys(data).forEach(key => {
+                count++;
+                const b = data[key];
+                const statusClass = b.status === 'Đã xong' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+                const completeBtn = b.status === 'Đang chờ' ? `
+                    <button onclick="completeBooking('${key}')" class="bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold">
+                        ✓ Hoàn thành
+                    </button>
+                ` : '';
+
+                const cardHTML = `
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-brand-green/10 space-y-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-brand-darkgreen text-base">${b.name}</h3>
+                                <p class="text-xs text-gray-500">📞 ${b.phone}</p>
+                            </div>
+                            <span class="${statusClass} text-xs px-2.5 py-1 rounded-full font-bold">${b.status}</span>
+                        </div>
+                        <div class="bg-brand-cream/50 p-2.5 rounded-xl text-xs space-y-1">
+                            <div><strong class="text-gray-700">Dịch vụ:</strong> <span class="text-brand-green font-bold">${b.service}</span></div>
+                            <div><strong class="text-gray-700">Giờ hẹn:</strong> ${b.time}</div>
+                        </div>
+                        <div class="flex justify-end gap-2 pt-1 border-t border-gray-100">
+                            ${completeBtn}
+                            <button onclick="deleteBooking('${key}')" class="bg-red-50 text-red-600 text-xs px-3 py-1.5 rounded-lg font-bold">🗑 Xóa</button>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('afterbegin', cardHTML);
+            });
+            document.getElementById('statTotalBookings').innerText = count + ' lịch';
+        });
+
+        // 3. Tải Dịch Vụ từ Cloud Realtime
+        db.ref('services').on('value', (snapshot) => {
+            const data = snapshot.val();
+            const container = document.getElementById('serviceListContainer');
+            container.innerHTML = '';
+
+            if(!data) {
+                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-2">Chưa có dịch vụ nào</p>';
+                return;
+            }
+
+            Object.keys(data).forEach(key => {
+                const s = data[key];
+                const cardHTML = `
+                    <div class="p-3 bg-brand-cream/40 rounded-2xl border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <div class="font-bold text-brand-darkgreen text-sm">${s.name}</div>
+                            <div class="text-xs text-green-700 font-extrabold">${parseInt(s.price).toLocaleString('vi-VN')} đ</div>
+                        </div>
+                        <button onclick="deleteService('${key}')" class="bg-red-50 text-red-600 text-xs px-3 py-1.5 rounded-lg font-bold">🗑 Xóa</button>
+                    </div>
+                `;
+                container.insertAdjacentHTML('afterbegin', cardHTML);
+            });
+        });
+
+        // --- XUẤT EXCEL TỪ TRÌNH DUYỆT ---
+        function exportCustomersToExcel() {
+            db.ref('customers').once('value').then((snapshot) => {
+                const data = snapshot.val();
+                if (!data) {
+                    alert('Chưa có dữ liệu khách hàng để xuất file!');
+                    return;
+                }
+
+                const excelData = [];
+                let stt = 1;
+
+                Object.keys(data).forEach(key => {
+                    const c = data[key];
+                    excelData.push({
+                        "STT": stt++,
+                        "Họ và Tên": c.name || '',
+                        "Số Điện Thoại": c.phone || '',
+                        "Địa Chỉ": c.address || ''
+                    });
+                });
+
+                const worksheet = XLSX.utils.json_to_sheet(excelData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "KhachHang_KimBeauty");
+
+                const today = new Date().toISOString().slice(0, 10);
+                XLSX.writeFile(workbook, `Danh_Sach_Khach_Hang_KimBeauty_${today}.xlsx`);
+            });
+        }
+
+        // --- CÁC THAO TÁC THÊM & XÓA KHÁCH HÀNG / LỊCH HẸN / DỊCH VỤ ---
+        function saveNewCustomer(e) {
+            e.preventDefault();
+            const name = document.getElementById('newCustName').value;
+            const phone = document.getElementById('newCustPhone').value;
+            const address = document.getElementById('newCustAddress').value;
+
+            db.ref('customers').push({ name, phone, address }, (err) => {
+                if(!err) {
+                    closeAddCustomerModal();
+                    alert('Đã lưu khách hàng mới lên Đám Mây!');
+                    document.getElementById('newCustName').value = '';
+                    document.getElementById('newCustPhone').value = '';
+                    document.getElementById('newCustAddress').value = '';
+                }
+            });
+        }
+
+        function deleteCurrentCustomer() {
+            if(confirm('Xóa vĩnh viễn khách hàng này khỏi đám mây?')) {
+                if(currentActiveCustKey) {
+                    db.ref('customers/' + currentActiveCustKey).remove();
+                    closeModal();
+                    alert('Đã xóa thành công!');
+                }
+            }
+        }
+
+        function saveNewBooking(e) {
+            e.preventDefault();
+            const name = document.getElementById('bookCustName').value;
+            const phone = document.getElementById('bookCustPhone').value;
+            const service = document.getElementById('bookService').value;
+            const time = document.getElementById('bookTime').value;
+            const status = document.getElementById('bookStatus').value;
+
+            db.ref('bookings').push({ name, phone, service, time, status }, (err) => {
+                if(!err) {
+                    closeBookingModal();
+                    alert('Đã lưu lịch hẹn lên Đám Mây!');
+                }
+            });
+        }
+
+        function completeBooking(key) {
+            db.ref('bookings/' + key).update({ status: 'Đã xong' });
+        }
+
+        function deleteBooking(key) {
+            if(confirm('Xóa lịch hẹn này?')) db.ref('bookings/' + key).remove();
+        }
+
+        function addNewService(e) {
+            e.preventDefault();
+            const name = document.getElementById('servName').value;
+            const price = document.getElementById('servPrice').value;
+
+            db.ref('services').push({ name, price }, (err) => {
+                if(!err) {
+                    alert('Đã thêm dịch vụ vào danh mục Đám Mây!');
+                    document.getElementById('servName').value = '';
+                    document.getElementById('servPrice').value = '';
+                }
+            });
+        }
+
+        function deleteService(key) {
+            if(confirm('Xóa dịch vụ này?')) db.ref('services/' + key).remove();
+        }
+
+        // ĐIỀU HƯỚNG TAB VÀ MODAL
         function switchTab(tabId) {
-            // Ẩn tất cả Tab
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            
-            // Đổi màu Icon tab
             document.querySelectorAll('.nav-tab').forEach(btn => {
                 btn.classList.remove('text-brand-green', 'font-bold');
                 btn.classList.add('text-gray-400', 'font-medium');
             });
-
-            // Hiện Tab được chọn
             document.getElementById('tab-' + tabId).classList.remove('hidden');
-
-            // Highlight Tab được chọn
             const activeBtn = document.getElementById('btn-' + tabId);
             activeBtn.classList.remove('text-gray-400', 'font-medium');
             activeBtn.classList.add('text-brand-green', 'font-bold');
         }
 
-        // Mở Popup Chi Tiết Khách Hàng
-        function showCustomerDetails(name, phone, totalSpent, buoi, services) {
+        function openAddCustomerModal() { document.getElementById('addCustModal').classList.remove('hidden'); }
+        function closeAddCustomerModal() { document.getElementById('addCustModal').classList.add('hidden'); }
+        function openBookingModal() { document.getElementById('addBookingModal').classList.remove('hidden'); }
+        function closeBookingModal() { document.getElementById('addBookingModal').classList.add('hidden'); }
+
+        function showCustomerDetails(key, name, phone, address) {
+            currentActiveCustKey = key;
             document.getElementById('modalCustName').innerText = name;
             document.getElementById('modalCustPhone').innerText = '📞 ' + phone;
-            document.getElementById('modalTotalSpent').innerText = totalSpent;
-            document.getElementById('modalBuoi').innerText = buoi;
-
-            const serviceListDiv = document.getElementById('modalServiceList');
-            serviceListDiv.innerHTML = services.map(s => `
-                <div class="p-3 bg-brand-cream/40 rounded-xl border border-gray-100 flex justify-between items-center text-xs">
-                    <div>
-                        <div class="font-bold text-brand-darkgreen text-sm">${s.name}</div>
-                        <div class="text-gray-400 mt-0.5">${s.date}</div>
-                    </div>
-                    <div class="font-bold text-green-700 text-sm">${s.price}</div>
-                </div>
-            `).join('');
-
+            document.getElementById('modalCustAddress').innerText = '📍 ' + address;
             document.getElementById('custModal').classList.remove('hidden');
         }
+        function closeModal() { document.getElementById('custModal').classList.add('hidden'); }
 
-        function closeModal() {
-            document.getElementById('custModal').classList.add('hidden');
-        }
-
-        // Tim kiem nhanh khach hang
         function filterCustomers() {
             const input = document.getElementById('searchCust').value.toLowerCase();
             const cards = document.querySelectorAll('.cust-card');
