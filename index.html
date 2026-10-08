@@ -39,7 +39,7 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-brand-cream text-brand-text font-sans antialiased min-h-screen pb-24 md:pb-8">
+<body class="bg-brand-cream text-brand-text font-sans antialiased min-h-screen pb-28 md:pb-12">
 
     <!-- HEADER TOP -->
     <header class="sticky top-0 z-40 bg-brand-darkgreen text-white px-4 py-3.5 shadow-md flex items-center justify-between">
@@ -58,37 +58,121 @@
     <!-- MAIN CONTAINER -->
     <main class="max-w-4xl mx-auto p-4 space-y-6">
 
-        <!-- 1. TAB TRANG CHỦ -->
-        <div id="tab-home" class="tab-content space-y-4">
+        <!-- 1. TAB TRANG CHỦ & BÁO CÁO DOANH THU -->
+        <div id="tab-home" class="tab-content space-y-5">
             <div class="flex justify-between items-center">
-                <h2 class="text-lg font-bold text-brand-darkgreen uppercase">Trang Chủ Hoạt Động</h2>
+                <h2 class="text-lg font-bold text-brand-darkgreen uppercase">Tổng Quan & Báo Cáo Ngày</h2>
                 <span class="text-xs font-semibold text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">Thời gian thực</span>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-brand-green/10 flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center text-lg font-bold shrink-0">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-                    <div>
-                        <div class="text-xs text-gray-500 font-medium">Tổng số khách</div>
-                        <div id="statTotalCust" class="text-lg font-bold text-green-700">0 khách</div>
-                    </div>
+            <!-- CHỌN NGÀY BÁO CÁO -->
+            <div class="bg-white p-4 rounded-2xl border border-brand-green/20 shadow-sm flex items-center justify-between gap-3">
+                <div class="flex-1">
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Chọn ngày báo cáo doanh thu</label>
+                    <input type="date" id="reportDateSelect" onchange="generateDailyReport()" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm font-bold text-brand-darkgreen">
+                </div>
+                <button onclick="generateDailyReport()" class="bg-brand-green text-white px-4 py-2.5 rounded-xl font-bold text-xs shrink-0 self-end">
+                    <i class="fa-solid fa-rotate mr-1"></i> Cập nhật
+                </button>
+            </div>
+
+            <!-- THỐNG KÊ DOANH THU NGÀY -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-brand-green/10 text-center">
+                    <div class="text-[11px] text-gray-500 font-bold uppercase">Lượt khách</div>
+                    <div id="statTotalCust" class="text-xl font-black text-brand-darkgreen mt-1">0</div>
+                    <span class="text-[10px] text-gray-400">lượt làm</span>
                 </div>
 
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-brand-green/10 flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg font-bold shrink-0">
-                        <i class="fa-solid fa-calendar-day"></i>
-                    </div>
-                    <div>
-                        <div class="text-xs text-gray-500 font-medium">Lịch hẹn hiện có</div>
-                        <div id="statTotalBookings" class="text-lg font-bold text-brand-darkgreen">0 lịch</div>
-                    </div>
+                <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-brand-green/10 text-center">
+                    <div class="text-[11px] text-emerald-700 font-bold uppercase">Tiền mặt</div>
+                    <div id="reportCashTotal" class="text-base font-bold text-emerald-700 mt-1">0 đ</div>
+                    <span class="text-[10px] text-gray-400">trực tiếp</span>
+                </div>
+
+                <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-brand-green/10 text-center">
+                    <div class="text-[11px] text-blue-700 font-bold uppercase">Chuyển khoản</div>
+                    <div id="reportTransferTotal" class="text-base font-bold text-blue-700 mt-1">0 đ</div>
+                    <span class="text-[10px] text-gray-400">ngân hàng/QR</span>
+                </div>
+
+                <div class="bg-brand-green text-white p-3.5 rounded-2xl shadow-md text-center col-span-2 sm:col-span-1">
+                    <div class="text-[11px] text-white/80 font-bold uppercase">Tổng Doanh Thu</div>
+                    <div id="reportGrandTotal" class="text-lg font-black mt-1">0 đ</div>
+                    <span class="text-[10px] text-white/70">tổng cộng</span>
                 </div>
             </div>
         </div>
 
-        <!-- 2. TAB LỊCH HẸN -->
+        <!-- 2. TAB NHẬT KÝ DỊCH VỤ NGÀY -->
+        <div id="tab-logs" class="tab-content hidden space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-bold text-brand-darkgreen uppercase">Nhật Ký Dịch Vụ Ngày</h2>
+                <button onclick="toggleAddLogForm()" class="bg-brand-green text-white text-xs px-3.5 py-2 rounded-xl font-bold flex items-center gap-1 shadow">
+                    <i class="fa-solid fa-plus"></i> + Thêm lượt làm
+                </button>
+            </div>
+
+            <!-- FORM THÊM LƯỢT PHỤC VỤ KHÁCH -->
+            <div id="addLogForm" class="hidden bg-white p-5 rounded-3xl shadow-md border border-brand-green/20 space-y-4">
+                <h3 class="font-bold text-brand-darkgreen text-sm flex items-center gap-1.5 border-b pb-2">
+                    <i class="fa-solid fa-receipt text-brand-green"></i> Ghi Nhận Lượt Phục Vụ Khách Hàng
+                </h3>
+                <form onsubmit="saveCustomerLog(event)" class="space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">1. Ngày làm *</label>
+                            <input type="date" id="logDate" required class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">2. Khách hàng *</label>
+                            <select id="logCustomerSelect" onchange="handleCustomerSelectChange()" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                                <option value="">-- Chọn khách hàng --</option>
+                                <option value="KHACH_LA">+ Nhập tên Khách Lạ...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <input type="text" id="logCustomCustomer" placeholder="Nhập tên & SĐT khách lạ..." class="hidden w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-600 mb-1">3. Dịch vụ thực hiện *</label>
+                        <select id="logServiceSelect" onchange="autoFillServicePrice()" required class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                            <!-- Render từ danh sách Dịch Vụ -->
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">4. Tiền mặt (VNĐ)</label>
+                            <input type="number" id="logCashAmount" min="0" step="1000" placeholder="0" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold text-emerald-700">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">4. Chuyển khoản (VNĐ)</label>
+                            <input type="number" id="logTransferAmount" min="0" step="1000" placeholder="0" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold text-blue-700">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-600 mb-1">5. KTV Phục vụ *</label>
+                        <select id="logStaffSelect" required class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                            <!-- Render từ danh sách Nhân Viên -->
+                        </select>
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <button type="button" onclick="toggleAddLogForm()" class="w-1/2 py-2.5 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Hủy</button>
+                        <button type="submit" class="w-1/2 py-2.5 bg-brand-green text-white font-bold rounded-xl text-xs shadow">OK - LƯU LƯỢT DỊCH VỤ</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- DANH SÁCH NHẬT KÝ DỊCH VỤ -->
+            <div class="space-y-3" id="serviceLogsContainer">
+                <p class="text-center text-gray-400 text-xs py-4">Đang tải nhật ký dịch vụ từ đám mây...</p>
+            </div>
+        </div>
+
+        <!-- 3. TAB LỊCH HẸN -->
         <div id="tab-booking" class="tab-content hidden space-y-4">
             <div class="flex justify-between items-center">
                 <h2 class="text-lg font-bold text-brand-darkgreen uppercase">Danh Sách Lịch Hẹn</h2>
@@ -102,7 +186,7 @@
             </div>
         </div>
 
-        <!-- 3. TAB KHÁCH HÀNG -->
+        <!-- 4. TAB KHÁCH HÀNG -->
         <div id="tab-customers" class="tab-content hidden space-y-4">
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div class="relative flex-1">
@@ -114,7 +198,6 @@
                         <i class="fa-solid fa-user-plus"></i>
                         <span>Thêm khách</span>
                     </button>
-                    <!-- Nút Xuất Excel trực tiếp -->
                     <button onclick="exportCustomersToExcel()" class="flex-1 sm:flex-initial bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-1.5 shadow-md shrink-0">
                         <i class="fa-solid fa-file-excel"></i>
                         <span>Xuất Excel</span>
@@ -127,11 +210,11 @@
             </div>
         </div>
 
-        <!-- 4. TAB QUẢN LÝ DỊCH VỤ -->
+        <!-- 5. TAB QUẢN LÝ DỊCH VỤ -->
         <div id="tab-services" class="tab-content hidden space-y-6">
             <div class="bg-white p-5 rounded-3xl shadow-sm border border-brand-green/10 space-y-4">
                 <h2 class="text-lg font-bold text-brand-darkgreen flex items-center gap-2">
-                    <i class="fa-solid fa-plus text-brand-green"></i> Thêm Dịch Vụ Mới
+                    <i class="fa-solid fa-plus text-brand-green"></i> Thêm Dịch Vụ & % Hoa Hồng
                 </h2>
                 <form onsubmit="addNewService(event)" class="space-y-3">
                     <div>
@@ -142,6 +225,15 @@
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Giá niêm yết (VNĐ) *</label>
                         <input type="number" id="servPrice" required placeholder="Nhập số tiền..." class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
                     </div>
+
+                    <!-- ĐIỀN % HOA HỒNG THEO CẤP BẬC -->
+                    <div class="bg-brand-cream/60 p-3.5 rounded-2xl border border-brand-green/20 space-y-2">
+                        <label class="block text-xs font-bold text-brand-darkgreen uppercase">% Hoa hồng nhận được theo Cấp Bậc Nhân Viên:</label>
+                        <div id="commissionRatesInputsContainer" class="grid grid-cols-2 gap-2">
+                            <!-- Render động từ Cấp Bậc -->
+                        </div>
+                    </div>
+
                     <button type="submit" class="w-full bg-brand-green hover:bg-brand-darkgreen text-white font-bold py-3 rounded-xl shadow-md text-sm">
                         + LƯU DỊCH VỤ VÀO CLOUD
                     </button>
@@ -158,25 +250,105 @@
             </div>
         </div>
 
+        <!-- 6. TAB QUẢN LÝ NHÂN VIÊN & BÁO CÁO HOA HỒNG -->
+        <div id="tab-staff" class="tab-content hidden space-y-5">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-bold text-brand-darkgreen uppercase">Nhân Viên & Cấp Bậc</h2>
+                <div class="flex gap-2">
+                    <button onclick="toggleLevelModal()" class="bg-white border border-brand-green/30 text-brand-darkgreen text-xs px-3 py-2 rounded-xl font-bold">
+                        <i class="fa-solid fa-layer-group"></i> Cấp bậc
+                    </button>
+                    <button onclick="toggleAddStaffModal()" class="bg-brand-green text-white text-xs px-3.5 py-2 rounded-xl font-bold flex items-center gap-1 shadow">
+                        <i class="fa-solid fa-user-plus"></i> + Thêm NV
+                    </button>
+                </div>
+            </div>
+
+            <!-- MODAL QUẢN LÝ CẤP BẬC -->
+            <div id="levelModal" class="hidden bg-white p-4 rounded-2xl border border-brand-green/20 shadow-sm space-y-3">
+                <h3 class="text-xs font-bold text-brand-darkgreen uppercase">Thêm Cấp Bậc Nhân Viên Mới</h3>
+                <div class="flex gap-2">
+                    <input type="text" id="newLevelInput" placeholder="Tên cấp bậc mới..." class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                    <button onclick="saveNewLevel()" class="bg-brand-green text-white px-4 py-2 rounded-xl font-bold text-xs shrink-0">Thêm</button>
+                </div>
+                <div class="text-[11px] text-gray-500">Cấp bậc hiện tại: <span id="currentLevelsText" class="font-bold text-brand-darkgreen"></span></div>
+            </div>
+
+            <!-- FORM THÊM NHÂN VIÊN MỚI -->
+            <div id="addStaffModal" class="hidden bg-white p-4 rounded-2xl border border-brand-green/20 shadow-sm space-y-3">
+                <h3 class="text-xs font-bold text-brand-darkgreen uppercase">Thêm Nhân Sự Mới</h3>
+                <form onsubmit="saveNewStaff(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-600 mb-1">Họ & Tên *</label>
+                        <input type="text" id="newStaffName" required placeholder="Nguyễn Văn A" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">Chức Vụ *</label>
+                            <select id="newStaffRole" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                                <option value="Kỹ thuật viên Spa">Kỹ thuật viên Spa</option>
+                                <option value="Quản lý">Quản lý</option>
+                                <option value="Lễ tân">Lễ tân</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">Cấp Bậc *</label>
+                            <select id="newStaffLevel" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                                <!-- Render từ Cấp Bậc -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 pt-1">
+                        <button type="button" onclick="toggleAddStaffModal()" class="w-1/2 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Hủy</button>
+                        <button type="submit" class="w-1/2 py-2 bg-brand-green text-white font-bold rounded-xl text-xs">Lưu Nhân Viên</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- BÁO CÁO HOA HỒNG VÀ PHỤC VỤ CỦA NHÂN VIÊN -->
+            <div class="bg-white p-4 rounded-3xl border border-brand-green/10 shadow-sm space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-brand-darkgreen uppercase">Báo Cáo Hoa Hồng Nhân Viên</h3>
+                    <select id="staffReportPeriod" onchange="generateStaffReport()" class="px-2.5 py-1 bg-brand-cream/60 rounded-lg border border-gray-200 text-xs font-bold text-brand-darkgreen">
+                        <option value="TODAY">Hôm nay</option>
+                        <option value="MONTH">Tháng này</option>
+                        <option value="YEAR">Năm 2026</option>
+                        <option value="ALL">Tất cả</option>
+                    </select>
+                </div>
+                <div class="space-y-2.5" id="staffReportContainer">
+                    <p class="text-center text-gray-400 text-xs py-2">Đang tải danh sách nhân viên...</p>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- BOTTOM NAVIGATION BAR -->
-    <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-brand-green/20 px-4 py-2 flex justify-around items-center z-40 shadow-lg md:max-w-md md:mx-auto md:bottom-4 md:rounded-full">
-        <button onclick="switchTab('home')" id="btn-home" class="nav-tab text-brand-green flex flex-col items-center gap-1 font-bold text-[11px]">
-            <i class="fa-solid fa-house text-lg"></i>
+    <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-brand-green/20 px-3 py-2 flex justify-around items-center z-40 shadow-lg md:max-w-md md:mx-auto md:bottom-4 md:rounded-full">
+        <button onclick="switchTab('home')" id="btn-home" class="nav-tab text-brand-green flex flex-col items-center gap-1 font-bold text-[10px]">
+            <i class="fa-solid fa-house text-base"></i>
             <span>Trang chủ</span>
         </button>
-        <button onclick="switchTab('booking')" id="btn-booking" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[11px]">
-            <i class="fa-solid fa-calendar-check text-lg"></i>
+        <button onclick="switchTab('logs')" id="btn-logs" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[10px]">
+            <i class="fa-solid fa-clipboard-user text-base"></i>
+            <span>Nhật ký</span>
+        </button>
+        <button onclick="switchTab('booking')" id="btn-booking" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[10px]">
+            <i class="fa-solid fa-calendar-check text-base"></i>
             <span>Lịch hẹn</span>
         </button>
-        <button onclick="switchTab('customers')" id="btn-customers" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[11px]">
-            <i class="fa-solid fa-users text-lg"></i>
+        <button onclick="switchTab('customers')" id="btn-customers" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[10px]">
+            <i class="fa-solid fa-users text-base"></i>
             <span>Khách hàng</span>
         </button>
-        <button onclick="switchTab('services')" id="btn-services" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[11px]">
-            <i class="fa-solid fa-spa text-lg"></i>
+        <button onclick="switchTab('services')" id="btn-services" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[10px]">
+            <i class="fa-solid fa-spa text-base"></i>
             <span>Dịch vụ</span>
+        </button>
+        <button onclick="switchTab('staff')" id="btn-staff" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[10px]">
+            <i class="fa-solid fa-user-gear text-base"></i>
+            <span>Nhân viên</span>
         </button>
     </nav>
 
@@ -227,10 +399,7 @@
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1">Chọn Dịch vụ Spa *</label>
                     <select id="bookService" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
-                        <option>Facial Chăm Sóc Da Y Khoa</option>
-                        <option>Massage Cổ Vai Gáy Dưỡng Sinh</option>
-                        <option>Điều Trị Da Công Nghệ Cao (Laser, Nám)</option>
-                        <option>Gội Đầu Dưỡng Sinh Thảo Dược</option>
+                        <!-- Render từ danh sách Dịch Vụ -->
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
@@ -276,9 +445,9 @@
         </div>
     </div>
 
-    <!-- SCRIPT CHÍNH FIREBASE & XUẤT EXCEL -->
+    <!-- SCRIPT FIREBASE & REALTIME LOGIC -->
     <script>
-        // ⚙️ ĐÃ CẬP NHẬT FIREBASE CỦA DỰ ÁN KIMBEAUTY-11B61
+        // FIREBASE CONFIG CHUẨN DỰ ÁN KIMBEAUTY-11B61
         const firebaseConfig = {
             apiKey: "AIzaSyCzIUPf2Wghh6voay899bdDGN9rQVhHGsU",
             authDomain: "kimbeauty-11b61.firebaseapp.com",
@@ -294,147 +463,470 @@
         const db = firebase.database();
         let currentActiveCustKey = null;
 
-        // 1. Tải Khách Hàng từ Cloud Realtime
-        db.ref('customers').on('value', (snapshot) => {
-            const data = snapshot.val();
-            const container = document.getElementById('customerList');
-            container.innerHTML = '';
-            let count = 0;
+        // BỘ LƯU DỮ LIỆU TỰ ĐỘNG TỪ FIREBASE
+        let globalCustomers = {};
+        let globalServices = {};
+        let globalStaff = {};
+        let globalLevels = ['Tập sự', 'Chính thức', 'Cao cấp', 'Quản lý'];
+        let globalServiceLogs = {};
 
-            if(!data) {
-                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Chưa có khách hàng nào trên Cloud</p>';
-                document.getElementById('statTotalCust').innerText = '0 khách';
+        window.addEventListener('DOMContentLoaded', () => {
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('reportDateSelect').value = todayStr;
+            document.getElementById('logDate').value = todayStr;
+
+            initFirebaseListeners();
+        });
+
+        function formatVND(val) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val || 0);
+        }
+
+        // --- HÀM KHỞI TẠO CÁC NÚT LẮNG NGHE REALTIME ---
+        function initFirebaseListeners() {
+            // 1. Cấp Bậc
+            db.ref('levels').on('value', (snap) => {
+                const data = snap.val();
+                if (data) globalLevels = Object.values(data);
+                renderLevelsUI();
+            });
+
+            // 2. Nhân Viên
+            db.ref('staff').on('value', (snap) => {
+                globalStaff = snap.val() || {};
+                renderStaffSelectUI();
+                generateStaffReport();
+            });
+
+            // 3. Khách Hàng
+            db.ref('customers').on('value', (snap) => {
+                globalCustomers = snap.val() || {};
+                renderCustomersUI();
+                renderCustomerSelectInLogUI();
+            });
+
+            // 4. Dịch Vụ
+            db.ref('services').on('value', (snap) => {
+                globalServices = snap.val() || {};
+                renderServicesUI();
+                renderServiceSelectUI();
+            });
+
+            // 5. Nhật Ký Dịch Vụ
+            db.ref('service_logs').on('value', (snap) => {
+                globalServiceLogs = snap.val() || {};
+                renderServiceLogsUI();
+                generateDailyReport();
+                generateStaffReport();
+            });
+
+            // 6. Lịch Hẹn
+            db.ref('bookings').on('value', (snap) => {
+                renderBookingsUI(snap.val());
+            });
+        }
+
+        // --- CẤP BẬC & NHÂN VIÊN REALTIME ---
+        function toggleLevelModal() { document.getElementById('levelModal').classList.toggle('hidden'); }
+        function saveNewLevel() {
+            const val = document.getElementById('newLevelInput').value.trim();
+            if (val && !globalLevels.includes(val)) {
+                globalLevels.push(val);
+                db.ref('levels').set(globalLevels);
+                document.getElementById('newLevelInput').value = '';
+                alert('Đã lưu cấp bậc mới!');
+            }
+        }
+        function renderLevelsUI() {
+            document.getElementById('currentLevelsText').innerText = globalLevels.join(', ');
+            const select = document.getElementById('newStaffLevel');
+            select.innerHTML = globalLevels.map(l => `<option value="${l}">${l}</option>`).join('');
+            renderCommissionInputsInServiceUI();
+        }
+
+        function toggleAddStaffModal() { document.getElementById('addStaffModal').classList.toggle('hidden'); }
+        function saveNewStaff(e) {
+            e.preventDefault();
+            const name = document.getElementById('newStaffName').value;
+            const role = document.getElementById('newStaffRole').value;
+            const level = document.getElementById('newStaffLevel').value;
+
+            db.ref('staff').push({ name, role, level }, (err) => {
+                if(!err) {
+                    toggleAddStaffModal();
+                    document.getElementById('newStaffName').value = '';
+                    alert('Đã lưu nhân viên lên Cloud!');
+                }
+            });
+        }
+
+        function deleteStaff(key) {
+            if(confirm('Xóa nhân viên này khỏi hệ thống?')) db.ref('staff/' + key).remove();
+        }
+
+        function renderStaffSelectUI() {
+            const logSelect = document.getElementById('logStaffSelect');
+            logSelect.innerHTML = '<option value="">-- Chọn nhân viên thực hiện --</option>';
+            Object.keys(globalStaff).forEach(k => {
+                const s = globalStaff[k];
+                logSelect.innerHTML += `<option value="${s.name}">${s.name} (${s.role} - ${s.level})</option>`;
+            });
+        }
+
+        // --- QUẢN LÝ DỊCH VỤ & % HOA HỒNG ---
+        function renderCommissionInputsInServiceUI() {
+            const container = document.getElementById('commissionRatesInputsContainer');
+            container.innerHTML = globalLevels.map(lvl => `
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-600">Cấp "${lvl}" (%)</label>
+                    <input type="number" min="0" max="100" step="0.5" data-level="${lvl}" placeholder="10" class="comm-input-field w-full px-2 py-1.5 bg-white rounded-lg border border-gray-200 text-xs font-bold text-brand-darkgreen">
+                </div>
+            `).join('');
+        }
+
+        function addNewService(e) {
+            e.preventDefault();
+            const name = document.getElementById('servName').value;
+            const price = parseFloat(document.getElementById('servPrice').value) || 0;
+
+            const comms = {};
+            document.querySelectorAll('.comm-input-field').forEach(inp => {
+                const lvl = inp.getAttribute('data-level');
+                comms[lvl] = parseFloat(inp.value) || 0;
+            });
+
+            db.ref('services').push({ name, price, commissions: comms }, (err) => {
+                if(!err) {
+                    alert('Đã lưu dịch vụ vào Cloud!');
+                    document.getElementById('servName').value = '';
+                    document.getElementById('servPrice').value = '';
+                }
+            });
+        }
+
+        function deleteService(key) {
+            if(confirm('Xóa dịch vụ này khỏi Cloud?')) db.ref('services/' + key).remove();
+        }
+
+        function renderServicesUI() {
+            const container = document.getElementById('serviceListContainer');
+            container.innerHTML = '';
+            if(Object.keys(globalServices).length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-2">Chưa có dịch vụ nào</p>';
                 return;
             }
 
-            Object.keys(data).forEach(key => {
-                count++;
-                const c = data[key];
+            Object.keys(globalServices).forEach(key => {
+                const s = globalServices[key];
+                const commBadges = globalLevels.map(lvl => {
+                    const r = (s.commissions && s.commissions[lvl]) ? s.commissions[lvl] : 0;
+                    return `<span class="bg-brand-green/10 text-brand-darkgreen px-1.5 py-0.5 rounded text-[10px] font-semibold">${lvl}: ${r}%</span>`;
+                }).join(' ');
+
                 const cardHTML = `
-                    <div id="cust-${key}" onclick="showCustomerDetails('${key}', '${c.name}', '${c.phone}', '${c.address}')" class="cust-card bg-white p-4 rounded-2xl shadow-sm border border-brand-green/10 cursor-pointer flex items-center justify-between">
-                        <div class="flex items-center gap-3.5">
-                            <div class="w-12 h-12 rounded-2xl bg-brand-green text-white font-bold flex items-center justify-center text-base shadow-sm">${c.name ? c.name.substring(0,2).toUpperCase() : 'KH'}</div>
+                    <div class="p-3 bg-brand-cream/40 rounded-2xl border border-gray-100 space-y-1.5">
+                        <div class="flex items-center justify-between">
                             <div>
-                                <h3 class="font-bold text-brand-darkgreen text-base">${c.name}</h3>
-                                <p class="text-xs text-gray-500">📞 ${c.phone}</p>
-                                <p class="text-[11px] text-gray-400">📍 ${c.address}</p>
+                                <div class="font-bold text-brand-darkgreen text-xs">${s.name}</div>
+                                <div class="text-xs text-green-700 font-extrabold">${formatVND(s.price)}</div>
                             </div>
+                            <button onclick="deleteService('${key}')" class="bg-red-50 text-red-600 text-xs px-2.5 py-1 rounded-lg font-bold">🗑 Xóa</button>
                         </div>
-                        <div class="text-right">
-                            <span class="text-xs text-brand-green font-semibold">Chi tiết ➔</span>
+                        <div class="flex flex-wrap gap-1">${commBadges}</div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('afterbegin', cardHTML);
+            });
+        }
+
+        function renderServiceSelectUI() {
+            const select = document.getElementById('logServiceSelect');
+            const bookSelect = document.getElementById('bookService');
+            select.innerHTML = '<option value="">-- Chọn dịch vụ từ menu --</option>';
+            bookSelect.innerHTML = '';
+
+            Object.keys(globalServices).forEach(k => {
+                const s = globalServices[k];
+                select.innerHTML += `<option value="${s.name}">${s.name} (${formatVND(s.price)})</option>`;
+                bookSelect.innerHTML += `<option value="${s.name}">${s.name}</option>`;
+            });
+        }
+
+        function autoFillServicePrice() {
+            const selectedName = document.getElementById('logServiceSelect').value;
+            const servKey = Object.keys(globalServices).find(k => globalServices[k].name === selectedName);
+            if (servKey) {
+                document.getElementById('logCashAmount').value = globalServices[servKey].price;
+                document.getElementById('logTransferAmount').value = 0;
+            }
+        }
+
+        // --- NHẬT KÝ DỊCH VỤ & TÍNH HOA HỒNG REALTIME ---
+        function toggleAddLogForm() { document.getElementById('addLogForm').classList.toggle('hidden'); }
+
+        function handleCustomerSelectChange() {
+            const select = document.getElementById('logCustomerSelect');
+            const customInput = document.getElementById('logCustomCustomer');
+            if (select.value === 'KHACH_LA') {
+                customInput.classList.remove('hidden');
+                customInput.required = true;
+            } else {
+                customInput.classList.add('hidden');
+                customInput.required = false;
+            }
+        }
+
+        function renderCustomerSelectInLogUI() {
+            const select = document.getElementById('logCustomerSelect');
+            select.innerHTML = '<option value="">-- Chọn khách hàng --</option>';
+            Object.keys(globalCustomers).forEach(k => {
+                const c = globalCustomers[k];
+                select.innerHTML += `<option value="${c.name} (${c.phone})">${c.name} (${c.phone})</option>`;
+            });
+            select.innerHTML += '<option value="KHACH_LA">+ Nhập tên Khách Lạ...</option>';
+        }
+
+        function saveCustomerLog(e) {
+            e.preventDefault();
+            const date = document.getElementById('logDate').value;
+            const custSelect = document.getElementById('logCustomerSelect').value;
+            const custCustom = document.getElementById('logCustomCustomer').value;
+            const customerName = (custSelect === 'KHACH_LA') ? custCustom : custSelect;
+
+            const serviceName = document.getElementById('logServiceSelect').value;
+            const cash = parseFloat(document.getElementById('logCashAmount').value) || 0;
+            const transfer = parseFloat(document.getElementById('logTransferAmount').value) || 0;
+            const total = cash + transfer;
+            const staffName = document.getElementById('logStaffSelect').value;
+
+            // Tra cứu cấp bậc nhân viên và % hoa hồng tương ứng
+            const staffKey = Object.keys(globalStaff).find(k => globalStaff[k].name === staffName);
+            const staffObj = staffKey ? globalStaff[staffKey] : null;
+
+            const servKey = Object.keys(globalServices).find(k => globalServices[k].name === serviceName);
+            const servObj = servKey ? globalServices[servKey] : null;
+
+            let commRate = 0;
+            if (staffObj && servObj && servObj.commissions) {
+                commRate = servObj.commissions[staffObj.level] || 0;
+            }
+
+            const commAmount = (total * commRate) / 100;
+
+            db.ref('service_logs').push({
+                date, customer: customerName, service: serviceName, cash, transfer, total, staff: staffName, commissionPercent: commRate, commissionAmount: commAmount
+            }, (err) => {
+                if(!err) {
+                    toggleAddLogForm();
+                    alert(`Lưu lượt phục vụ thành công! Hoa hồng tính cho ${staffName} (${commRate}%): ${formatVND(commAmount)}`);
+                }
+            });
+        }
+
+        function deleteLog(key) {
+            if(confirm('Xóa lượt dịch vụ này khỏi Cloud?')) db.ref('service_logs/' + key).remove();
+        }
+
+        function renderServiceLogsUI() {
+            const container = document.getElementById('serviceLogsContainer');
+            container.innerHTML = '';
+            const keys = Object.keys(globalServiceLogs);
+
+            if(keys.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Chưa có nhật ký dịch vụ nào</p>';
+                return;
+            }
+
+            keys.forEach(key => {
+                const log = globalServiceLogs[key];
+                const cardHTML = `
+                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-brand-green/10 space-y-1.5">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-brand-darkgreen text-sm">${log.customer}</h3>
+                                <p class="text-[11px] text-gray-400">📅 ${log.date}</p>
+                            </div>
+                            <button onclick="deleteLog('${key}')" class="text-red-500 text-xs font-bold">🗑 Xóa</button>
+                        </div>
+                        <div class="bg-brand-cream/50 p-2 rounded-xl text-xs space-y-1">
+                            <div><strong class="text-gray-700">Dịch vụ:</strong> <span class="text-brand-green font-bold">${log.service}</span></div>
+                            <div class="flex justify-between">
+                                <span>Tiền mặt: <strong class="text-emerald-700">${formatVND(log.cash)}</strong></span>
+                                <span>Chuyển khoản: <strong class="text-blue-700">${formatVND(log.transfer)}</strong></span>
+                            </div>
+                            <div class="flex justify-between border-t pt-1 font-bold">
+                                <span>Tổng thu: ${formatVND(log.total)}</span>
+                                <span class="text-amber-700">Hoa hồng NV: ${formatVND(log.commissionAmount)} (${log.commissionPercent}%)</span>
+                            </div>
+                            <div class="text-[11px] text-gray-600">👤 KTV: <strong>${log.staff}</strong></div>
                         </div>
                     </div>
                 `;
                 container.insertAdjacentHTML('afterbegin', cardHTML);
             });
-            document.getElementById('statTotalCust').innerText = count + ' khách';
-        });
+        }
 
-        // 2. Tải Lịch Hẹn từ Cloud Realtime
-        db.ref('bookings').on('value', (snapshot) => {
-            const data = snapshot.val();
+        // --- BÁO CÁO TỔNG HỢP REALTIME ---
+        function generateDailyReport() {
+            const selectedDate = document.getElementById('reportDateSelect').value;
+            let totalClients = 0, totalCash = 0, totalTransfer = 0;
+
+            Object.keys(globalServiceLogs).forEach(k => {
+                const l = globalServiceLogs[k];
+                if(l.date === selectedDate) {
+                    totalClients++;
+                    totalCash += (l.cash || 0);
+                    totalTransfer += (l.transfer || 0);
+                }
+            });
+
+            document.getElementById('statTotalCust').innerText = totalClients;
+            document.getElementById('reportCashTotal').innerText = formatVND(totalCash);
+            document.getElementById('reportTransferTotal').innerText = formatVND(totalTransfer);
+            document.getElementById('reportGrandTotal').innerText = formatVND(totalCash + totalTransfer);
+        }
+
+        function generateStaffReport() {
+            const period = document.getElementById('staffReportPeriod').value;
+            const todayStr = new Date().toISOString().split('T')[0];
+            const currentMonthStr = todayStr.substring(0, 7);
+            const currentYearStr = todayStr.substring(0, 4);
+
+            let logsList = [];
+            Object.keys(globalServiceLogs).forEach(k => {
+                const log = globalServiceLogs[k];
+                if (period === 'TODAY' && log.date === todayStr) logsList.push(log);
+                else if (period === 'MONTH' && log.date.startsWith(currentMonthStr)) logsList.push(log);
+                else if (period === 'YEAR' && log.date.startsWith(currentYearStr)) logsList.push(log);
+                else if (period === 'ALL') logsList.push(log);
+            });
+
+            const totalPeriodRevenue = logsList.reduce((sum, l) => sum + (l.total || 0), 0);
+            const container = document.getElementById('staffReportContainer');
+            container.innerHTML = '';
+
+            const staffKeys = Object.keys(globalStaff);
+            if(staffKeys.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-2">Chưa có nhân viên nào</p>';
+                return;
+            }
+
+            staffKeys.forEach(sKey => {
+                const staff = globalStaff[sKey];
+                const staffLogs = logsList.filter(l => l.staff === staff.name);
+                const clientCount = staffLogs.length;
+                const staffRevenue = staffLogs.reduce((sum, l) => sum + (l.total || 0), 0);
+                const totalCommission = staffLogs.reduce((sum, l) => sum + (l.commissionAmount || 0), 0);
+                const percentage = totalPeriodRevenue > 0 ? ((staffRevenue / totalPeriodRevenue) * 100).toFixed(1) : 0;
+
+                const cardHTML = `
+                    <div class="p-3 bg-brand-cream/40 rounded-2xl border border-gray-100 space-y-1">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-bold text-brand-darkgreen text-xs">${staff.name}</span>
+                                <span class="text-[10px] text-gray-500 bg-white px-2 py-0.5 rounded border ml-1">${staff.role} - ${staff.level}</span>
+                            </div>
+                            <button onclick="deleteStaff('${sKey}')" class="text-red-500 text-xs font-bold">🗑 Xóa</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+                            <div>Số khách: <strong>${clientCount} lượt</strong></div>
+                            <div>Doanh thu: <strong class="text-emerald-700">${formatVND(staffRevenue)}</strong></div>
+                        </div>
+                        <div class="flex justify-between items-center pt-1 text-xs border-t border-gray-100">
+                            <span class="text-amber-700 font-bold">Tổng hoa hồng: ${formatVND(totalCommission)}</span>
+                            <span class="text-[11px] font-bold text-brand-green">Đóng góp: ${percentage}%</span>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('afterbegin', cardHTML);
+            });
+        }
+
+        // --- KHÁCH HÀNG & LỊCH HẸN FUNCTIONS ---
+        function renderCustomersUI() {
+            const container = document.getElementById('customerList');
+            container.innerHTML = '';
+            const keys = Object.keys(globalCustomers);
+
+            if(keys.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Chưa có khách hàng nào</p>';
+                return;
+            }
+
+            keys.forEach(key => {
+                const c = globalCustomers[key];
+                const cardHTML = `
+                    <div id="cust-${key}" onclick="showCustomerDetails('${key}', '${c.name}', '${c.phone}', '${c.address}')" class="cust-card bg-white p-4 rounded-2xl shadow-sm border border-brand-green/10 cursor-pointer flex items-center justify-between">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-11 h-11 rounded-2xl bg-brand-green text-white font-bold flex items-center justify-center text-sm shadow-sm">${c.name ? c.name.substring(0,2).toUpperCase() : 'KH'}</div>
+                            <div>
+                                <h3 class="font-bold text-brand-darkgreen text-sm">${c.name}</h3>
+                                <p class="text-xs text-gray-500">📞 ${c.phone}</p>
+                                <p class="text-[11px] text-gray-400">📍 ${c.address}</p>
+                            </div>
+                        </div>
+                        <span class="text-xs text-brand-green font-semibold">Chi tiết ➔</span>
+                    </div>
+                `;
+                container.insertAdjacentHTML('afterbegin', cardHTML);
+            });
+        }
+
+        function renderBookingsUI(data) {
             const container = document.getElementById('bookingList');
             container.innerHTML = '';
-            let count = 0;
-
             if(!data) {
                 container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Chưa có lịch hẹn nào</p>';
-                document.getElementById('statTotalBookings').innerText = '0 lịch';
                 return;
             }
 
             Object.keys(data).forEach(key => {
-                count++;
                 const b = data[key];
                 const statusClass = b.status === 'Đã xong' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
-                const completeBtn = b.status === 'Đang chờ' ? `
-                    <button onclick="completeBooking('${key}')" class="bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold">
-                        ✓ Hoàn thành
-                    </button>
-                ` : '';
+                const completeBtn = b.status === 'Đang chờ' ? `<button onclick="completeBooking('${key}')" class="bg-green-600 text-white text-xs px-3 py-1 rounded-lg font-bold">✓ Hoàn thành</button>` : '';
 
                 const cardHTML = `
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-brand-green/10 space-y-2">
+                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-brand-green/10 space-y-2">
                         <div class="flex justify-between items-start">
                             <div>
-                                <h3 class="font-bold text-brand-darkgreen text-base">${b.name}</h3>
+                                <h3 class="font-bold text-brand-darkgreen text-sm">${b.name}</h3>
                                 <p class="text-xs text-gray-500">📞 ${b.phone}</p>
                             </div>
-                            <span class="${statusClass} text-xs px-2.5 py-1 rounded-full font-bold">${b.status}</span>
+                            <span class="${statusClass} text-[10px] px-2 py-0.5 rounded-full font-bold">${b.status}</span>
                         </div>
-                        <div class="bg-brand-cream/50 p-2.5 rounded-xl text-xs space-y-1">
+                        <div class="bg-brand-cream/50 p-2 rounded-xl text-xs space-y-0.5">
                             <div><strong class="text-gray-700">Dịch vụ:</strong> <span class="text-brand-green font-bold">${b.service}</span></div>
                             <div><strong class="text-gray-700">Giờ hẹn:</strong> ${b.time}</div>
                         </div>
                         <div class="flex justify-end gap-2 pt-1 border-t border-gray-100">
                             ${completeBtn}
-                            <button onclick="deleteBooking('${key}')" class="bg-red-50 text-red-600 text-xs px-3 py-1.5 rounded-lg font-bold">🗑 Xóa</button>
+                            <button onclick="deleteBooking('${key}')" class="bg-red-50 text-red-600 text-xs px-2.5 py-1 rounded-lg font-bold">🗑 Xóa</button>
                         </div>
                     </div>
                 `;
                 container.insertAdjacentHTML('afterbegin', cardHTML);
-            });
-            document.getElementById('statTotalBookings').innerText = count + ' lịch';
-        });
-
-        // 3. Tải Dịch Vụ từ Cloud Realtime
-        db.ref('services').on('value', (snapshot) => {
-            const data = snapshot.val();
-            const container = document.getElementById('serviceListContainer');
-            container.innerHTML = '';
-
-            if(!data) {
-                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-2">Chưa có dịch vụ nào</p>';
-                return;
-            }
-
-            Object.keys(data).forEach(key => {
-                const s = data[key];
-                const cardHTML = `
-                    <div class="p-3 bg-brand-cream/40 rounded-2xl border border-gray-100 flex items-center justify-between">
-                        <div>
-                            <div class="font-bold text-brand-darkgreen text-sm">${s.name}</div>
-                            <div class="text-xs text-green-700 font-extrabold">${parseInt(s.price).toLocaleString('vi-VN')} đ</div>
-                        </div>
-                        <button onclick="deleteService('${key}')" class="bg-red-50 text-red-600 text-xs px-3 py-1.5 rounded-lg font-bold">🗑 Xóa</button>
-                    </div>
-                `;
-                container.insertAdjacentHTML('afterbegin', cardHTML);
-            });
-        });
-
-        // --- XUẤT EXCEL TỪ TRÌNH DUYỆT ---
-        function exportCustomersToExcel() {
-            db.ref('customers').once('value').then((snapshot) => {
-                const data = snapshot.val();
-                if (!data) {
-                    alert('Chưa có dữ liệu khách hàng để xuất file!');
-                    return;
-                }
-
-                const excelData = [];
-                let stt = 1;
-
-                Object.keys(data).forEach(key => {
-                    const c = data[key];
-                    excelData.push({
-                        "STT": stt++,
-                        "Họ và Tên": c.name || '',
-                        "Số Điện Thoại": c.phone || '',
-                        "Địa Chỉ": c.address || ''
-                    });
-                });
-
-                const worksheet = XLSX.utils.json_to_sheet(excelData);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "KhachHang_KimBeauty");
-
-                const today = new Date().toISOString().slice(0, 10);
-                XLSX.writeFile(workbook, `Danh_Sach_Khach_Hang_KimBeauty_${today}.xlsx`);
             });
         }
 
-        // --- CÁC THAO TÁC THÊM & XÓA KHÁCH HÀNG / LỊCH HẸN / DỊCH VỤ ---
+        function exportCustomersToExcel() {
+            if (Object.keys(globalCustomers).length === 0) {
+                alert('Chưa có dữ liệu khách hàng để xuất file!');
+                return;
+            }
+
+            const excelData = [];
+            let stt = 1;
+            Object.keys(globalCustomers).forEach(key => {
+                const c = globalCustomers[key];
+                excelData.push({ "STT": stt++, "Họ và Tên": c.name || '', "Số Điện Thoại": c.phone || '', "Địa Chỉ": c.address || '' });
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "KhachHang_KimBeauty");
+            XLSX.writeFile(workbook, `Danh_Sach_Khach_Hang_KimBeauty_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        }
+
         function saveNewCustomer(e) {
             e.preventDefault();
             const name = document.getElementById('newCustName').value;
@@ -457,7 +949,6 @@
                 if(currentActiveCustKey) {
                     db.ref('customers/' + currentActiveCustKey).remove();
                     closeModal();
-                    alert('Đã xóa thành công!');
                 }
             }
         }
@@ -473,38 +964,15 @@
             db.ref('bookings').push({ name, phone, service, time, status }, (err) => {
                 if(!err) {
                     closeBookingModal();
-                    alert('Đã lưu lịch hẹn lên Đám Mây!');
+                    alert('Đã lưu lịch hẹn!');
                 }
             });
         }
 
-        function completeBooking(key) {
-            db.ref('bookings/' + key).update({ status: 'Đã xong' });
-        }
+        function completeBooking(key) { db.ref('bookings/' + key).update({ status: 'Đã xong' }); }
+        function deleteBooking(key) { if(confirm('Xóa lịch hẹn này?')) db.ref('bookings/' + key).remove(); }
 
-        function deleteBooking(key) {
-            if(confirm('Xóa lịch hẹn này?')) db.ref('bookings/' + key).remove();
-        }
-
-        function addNewService(e) {
-            e.preventDefault();
-            const name = document.getElementById('servName').value;
-            const price = document.getElementById('servPrice').value;
-
-            db.ref('services').push({ name, price }, (err) => {
-                if(!err) {
-                    alert('Đã thêm dịch vụ vào danh mục Đám Mây!');
-                    document.getElementById('servName').value = '';
-                    document.getElementById('servPrice').value = '';
-                }
-            });
-        }
-
-        function deleteService(key) {
-            if(confirm('Xóa dịch vụ này?')) db.ref('services/' + key).remove();
-        }
-
-        // ĐIỀU HƯỚNG TAB VÀ MODAL
+        // NAVIGATION TABS
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-tab').forEach(btn => {
@@ -533,10 +1001,8 @@
 
         function filterCustomers() {
             const input = document.getElementById('searchCust').value.toLowerCase();
-            const cards = document.querySelectorAll('.cust-card');
-            cards.forEach(card => {
-                const text = card.innerText.toLowerCase();
-                card.style.display = text.includes(input) ? 'flex' : 'none';
+            document.querySelectorAll('.cust-card').forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(input) ? 'flex' : 'none';
             });
         }
     </script>
