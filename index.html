@@ -197,9 +197,14 @@
                         <h2 class="text-xs font-bold text-brand-darkgreen uppercase flex items-center gap-1.5">
                             <i class="fa-solid fa-filter text-brand-green"></i> Tra Cứu Nhật Ký Dịch Vụ
                         </h2>
-                        <button onclick="toggleAddLogForm()" class="bg-brand-green text-white text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 shadow">
-                            <i class="fa-solid fa-plus"></i> + Thêm lượt phục vụ
-                        </button>
+                        <div class="flex gap-2">
+                            <button onclick="exportServiceLogsToExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 shadow">
+                                <i class="fa-solid fa-file-excel"></i> Xuất Excel
+                            </button>
+                            <button onclick="toggleAddLogForm()" class="bg-brand-green text-white text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 shadow">
+                                <i class="fa-solid fa-plus"></i> + Thêm lượt phục vụ
+                            </button>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -238,7 +243,7 @@
                     </div>
                 </div>
 
-                <!-- FORM NHẬP LƯỢT PHỤC VỤ & THANH TOÁN TÍNH NĂNG ĐA DỊCH VỤ - NHIỀU KTV -->
+                <!-- FORM NHẬP LƯỢT PHỤC VỤ & LỰA CHỌN KHÁCH HÀNG TÙY CHỈNH -->
                 <div id="addLogForm" class="hidden bg-white p-5 rounded-3xl shadow-md border border-brand-green/20 space-y-4">
                     <h3 class="font-bold text-brand-darkgreen text-sm flex items-center justify-between border-b pb-2">
                         <span><i class="fa-solid fa-receipt text-brand-green"></i> Hoàn Thành Phục Vụ & Thanh Toán</span>
@@ -256,12 +261,21 @@
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-600 mb-1">2. Tên Khách Hàng *</label>
                                 <select id="logCustomerSelect" onchange="handleCustomerSelectChange()" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
-                                    <option value="">-- Chọn khách hàng --</option>
-                                    <option value="KHACH_LA">+ Nhập tên Khách Lạ...</option>
+                                    <option value="KHACH_LA">-- Chọn Khách lạ --</option>
+                                    <option value="NEW_CUSTOMER">+ Thêm Khách mới (Lưu danh bạ)...</option>
                                 </select>
                             </div>
                         </div>
-                        <input type="text" id="logCustomCustomer" placeholder="Nhập tên & SĐT khách lạ..." class="hidden w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+
+                        <!-- KHU VỰC NHẬP DỮ LIỆU KHÁCH MỚI HOẶC KHÁCH LẠ -->
+                        <div id="newCustomerFormBox" class="hidden bg-emerald-50/70 p-3 rounded-2xl border border-emerald-200 space-y-2">
+                            <span class="text-[10px] font-bold text-emerald-800 uppercase">Thêm Khách Hàng Mới (Tự động lưu vào Danh Sách):</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <input type="text" id="logNewCustName" placeholder="Họ và Tên khách *" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs font-bold">
+                                <input type="tel" id="logNewCustPhone" placeholder="Số điện thoại *" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs">
+                                <input type="text" id="logNewCustAddress" placeholder="Địa chỉ khách *" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs">
+                            </div>
+                        </div>
 
                         <!-- 2. DANH SÁCH DỊCH VỤ THỰC HIỆN & PHÂN CÔNG KTV TƯƠNG ỨNG -->
                         <div class="space-y-2 bg-brand-cream/40 p-3 rounded-2xl border border-brand-green/20">
@@ -645,7 +659,7 @@
 
     </div>
 
-    <!-- SCRIPT FIREBASE & NOTIFICATION FORMAL FORMATTING -->
+    <!-- SCRIPT FIREBASE & EXPORT EXCEL NHẬT KÝ DỊCH VỤ CỘT A - F -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCzIUPf2Wghh6voay899bdDGN9rQVhHGsU",
@@ -793,7 +807,7 @@
             document.getElementById('userMenuDropdown').classList.add('hidden');
             document.getElementById('changePassModal').classList.remove('hidden');
         }
-        function closeChangePasswordModal() { document.getElementById('changePassModal').classList.add('hidden'); }
+        function closeChangePasswordModal() { document.getElementById('changePassModal').classList.remove('hidden'); }
 
         function handleChangePassword(e) {
             e.preventDefault();
@@ -857,7 +871,6 @@
 
             db.ref('staff').on('value', (snap) => {
                 globalStaff = snap.val() || {};
-                renderStaffSelectUI();
                 generateStaffReport();
             });
 
@@ -902,7 +915,109 @@
             });
         }
 
-        // --- TÍNH NĂNG ĐA DỊCH VỤ VÀ PHÂN CÔNG RIÊNG BIỆT KTV TỪNG DỊCH VỤ ---
+        // --- ĐỔI MỤC LỰA CHỌN KHÁCH HÀNG: KHÁCH LẠ ĐẦU TIÊN, KHÁCH MỚI THỨ HAI ---
+        function renderCustomerSelectInLogUI() {
+            const select = document.getElementById('logCustomerSelect');
+            if(!select) return;
+
+            let html = `
+                <option value="KHACH_LA">-- Chọn Khách lạ --</option>
+                <option value="NEW_CUSTOMER">+ Thêm Khách mới (Lưu danh bạ)...</option>
+            `;
+
+            Object.keys(globalCustomers).forEach(k => {
+                const c = globalCustomers[k];
+                html += `<option value="${c.name} (${c.phone})">${c.name} (${c.phone})</option>`;
+            });
+
+            select.innerHTML = html;
+        }
+
+        function handleCustomerSelectChange() {
+            const select = document.getElementById('logCustomerSelect');
+            const box = document.getElementById('newCustomerFormBox');
+            if (select.value === 'NEW_CUSTOMER') {
+                box.classList.remove('hidden');
+                document.getElementById('logNewCustName').required = true;
+                document.getElementById('logNewCustPhone').required = true;
+                document.getElementById('logNewCustAddress').required = true;
+            } else {
+                box.classList.add('hidden');
+                document.getElementById('logNewCustName').required = false;
+                document.getElementById('logNewCustPhone').required = false;
+                document.getElementById('logNewCustAddress').required = false;
+            }
+        }
+
+        // --- XUẤT BÁO CÁO EXCEL NHẬT KÝ DỊCH VỤ THEO ĐÚNG CỘT A - F ---
+        function exportServiceLogsToExcel() {
+            const filterMode = document.getElementById('logFilterMode').value;
+            const specificDate = document.getElementById('logFilterDate').value;
+            const monthYear = document.getElementById('logFilterMonth').value;
+            const keyword = document.getElementById('logSearchKeyword').value.trim().toLowerCase();
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            const keys = Object.keys(globalServiceLogs);
+            if (keys.length === 0) {
+                alert("Chưa có dữ liệu nhật ký dịch vụ để xuất Excel!");
+                return;
+            }
+
+            let filteredKeys = keys.filter(key => {
+                const log = globalServiceLogs[key];
+                let timeMatch = true;
+                if (filterMode === 'TODAY') timeMatch = (log.date === todayStr);
+                else if (filterMode === 'SPECIFIC_DATE') timeMatch = (log.date === specificDate);
+                else if (filterMode === 'MONTH_YEAR') timeMatch = log.date.startsWith(monthYear);
+
+                let kwMatch = true;
+                if (keyword) {
+                    const fullText = `${log.customer} ${log.service} ${log.staff} ${log.date}`.toLowerCase();
+                    kwMatch = fullText.includes(keyword);
+                }
+                return timeMatch && kwMatch;
+            });
+
+            if (filteredKeys.length === 0) {
+                alert("Không có nhật ký dịch vụ nào phù hợp với bộ lọc hiện tại để xuất file!");
+                return;
+            }
+
+            const excelRows = [];
+            let stt = 1;
+
+            filteredKeys.forEach(key => {
+                const log = globalServiceLogs[key];
+                if (log.items && log.items.length > 0) {
+                    log.items.forEach(it => {
+                        excelRows.push({
+                            "STT": stt++,
+                            "Tên khách hàng": log.customer || '',
+                            "Tên dịch vụ": it.service || '',
+                            "Số tiền": it.price || 0,
+                            "Nhân viên phục vụ": it.staff || '',
+                            "Hoa hồng nhân viên": it.commissionAmount || 0
+                        });
+                    });
+                } else {
+                    excelRows.push({
+                        "STT": stt++,
+                        "Tên khách hàng": log.customer || '',
+                        "Tên dịch vụ": log.service || '',
+                        "Số tiền": log.total || 0,
+                        "Nhân viên phục vụ": log.staff || '',
+                        "Hoa hồng nhân viên": log.commissionAmount || 0
+                    });
+                }
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(excelRows);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "NhatKyDichVu");
+            XLSX.writeFile(workbook, `Nhat_Ky_Dich_Vu_KimBeauty_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        }
+
+        // --- QUẢN LÝ THÊM DỊCH VỤ DYNAMIC & PHÂN CÔNG KTV ---
         function addServiceRowToLog(presetService = '', presetPrice = 0) {
             const container = document.getElementById('serviceRowsContainer');
             const rowId = 'row_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
@@ -971,10 +1086,9 @@
         }
 
         function startServiceFromBooking(bookingKey, custName, custPhone, serviceName) {
-            toggleAddLogForm(true); // Reset & mở form
+            toggleAddLogForm(true);
             document.getElementById('logFromBookingKey').value = bookingKey;
 
-            // Tự động chọn Khách hàng
             const select = document.getElementById('logCustomerSelect');
             let optionExists = false;
             for(let i=0; i<select.options.length; i++){
@@ -986,18 +1100,17 @@
             }
 
             if(!optionExists) {
-                select.value = 'KHACH_LA';
+                select.value = 'NEW_CUSTOMER';
                 handleCustomerSelectChange();
-                document.getElementById('logCustomCustomer').value = `${custName} - ${custPhone}`;
+                document.getElementById('logNewCustName').value = custName;
+                document.getElementById('logNewCustPhone').value = custPhone;
             } else {
                 handleCustomerSelectChange();
             }
 
-            // Tìm giá dịch vụ đã đặt
             const servKey = Object.keys(globalServices).find(k => globalServices[k].name === serviceName);
             const price = servKey ? (globalServices[servKey].price || 0) : 0;
 
-            // Thêm dịch vụ đầu tiên từ lịch hẹn
             addServiceRowToLog(serviceName, price);
         }
 
@@ -1007,7 +1120,7 @@
                 form.classList.remove('hidden');
                 document.getElementById('serviceRowsContainer').innerHTML = '';
                 document.getElementById('logFromBookingKey').value = '';
-                if (!forceOpen) addServiceRowToLog(); // Thêm 1 dòng trống mặc định
+                if (!forceOpen) addServiceRowToLog();
             } else {
                 form.classList.add('hidden');
             }
@@ -1017,8 +1130,26 @@
             e.preventDefault();
             const date = document.getElementById('logDate').value;
             const custSelect = document.getElementById('logCustomerSelect').value;
-            const custCustom = document.getElementById('logCustomCustomer').value;
-            const customerName = (custSelect === 'KHACH_LA') ? custCustom : custSelect;
+
+            let customerName = "Khách lạ";
+
+            // XỬ LÝ LƯU KHÁCH HÀNG MỚI TỰ ĐỘNG SANG TAB KHÁCH HÀNG
+            if (custSelect === 'NEW_CUSTOMER') {
+                const newName = document.getElementById('logNewCustName').value.trim();
+                const newPhone = document.getElementById('logNewCustPhone').value.trim();
+                const newAddress = document.getElementById('logNewCustAddress').value.trim();
+
+                if (!newName || !newPhone) {
+                    alert("Vui lòng nhập đầy đủ tên và số điện thoại của Khách mới!");
+                    return;
+                }
+
+                // Tự động lưu sang danh bạ Cloud
+                db.ref('customers').push({ name: newName, phone: newPhone, address: newAddress });
+                customerName = `${newName} (${newPhone})`;
+            } else if (custSelect !== 'KHACH_LA') {
+                customerName = custSelect;
+            }
 
             const rows = document.querySelectorAll('.service-row');
             if (rows.length === 0) {
@@ -1066,7 +1197,6 @@
             const transfer = parseFloat(document.getElementById('logTransferAmount').value) || 0;
             const actualTotalPaid = cash + transfer;
 
-            // Tạo chuỗi danh sách KTV và Dịch vụ tóm tắt
             const staffListText = Array.from(new Set(items.map(i => i.staff))).join(', ');
             const serviceListText = items.map(i => i.service).join(' + ');
             const totalCommissionAmount = items.reduce((sum, i) => sum + i.commissionAmount, 0);
@@ -1091,7 +1221,7 @@
                     }
 
                     toggleAddLogForm();
-                    alert(`LƯU PHỤC VỤ THÀNH CÔNG!\n----------------------------------\n- Khách hàng: ${customerName}\n- Dịch vụ: ${serviceListText}\n- Tổng tiền: ${formatVND(actualTotalPaid)}\n- KTV phục vụ: ${staffListText}\n- Tổng hoa hồng đã chia: ${formatVND(totalCommissionAmount)}`);
+                    alert(`LƯU PHỤC VỤ THÀNH CÔNG!\n----------------------------------\n- Khách hàng: ${customerName}\n- Dịch vụ: ${serviceListText}\n- Tổng tiền: ${formatVND(actualTotalPaid)}\n- KTV phục vụ: ${staffListText}\n- Hoa hồng đã chia KTV: ${formatVND(totalCommissionAmount)}`);
                 }
             });
         }
@@ -1191,7 +1321,6 @@
                 const log = globalServiceLogs[key];
                 const deleteBtn = isAdmin ? `<button onclick="deleteLog('${key}')" class="text-red-500 text-xs font-bold">🗑 Xóa</button>` : '';
 
-                // Chi tiết các món dịch vụ & KTV làm
                 let itemsDetailHTML = '';
                 if (log.items && log.items.length > 0) {
                     itemsDetailHTML = log.items.map(it => `
@@ -1348,10 +1477,6 @@
             if(confirm('Xóa nhân viên này khỏi hệ thống?')) db.ref('staff/' + key).remove();
         }
 
-        function renderStaffSelectUI() {
-            // Render selects in dynamic rows
-        }
-
         function renderCommissionInputsInServiceUI() {
             const container = document.getElementById('commissionRatesInputsContainer');
             container.innerHTML = globalLevels.map(lvl => `
@@ -1480,7 +1605,6 @@
             staffKeys.forEach(sKey => {
                 const staff = globalStaff[sKey];
                 
-                // Tính hoa hồng chuẩn từ mảng items đa dịch vụ
                 let clientCount = 0;
                 let staffRevenue = 0;
                 let totalCommission = 0;
@@ -1658,28 +1782,6 @@
 
         function completeBooking(key) { db.ref('bookings/' + key).update({ status: 'Đã xong' }); }
         function deleteBooking(key) { if(confirm('Xóa lịch hẹn này?')) db.ref('bookings/' + key).remove(); }
-
-        function handleCustomerSelectChange() {
-            const select = document.getElementById('logCustomerSelect');
-            const customInput = document.getElementById('logCustomCustomer');
-            if (select.value === 'KHACH_LA') {
-                customInput.classList.remove('hidden');
-                customInput.required = true;
-            } else {
-                customInput.classList.add('hidden');
-                customInput.required = false;
-            }
-        }
-
-        function renderCustomerSelectInLogUI() {
-            const select = document.getElementById('logCustomerSelect');
-            select.innerHTML = '<option value="">-- Chọn khách hàng --</option>';
-            Object.keys(globalCustomers).forEach(k => {
-                const c = globalCustomers[k];
-                select.innerHTML += `<option value="${c.name} (${c.phone})">${c.name} (${c.phone})</option>`;
-            });
-            select.innerHTML += '<option value="KHACH_LA">+ Nhập tên Khách Lạ...</option>';
-        }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
