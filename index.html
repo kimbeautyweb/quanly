@@ -145,7 +145,7 @@
         </header>
 
         <!-- MAIN CONTAINER -->
-        <main class="max-w-4xl mx-auto p-4 space-y-6">
+        <main class="max-w-5xl mx-auto p-4 space-y-6">
 
             <!-- 1. TAB TRANG CHỦ & BÁO CÁO DOANH THU -->
             <div id="tab-home" class="tab-content space-y-5">
@@ -208,7 +208,6 @@
                         </div>
                     </div>
 
-                    <!-- BỘ LỌC THỜI GIAN ĐÃ BỔ SUNG LỌC THEO NĂM -->
                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
                         <div>
                             <label class="block text-[10px] font-bold text-gray-500 mb-1">Chế độ lọc</label>
@@ -295,7 +294,7 @@
                             <div class="flex justify-between items-center border-b pb-1">
                                 <label class="block text-xs font-black text-brand-darkgreen uppercase">3. Chọn Dịch vụ lẻ & Sản phẩm bán lẻ:</label>
                                 <div class="flex gap-2">
-                                    <button type="button" onclick="addServiceRowToLog('SERVICE')" class="bg-brand-green text-white text-[11px] px-2.5 py-1 rounded-lg font-bold">
+                                    <button type="button" onclick="addServiceRowToLog('SINGLE')" class="bg-brand-green text-white text-[11px] px-2.5 py-1 rounded-lg font-bold">
                                         + Thêm dịch vụ
                                     </button>
                                     <button type="button" onclick="addServiceRowToLog('PRODUCT')" class="bg-blue-600 text-white text-[11px] px-2.5 py-1 rounded-lg font-bold">
@@ -374,37 +373,38 @@
                 </div>
             </div>
 
-            <!-- 5. TAB QUẢN LÝ DỊCH VỤ, COMBO & SẢN PHẨM -->
+            <!-- 5. TAB QUẢN LÝ DỊCH VỤ, COMBO & SẢN PHẨM (TÁCH 3 CỘT RIÊNG BỆT) -->
             <div id="tab-services" class="tab-content hidden space-y-6">
+                <!-- FORM THÊM MỚI MỤC -->
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-brand-green/10 space-y-4 admin-only">
                     <h2 class="text-lg font-bold text-brand-darkgreen flex items-center gap-2">
-                        <i class="fa-solid fa-plus text-brand-green"></i> Tạo Dịch Vụ Mới / Gói Combo / Sản Phẩm
+                        <i class="fa-solid fa-plus text-brand-green"></i> Thêm Mục Mới Vào Danh Mục
                     </h2>
                     <form onsubmit="addNewService(event)" class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Tên Dịch vụ / Combo / Sản phẩm *</label>
-                            <input type="text" id="servName" required placeholder="Nhập tên..." class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
-                        </div>
-
-                        <!-- LỰA CHỌN PHÂN LOẠI BAO GỒM CẢ SẢN PHẨM -->
+                        <!-- CHỌN LOẠI CỤ THỂ -->
                         <div class="grid grid-cols-3 gap-2 bg-brand-cream/60 p-2.5 rounded-2xl border border-gray-200">
                             <label class="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-brand-darkgreen">
                                 <input type="radio" name="servType" value="SINGLE" checked onchange="toggleServiceTypeInput()" class="w-3.5 h-3.5 text-brand-green">
-                                <span>Dịch vụ lẻ</span>
-                            </label>
-                            <label class="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-brand-darkgreen">
-                                <input type="radio" name="servType" value="COMBO" onchange="toggleServiceTypeInput()" class="w-3.5 h-3.5 text-brand-green">
-                                <span>Gói Combo</span>
+                                <span>💆 Dịch vụ lẻ</span>
                             </label>
                             <label class="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-blue-800">
                                 <input type="radio" name="servType" value="PRODUCT" onchange="toggleServiceTypeInput()" class="w-3.5 h-3.5 text-blue-600">
-                                <span>Sản phẩm</span>
+                                <span>📦 Sản phẩm</span>
                             </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-amber-900">
+                                <input type="radio" name="servType" value="COMBO" onchange="toggleServiceTypeInput()" class="w-3.5 h-3.5 text-amber-600">
+                                <span>🎟️ Gói Combo</span>
+                            </label>
+                        </div>
+
+                        <div>
+                            <label id="servNameLabel" class="block text-xs font-semibold text-gray-600 mb-1">Tên Dịch vụ lẻ *</label>
+                            <input type="text" id="servName" required placeholder="Nhập tên..." class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Giá bán niêm yết (VNĐ) *</label>
+                                <label id="servPriceLabel" class="block text-xs font-semibold text-gray-600 mb-1">Giá bán niêm yết (VNĐ) *</label>
                                 <input type="number" id="servPrice" required placeholder="0" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
                             </div>
                             <div id="comboSessionsBox" class="hidden">
@@ -413,7 +413,7 @@
                             </div>
                         </div>
 
-                        <!-- CẤU HÌNH LOẠI HOA HỒNG TƯƠNG TỰ BÁN SẢN PHẨM HAY DỊCH VỤ -->
+                        <!-- CẤU HÌNH HOA HỒNG -->
                         <div class="bg-brand-cream/60 p-3.5 rounded-2xl border border-brand-green/20 space-y-3">
                             <div class="flex justify-between items-center">
                                 <label class="block text-xs font-bold text-brand-darkgreen uppercase">Hoa hồng cho KTV / NV bán hàng:</label>
@@ -433,17 +433,61 @@
                         </div>
 
                         <button type="submit" class="w-full bg-brand-green hover:bg-brand-darkgreen text-white font-bold py-3 rounded-xl shadow-md text-sm">
-                            + LƯU VÀO CƠ SỞ DỮ LIỆU
+                            + LƯU VÀO DANH MỤC
                         </button>
                     </form>
                 </div>
 
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-brand-green/10 space-y-3">
-                    <h3 class="text-sm font-bold text-brand-darkgreen flex items-center gap-2">
-                        <i class="fa-solid fa-list text-brand-green"></i> Danh Mục Dịch Vụ, Combo & Sản Phẩm
-                    </h3>
-                    <div class="space-y-2.5" id="serviceListContainer">
-                        <p class="text-center text-gray-400 text-xs py-2">Đang tải danh mục...</p>
+                <!-- HIỂN THỊ HIỆN TẠI TÁCH THÀNH 3 CỘT RIÊNG BỆT -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between border-b border-gray-200 pb-2">
+                        <h3 class="text-sm font-bold text-brand-darkgreen uppercase">
+                            <i class="fa-solid fa-boxes-stacked text-brand-green mr-1"></i> Danh Mục Phân Loại Chi Tiết
+                        </h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- CỘT 1: DỊCH VỤ LẺ -->
+                        <div class="bg-white p-4 rounded-3xl border border-brand-green/20 shadow-sm space-y-3">
+                            <div class="flex justify-between items-center border-b pb-2">
+                                <h4 class="font-bold text-xs text-brand-darkgreen uppercase flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-brand-green"></span>
+                                    <span>💆 Dịch Vụ Lẻ</span>
+                                </h4>
+                                <span id="countSingleServ" class="bg-brand-green/10 text-brand-darkgreen font-bold text-[10px] px-2 py-0.5 rounded-full">0</span>
+                            </div>
+                            <div id="singleServiceListContainer" class="space-y-2.5">
+                                <p class="text-center text-gray-400 text-xs py-2">Chưa có dịch vụ lẻ</p>
+                            </div>
+                        </div>
+
+                        <!-- CỘT 2: SẢN PHẨM BÁN KÈM -->
+                        <div class="bg-white p-4 rounded-3xl border border-blue-200 shadow-sm space-y-3">
+                            <div class="flex justify-between items-center border-b pb-2">
+                                <h4 class="font-bold text-xs text-blue-900 uppercase flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                                    <span>📦 Sản Phẩm Bán</span>
+                                </h4>
+                                <span id="countProductServ" class="bg-blue-100 text-blue-900 font-bold text-[10px] px-2 py-0.5 rounded-full">0</span>
+                            </div>
+                            <div id="productServiceListContainer" class="space-y-2.5">
+                                <p class="text-center text-gray-400 text-xs py-2">Chưa có sản phẩm</p>
+                            </div>
+                        </div>
+
+                        <!-- CỘT 3: GÓI COMBO -->
+                        <div class="bg-white p-4 rounded-3xl border border-amber-200 shadow-sm space-y-3">
+                            <div class="flex justify-between items-center border-b pb-2">
+                                <h4 class="font-bold text-xs text-amber-900 uppercase flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+                                    <span>🎟️ Gói Combo</span>
+                                </h4>
+                                <span id="countComboServ" class="bg-amber-100 text-amber-900 font-bold text-[10px] px-2 py-0.5 rounded-full">0</span>
+                            </div>
+                            <div id="comboServiceListContainer" class="space-y-2.5">
+                                <p class="text-center text-gray-400 text-xs py-2">Chưa có combo</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1219,46 +1263,62 @@
 
         function deleteService(key) { if(confirm('Xóa mục này khỏi danh mục?')) db.ref('services/' + key).remove(); }
 
+        // RENDERING DANH MỤC PHÂN THÀNH 3 CỘT RIÊNG BỆT
         function renderServicesUI() {
-            const container = document.getElementById('serviceListContainer');
-            container.innerHTML = '';
-            if(Object.keys(globalServices).length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-2">Chưa có danh mục nào</p>';
-                return;
-            }
+            const containerSingle = document.getElementById('singleServiceListContainer');
+            const containerProduct = document.getElementById('productServiceListContainer');
+            const containerCombo = document.getElementById('comboServiceListContainer');
 
+            containerSingle.innerHTML = '';
+            containerProduct.innerHTML = '';
+            containerCombo.innerHTML = '';
+
+            let countSingle = 0, countProduct = 0, countCombo = 0;
             const isAdmin = currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'MANAGER';
 
             Object.keys(globalServices).forEach(key => {
                 const s = globalServices[key];
-                let typeBadge = `<span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-full text-[10px]">Dịch vụ lẻ</span>`;
-                if (s.type === 'COMBO') typeBadge = `<span class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full text-[10px]">Combo (${s.sessions} buổi)</span>`;
-                else if (s.type === 'PRODUCT') typeBadge = `<span class="bg-indigo-100 text-indigo-900 font-bold px-2 py-0.5 rounded-full text-[10px]">Sản phẩm</span>`;
-
+                
                 const commBadges = isAdmin ? globalLevels.map(lvl => {
                     const r = (s.commissions && s.commissions[lvl]) ? s.commissions[lvl] : 0;
                     return `<span class="bg-brand-green/10 text-brand-darkgreen px-1.5 py-0.5 rounded text-[10px] font-semibold">${lvl}: ${s.commType === 'FIXED' ? formatVND(r) : r + '%'}</span>`;
                 }).join(' ') : '';
 
-                const deleteBtn = isAdmin ? `<button onclick="deleteService('${key}')" class="bg-red-50 text-red-600 text-xs px-2.5 py-1 rounded-lg font-bold">🗑 Xóa</button>` : '';
+                const deleteBtn = isAdmin ? `<button onclick="deleteService('${key}')" class="text-red-500 hover:text-red-700 text-xs font-bold p-1">🗑 Xóa</button>` : '';
 
                 const cardHTML = `
                     <div class="p-3 bg-brand-cream/40 rounded-2xl border border-gray-100 space-y-1.5">
                         <div class="flex items-center justify-between">
                             <div>
-                                <div class="font-bold text-brand-darkgreen text-xs flex items-center gap-2">
-                                    <span>${s.name}</span>
-                                    ${typeBadge}
-                                </div>
+                                <div class="font-bold text-brand-darkgreen text-xs">${s.name}</div>
                                 <div class="text-xs text-green-700 font-extrabold mt-0.5">${formatVND(s.price)}</div>
                             </div>
                             ${deleteBtn}
                         </div>
+                        ${s.type === 'COMBO' ? `<div class="text-[10px] text-amber-800 font-bold">Số buổi: ${s.sessions} buổi</div>` : ''}
                         <div class="flex flex-wrap gap-1">${commBadges}</div>
                     </div>
                 `;
-                container.insertAdjacentHTML('afterbegin', cardHTML);
+
+                if (s.type === 'SINGLE' || !s.type) {
+                    countSingle++;
+                    containerSingle.insertAdjacentHTML('afterbegin', cardHTML);
+                } else if (s.type === 'PRODUCT') {
+                    countProduct++;
+                    containerProduct.insertAdjacentHTML('afterbegin', cardHTML);
+                } else if (s.type === 'COMBO') {
+                    countCombo++;
+                    containerCombo.insertAdjacentHTML('afterbegin', cardHTML);
+                }
             });
+
+            document.getElementById('countSingleServ').innerText = countSingle;
+            document.getElementById('countProductServ').innerText = countProduct;
+            document.getElementById('countComboServ').innerText = countCombo;
+
+            if (countSingle === 0) containerSingle.innerHTML = '<p class="text-center text-gray-400 text-xs py-2">Chưa có dịch vụ lẻ</p>';
+            if (countProduct === 0) containerProduct.innerHTML = '<p class="text-center text-gray-400 text-xs py-2">Chưa có sản phẩm</p>';
+            if (countCombo === 0) containerCombo.innerHTML = '<p class="text-center text-gray-400 text-xs py-2">Chưa có gói combo</p>';
         }
 
         // --- XUẤT EXCEL BÁO CÁO CÓ CỘT NGÀY VÀ TÁCH DÒNG CHI TIẾT ---
@@ -1292,7 +1352,6 @@
             filteredKeys.forEach(key => {
                 const log = globalServiceLogs[key];
                 
-                // Tách loại bỏ SĐT trong ngoặc đơn "(09x...)" chỉ để lại Tên Khách Hàng cho Cột B
                 let cleanCustomerName = log.customer || '';
                 if (cleanCustomerName.includes('(')) {
                     cleanCustomerName = cleanCustomerName.split('(')[0].trim();
@@ -1388,7 +1447,7 @@
                 const serviceName = row.querySelector('.serv-select').value;
                 const price = parseFloat(row.querySelector('.serv-price').value) || 0;
                 const staffName = row.querySelector('.staff-select').value;
-                const itemType = row.getAttribute('data-itemtype') || 'SERVICE';
+                const itemType = row.getAttribute('data-itemtype') || 'SINGLE';
 
                 if (serviceName) {
                     if (!staffName) { alert(`Chọn nhân viên phục vụ/bán cho "${serviceName}"!`); return; }
@@ -1566,8 +1625,25 @@
 
         // --- CÁC HÀM TIỆN ÍCH DỊCH VỤ / SẢN PHẨM ---
         function toggleServiceTypeInput() {
-            const isCombo = document.querySelector('input[name="servType"]:checked').value === 'COMBO';
+            const selectedType = document.querySelector('input[name="servType"]:checked').value;
+            const isCombo = selectedType === 'COMBO';
+            const isProduct = selectedType === 'PRODUCT';
+
             document.getElementById('comboSessionsBox').classList.toggle('hidden', !isCombo);
+
+            const nameLabel = document.getElementById('servNameLabel');
+            const priceLabel = document.getElementById('servPriceLabel');
+
+            if (isCombo) {
+                nameLabel.innerText = "Tên Gói Combo / Liệu Trình *";
+                priceLabel.innerText = "Giá trọn gói Combo (VNĐ) *";
+            } else if (isProduct) {
+                nameLabel.innerText = "Tên Sản Phẩm Bán *";
+                priceLabel.innerText = "Giá bán lẻ sản phẩm (VNĐ) *";
+            } else {
+                nameLabel.innerText = "Tên Dịch vụ lẻ *";
+                priceLabel.innerText = "Giá dịch vụ lẻ (VNĐ) *";
+            }
         }
 
         function renderCustomerSelectInLogUI() {
@@ -1643,7 +1719,7 @@
         }
 
         // THÊM DÒNG DỊCH VỤ HOẶC SẢN PHẨM MỚI TẠI MÀN HÌNH NHẬT KÝ
-        function addServiceRowToLog(itemType = 'SERVICE', presetService = '', presetPrice = 0) {
+        function addServiceRowToLog(itemType = 'SINGLE', presetService = '', presetPrice = 0) {
             const container = document.getElementById('serviceRowsContainer');
             const rowId = 'row_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
 
@@ -1766,7 +1842,7 @@
             const servKey = Object.keys(globalServices).find(k => globalServices[k].name === serviceName);
             const servObj = servKey ? globalServices[servKey] : null;
             const price = servObj ? (servObj.price || 0) : 0;
-            const type = servObj ? (servObj.type === 'PRODUCT' ? 'PRODUCT' : 'SERVICE') : 'SERVICE';
+            const type = servObj ? (servObj.type === 'PRODUCT' ? 'PRODUCT' : 'SINGLE') : 'SINGLE';
 
             addServiceRowToLog(type, serviceName, price);
         }
