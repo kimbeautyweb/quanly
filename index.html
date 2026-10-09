@@ -373,7 +373,7 @@
                 </div>
             </div>
 
-            <!-- 5. TAB QUẢN LÝ DỊCH VỤ, COMBO & SẢN PHẨM (TÁCH 3 CỘT RIÊNG BỆT) -->
+            <!-- 5. TAB QUẢN LÝ DỊCH VỤ, COMBO & SẢN PHẨM -->
             <div id="tab-services" class="tab-content hidden space-y-6">
                 <!-- FORM THÊM MỚI MỤC -->
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-brand-green/10 space-y-4 admin-only">
@@ -381,7 +381,6 @@
                         <i class="fa-solid fa-plus text-brand-green"></i> Thêm Mục Mới Vào Danh Mục
                     </h2>
                     <form onsubmit="addNewService(event)" class="space-y-3">
-                        <!-- CHỌN LOẠI CỤ THỂ -->
                         <div class="grid grid-cols-3 gap-2 bg-brand-cream/60 p-2.5 rounded-2xl border border-gray-200">
                             <label class="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-brand-darkgreen">
                                 <input type="radio" name="servType" value="SINGLE" checked onchange="toggleServiceTypeInput()" class="w-3.5 h-3.5 text-brand-green">
@@ -413,7 +412,6 @@
                             </div>
                         </div>
 
-                        <!-- CẤU HÌNH HOA HỒNG -->
                         <div class="bg-brand-cream/60 p-3.5 rounded-2xl border border-brand-green/20 space-y-3">
                             <div class="flex justify-between items-center">
                                 <label class="block text-xs font-bold text-brand-darkgreen uppercase">Hoa hồng cho KTV / NV bán hàng:</label>
@@ -495,7 +493,7 @@
             <!-- 6. TAB QUẢN LÝ TÀI KHOẢN -->
             <div id="tab-accounts" class="tab-content hidden space-y-5">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-lg font-bold text-brand-darkgreen uppercase">Tài Khoản & Phân Quyền Trực Quan</h2>
+                    <h2 class="text-lg font-bold text-brand-darkgreen uppercase">Tài Khoản & Cấu Hình Giờ Chuẩn</h2>
                     <button onclick="toggleAddAccountModal()" class="bg-brand-green text-white text-xs px-3.5 py-2 rounded-xl font-bold flex items-center gap-1 shadow">
                         <i class="fa-solid fa-user-shield"></i> + Tạo Tài Khoản Mới
                     </button>
@@ -520,18 +518,37 @@
                                 <input type="password" id="accPassword" required placeholder="••••••" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-2">
+                        <div class="grid grid-cols-3 gap-2">
                             <div>
                                 <label class="block text-[11px] font-bold text-gray-600 mb-1">Vai trò hệ thống *</label>
-                                <select id="accRole" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
+                                <select id="accRole" class="w-full px-2 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
                                     <option value="STAFF">Nhân viên Spa</option>
                                     <option value="MANAGER">Quản lý Spa</option>
-                                    <option value="SUPER_ADMIN">Super Admin (Toàn quyền)</option>
+                                    <option value="SUPER_ADMIN">Super Admin</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold text-amber-800 mb-1">Lương Cơ Bản (VNĐ/tháng) *</label>
-                                <input type="number" id="accBaseSalary" min="0" step="100000" placeholder="5000000" class="w-full px-3 py-2 bg-amber-50 rounded-xl border border-amber-300 text-xs font-bold text-amber-900">
+                                <label class="block text-[11px] font-bold text-blue-900 mb-1">Số ngày quy định/tháng</label>
+                                <input type="number" id="accWorkingDays" min="1" max="31" value="30" placeholder="30" class="w-full px-2.5 py-2 bg-blue-50 rounded-xl border border-blue-300 text-xs font-bold text-blue-900">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-indigo-900 mb-1">Giờ chuẩn/ngày *</label>
+                                <input type="number" id="accStandardHours" min="1" max="24" value="8" placeholder="8" class="w-full px-2.5 py-2 bg-indigo-50 rounded-xl border border-indigo-300 text-xs font-bold text-indigo-900">
+                            </div>
+                        </div>
+
+                        <!-- CẤU HÌNH ĐIỀU CHỈNH LƯƠNG THEO MỐC NGÀY -->
+                        <div class="bg-amber-50/80 p-3 rounded-2xl border border-amber-200 space-y-2">
+                            <label class="block text-xs font-bold text-amber-900 uppercase">Cài đặt Mức Lương Cơ Bản mới:</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-600">Lương CB (VNĐ/tháng)</label>
+                                    <input type="number" id="accBaseSalary" min="0" step="100000" placeholder="5000000" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs font-bold text-amber-800">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-600">Áp dụng từ ngày</label>
+                                    <input type="date" id="accSalaryEffectiveDate" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
+                                </div>
                             </div>
                         </div>
 
@@ -579,7 +596,7 @@
             <!-- 7. TAB QUẢN LÝ NHÂN VIÊN & BÁO CÁO LƯƠNG/HOA HỒNG -->
             <div id="tab-staff" class="tab-content hidden space-y-5">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-lg font-bold text-brand-darkgreen uppercase">Nhân Viên & Lương Hoa Hồng</h2>
+                    <h2 class="text-lg font-bold text-brand-darkgreen uppercase">Nhân Viên & Lương Theo Ngày / OT</h2>
                     <div class="flex gap-2 admin-only">
                         <button onclick="toggleLevelModal()" class="bg-white border border-brand-green/30 text-brand-darkgreen text-xs px-3 py-2 rounded-xl font-bold">
                             <i class="fa-solid fa-layer-group"></i> Cấp bậc
@@ -630,13 +647,10 @@
 
                 <div class="bg-white p-4 rounded-3xl border border-brand-green/10 shadow-sm space-y-3">
                     <div class="flex justify-between items-center">
-                        <h3 class="text-xs font-bold text-brand-darkgreen uppercase">Báo Cáo Lương & Hoa Hồng Thời Gian Thực</h3>
-                        <select id="staffReportPeriod" onchange="generateStaffReport()" class="px-2.5 py-1 bg-brand-cream/60 rounded-lg border border-gray-200 text-xs font-bold text-brand-darkgreen">
-                            <option value="TODAY">Hôm nay</option>
-                            <option value="MONTH">Tháng này</option>
-                            <option value="YEAR">Năm 2026</option>
-                            <option value="ALL">Tất cả</option>
-                        </select>
+                        <h3 class="text-xs font-bold text-brand-darkgreen uppercase">Báo Cáo Lương & OT Làm Thêm</h3>
+                        <div class="flex items-center gap-2">
+                            <input type="month" id="staffReportMonth" onchange="generateStaffReport()" class="px-2.5 py-1 bg-brand-cream/60 rounded-lg border border-gray-200 text-xs font-bold text-brand-darkgreen">
+                        </div>
                     </div>
                     <div class="space-y-2.5" id="staffReportContainer">
                         <p class="text-center text-gray-400 text-xs py-2">Đang tải danh sách nhân viên...</p>
@@ -678,9 +692,9 @@
             </button>
         </nav>
 
-        <!-- POPUP CHI TIẾT BẢNG LƯƠNG NHÂN VIÊN -->
+        <!-- POPUP CHI TIẾT BẢNG LƯƠNG NHÂN VIÊN, NGÀY NGHỈ & GIỜ LÀM THÊM (OT) -->
         <div id="salaryDetailModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+            <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-4 max-h-[92vh] overflow-y-auto">
                 <div class="flex justify-between items-start border-b border-gray-100 pb-3">
                     <div>
                         <h3 id="salaryModalStaffName" class="text-base font-bold text-brand-darkgreen">Bảng Lương Nhân Viên</h3>
@@ -689,24 +703,83 @@
                     <button onclick="closeSalaryDetailModal()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center font-bold">✕</button>
                 </div>
 
-                <div class="bg-brand-cream/60 p-3.5 rounded-2xl border border-brand-green/20 space-y-2">
-                    <div class="flex justify-between text-xs">
-                        <span class="text-gray-600">Lương cơ bản hàng tháng:</span>
-                        <strong id="salaryModalBase" class="text-brand-darkgreen">0 đ</strong>
+                <!-- KHU VỰC CẬP NHẬT NGÀY NGHỈ & GIỜ LÀM THÊM (ADMIN/MANAGER ONLY) -->
+                <div class="bg-amber-50/90 p-3.5 rounded-2xl border border-amber-200 space-y-3 admin-only">
+                    <h4 class="text-xs font-bold text-amber-900 uppercase flex items-center gap-1">
+                        <i class="fa-solid fa-user-pen"></i> Chấm Công Ngày Nghỉ & Làm Thêm (OT):
+                    </h4>
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-bold text-red-900 mb-0.5">Số ngày nghỉ (ngày):</label>
+                            <input type="number" id="modalOffDaysInput" min="0" max="31" step="0.5" value="0" class="w-full px-2.5 py-1.5 bg-white rounded-xl border border-red-300 text-xs font-bold text-red-700">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-indigo-900 mb-0.5">Số giờ/ngày làm thêm:</label>
+                            <input type="number" id="modalOvertimeValInput" min="0" step="0.5" value="0" placeholder="0" class="w-full px-2.5 py-1.5 bg-white rounded-xl border border-indigo-300 text-xs font-bold text-indigo-800">
+                        </div>
                     </div>
-                    <div class="flex justify-between text-xs">
-                        <span class="text-gray-600">Hoa hồng bán SP & Làm Dịch vụ:</span>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-700 mb-1">Cách tính tiền làm thêm (OT):</label>
+                        <div class="flex gap-3 text-xs font-bold">
+                            <label class="flex items-center gap-1 cursor-pointer">
+                                <input type="radio" name="otCalcMode" value="AUTO" checked onchange="toggleOTCalcInputMode()" class="w-3.5 h-3.5 text-brand-green">
+                                <span>Tự động theo giờ chuẩn</span>
+                            </label>
+                            <label class="flex items-center gap-1 cursor-pointer">
+                                <input type="radio" name="otCalcMode" value="MANUAL_AMOUNT" onchange="toggleOTCalcInputMode()" class="w-3.5 h-3.5 text-brand-green">
+                                <span>Nhập số tiền cố định</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="manualOTAmountBox" class="hidden">
+                        <label class="block text-[10px] font-bold text-emerald-800 mb-1">Số tiền thưởng làm thêm / OT (VNĐ):</label>
+                        <input type="number" id="modalManualOTAmountInput" min="0" step="10000" placeholder="200000" class="w-full px-3 py-1.5 bg-white rounded-xl border border-emerald-300 text-xs font-bold text-emerald-800">
+                    </div>
+
+                    <button onclick="saveStaffAttendanceAndOT()" class="w-full bg-brand-green hover:bg-brand-darkgreen text-white font-bold py-2 rounded-xl text-xs shadow-md">
+                        LƯU CHẤM CÔNG & CẬP NHẬT LƯƠNG
+                    </button>
+                </div>
+
+                <div class="bg-brand-cream/60 p-3.5 rounded-2xl border border-brand-green/20 space-y-2 text-xs">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Quy định tháng:</span>
+                        <strong id="salaryModalWorkingDays" class="text-brand-darkgreen">30 ngày (8h/ngày)</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Lương CB cộng dồn theo ngày:</span>
+                        <strong id="salaryModalCalculatedBase" class="text-brand-darkgreen">0 đ</strong>
+                    </div>
+                    <div class="flex justify-between text-red-600">
+                        <span>Khấu trừ ngày nghỉ (<span id="salaryModalOffDaysText">0</span> ngày):</span>
+                        <strong id="salaryModalDeduction">-0 đ</strong>
+                    </div>
+                    <div class="flex justify-between text-indigo-900">
+                        <span>Cộng tiền làm thêm / OT (<span id="salaryModalOTValText">0</span>):</span>
+                        <strong id="salaryModalOTBonus">+0 đ</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Hoa hồng bán SP & Dịch vụ:</span>
                         <strong id="salaryModalCommission" class="text-amber-800">0 đ</strong>
                     </div>
                     <div class="flex justify-between text-sm font-black pt-2 border-t border-gray-200">
-                        <span class="text-brand-darkgreen">TỔNG LƯƠNG NHẬN DỰ KIẾN:</span>
+                        <span class="text-brand-darkgreen">TỔNG LƯƠNG NHẬN THỰC TẾ:</span>
                         <span id="salaryModalTotal" class="text-emerald-700">0 đ</span>
                     </div>
                 </div>
 
-                <div class="space-y-2">
-                    <h4 class="text-xs font-bold text-brand-darkgreen uppercase">Chi Tiết Lượt Phục Vụ & Bán SP:</h4>
-                    <div id="salaryModalLogsList" class="space-y-2 max-h-48 overflow-y-auto">
+                <div class="space-y-1.5">
+                    <h4 class="text-xs font-bold text-brand-darkgreen uppercase">Lịch Sử Điều Chỉnh Mức Lương CB:</h4>
+                    <div id="salaryModalHistoryList" class="space-y-1 max-h-24 overflow-y-auto">
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <h4 class="text-xs font-bold text-brand-darkgreen uppercase">Chi Tiết Lượt Phục Vụ & Hoa Hồng:</h4>
+                    <div id="salaryModalLogsList" class="space-y-1.5 max-h-36 overflow-y-auto">
                     </div>
                 </div>
 
@@ -834,7 +907,7 @@
 
     </div>
 
-    <!-- SCRIPT REALTIME & LOGIC XỬ LÝ -->
+    <!-- SCRIPT REALTIME & LOGIC XỬ LÝ LƯƠNG/OT HOÀN CHỈNH -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCzIUPf2Wghh6voay899bdDGN9rQVhHGsU",
@@ -852,6 +925,7 @@
 
         let currentUser = null;
         let currentActiveCustKey = null;
+        let currentActiveSalaryStaffName = null;
 
         let globalUsers = {};
         let globalCustomers = {};
@@ -868,6 +942,8 @@
             document.getElementById('logDate').value = todayStr;
             document.getElementById('logFilterDate').value = todayStr;
             document.getElementById('logFilterMonth').value = todayStr.substring(0, 7);
+            document.getElementById('staffReportMonth').value = todayStr.substring(0, 7);
+            document.getElementById('accSalaryEffectiveDate').value = todayStr;
 
             checkSystemHasUsers();
             initWebPushNotifications();
@@ -881,11 +957,7 @@
         }
 
         function initWebPushNotifications() {
-            if ("Notification" in window) {
-                if (Notification.permission === "granted") {
-                    document.getElementById('btnEnableNotify').classList.add('hidden');
-                }
-            } else {
+            if ("Notification" in window && Notification.permission === "granted") {
                 document.getElementById('btnEnableNotify').classList.add('hidden');
             }
         }
@@ -897,9 +969,7 @@
                         alert("Đã bật thông báo thành công!");
                         document.getElementById('btnEnableNotify').classList.add('hidden');
                         sendLocalNotification("KIM BEAUTY POS", "Đã kết nối hệ thống thông báo!");
-                    } else {
-                        alert("Bạn cần cấp quyền Thông Báo trên trình duyệt.");
-                    }
+                    } else alert("Bạn cần cấp quyền Thông Báo trên trình duyệt.");
                 });
             }
         }
@@ -938,11 +1008,17 @@
             const fullName = document.getElementById('initFullName').value.trim();
             const username = document.getElementById('initUsername').value.trim().toLowerCase();
             const password = document.getElementById('initPassword').value;
+            const todayStr = new Date().toISOString().split('T')[0];
 
             const fullPermissions = { logs: true, booking: true, customers: true, services: true, staff: true };
 
+            const initialHistory = [{
+                baseSalary: 10000000,
+                effectiveDate: todayStr
+            }];
+
             db.ref('users/' + username).set({
-                fullName, password, role: 'SUPER_ADMIN', baseSalary: 10000000, permissions: fullPermissions
+                fullName, password, role: 'SUPER_ADMIN', baseSalary: 10000000, workingDaysPerMonth: 30, standardHoursPerDay: 8, salaryHistory: initialHistory, permissions: fullPermissions
             }, (err) => {
                 if (!err) {
                     currentUser = { username, fullName, role: 'SUPER_ADMIN', permissions: fullPermissions };
@@ -1043,13 +1119,14 @@
         }
 
         function formatVND(val) {
-            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val || 0);
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Math.round(val || 0));
         }
 
         function initFirebaseListeners() {
             db.ref('users').on('value', (snap) => {
                 globalUsers = snap.val() || {};
                 renderAccountsUI();
+                generateStaffReport();
             });
 
             db.ref('levels').on('value', (snap) => {
@@ -1102,29 +1179,123 @@
             });
         }
 
-        // --- BẢNG BÁO CÁO NHÂN VIÊN & TÍNH HOA HỒNG ---
+        // --- CÔNG THỨC: TÍNH LƯƠNG CỘNG DỒN NGÀY VÀ LƯƠNG GIỜ (OT) ---
+        function calculateMonthlyBaseSalary(userObj, monthStr) {
+            if (!userObj) return { calculatedBaseSalary: 0, daysInMonth: 30, workingDaysPerMonth: 30, standardHoursPerDay: 8, dailyRatesHistory: [] };
+
+            const parts = monthStr.split('-');
+            const year = parseInt(parts[0]);
+            const month = parseInt(parts[1]);
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const workingDaysPerMonth = userObj.workingDaysPerMonth || 30;
+            const standardHoursPerDay = userObj.standardHoursPerDay || 8;
+
+            let history = userObj.salaryHistory || [];
+            if (history.length === 0) {
+                history = [{ baseSalary: userObj.baseSalary || 0, effectiveDate: `${monthStr}-01` }];
+            }
+
+            history.sort((a, b) => a.effectiveDate.localeCompare(b.effectiveDate));
+
+            let totalBaseSalaryCalculated = 0;
+            let dailyRatesHistory = [];
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayPadded = String(day).padStart(2, '0');
+                const currentDateStr = `${monthStr}-${dayPadded}`;
+
+                let activeBase = history[0].baseSalary;
+                for (let h of history) {
+                    if (currentDateStr >= h.effectiveDate) {
+                        activeBase = h.baseSalary;
+                    } else break;
+                }
+
+                const dailyRate = activeBase / workingDaysPerMonth;
+                const hourlyRate = dailyRate / standardHoursPerDay;
+                totalBaseSalaryCalculated += dailyRate;
+
+                dailyRatesHistory.push({ date: currentDateStr, dayNumber: day, baseSalary: activeBase, dailyRate, hourlyRate });
+            }
+
+            const latestDayObj = dailyRatesHistory[dailyRatesHistory.length - 1];
+
+            return {
+                calculatedBaseSalary: totalBaseSalaryCalculated,
+                daysInMonth,
+                workingDaysPerMonth,
+                standardHoursPerDay,
+                dailyRatesHistory,
+                latestBaseSalary: latestDayObj.baseSalary,
+                latestDailyRate: latestDayObj.dailyRate,
+                latestHourlyRate: latestDayObj.hourlyRate
+            };
+        }
+
+        // --- POPUP CHI TIẾT BẢNG LƯƠNG / CHẤM CÔNG ---
         function openPersonalSalaryModal() {
             document.getElementById('userMenuDropdown').classList.add('hidden');
             showSalaryDetailForStaff(currentUser.fullName);
         }
 
+        function toggleOTCalcInputMode() {
+            const mode = document.querySelector('input[name="otCalcMode"]:checked').value;
+            document.getElementById('manualOTAmountBox').classList.toggle('hidden', mode !== 'MANUAL_AMOUNT');
+        }
+
         function showSalaryDetailForStaff(staffName) {
+            currentActiveSalaryStaffName = staffName;
             const modal = document.getElementById('salaryDetailModal');
             document.getElementById('salaryModalStaffName').innerText = `Bảng Lương: ${staffName}`;
 
+            const selectedMonthStr = document.getElementById('staffReportMonth').value;
             const userKey = Object.keys(globalUsers).find(k => globalUsers[k].fullName === staffName);
             const userObj = userKey ? globalUsers[userKey] : null;
-            const baseSalary = userObj ? (userObj.baseSalary || 0) : 0;
 
             document.getElementById('salaryModalStaffRole').innerText = `Tài khoản: @${userKey || 'N/A'} - Chức vụ: ${userObj ? userObj.role : 'Nhân viên'}`;
-            document.getElementById('salaryModalBase').innerText = formatVND(baseSalary);
+
+            const salaryCalc = calculateMonthlyBaseSalary(userObj, selectedMonthStr);
+
+            const staffKey = Object.keys(globalStaff).find(k => globalStaff[k].name === staffName);
+            const staffObj = staffKey ? globalStaff[staffKey] : null;
+
+            // Đọc dữ liệu ngày nghỉ và OT
+            let attendanceMap = (staffObj && staffObj.monthlyAttendance) ? staffObj.monthlyAttendance : {};
+            let currentAtt = attendanceMap[selectedMonthStr] || { offDays: 0, overtimeVal: 0, otMode: 'AUTO', manualOTAmount: 0 };
+
+            document.getElementById('modalOffDaysInput').value = currentAtt.offDays || 0;
+            document.getElementById('modalOvertimeValInput').value = currentAtt.overtimeVal || 0;
+            document.getElementById('modalManualOTAmountInput').value = currentAtt.manualOTAmount || 0;
+            
+            const otRadios = document.querySelectorAll('input[name="otCalcMode"]');
+            otRadios.forEach(r => { if(r.value === (currentAtt.otMode || 'AUTO')) r.checked = true; });
+            toggleOTCalcInputMode();
+
+            document.getElementById('salaryModalOffDaysText').innerText = currentAtt.offDays || 0;
+
+            // Deductions & OT Bonuses
+            const deductionAmount = (currentAtt.offDays || 0) * salaryCalc.latestDailyRate;
+
+            let otBonusAmount = 0;
+            if (currentAtt.otMode === 'MANUAL_AMOUNT') {
+                otBonusAmount = parseFloat(currentAtt.manualOTAmount) || 0;
+                document.getElementById('salaryModalOTValText').innerText = formatVND(otBonusAmount);
+            } else {
+                otBonusAmount = (parseFloat(currentAtt.overtimeVal) || 0) * salaryCalc.latestHourlyRate;
+                document.getElementById('salaryModalOTValText').innerText = `${currentAtt.overtimeVal || 0} giờ OT`;
+            }
+
+            document.getElementById('salaryModalWorkingDays').innerText = `${salaryCalc.workingDaysPerMonth} ngày (${salaryCalc.standardHoursPerDay}h/ngày)`;
+            document.getElementById('salaryModalCalculatedBase').innerText = formatVND(salaryCalc.calculatedBaseSalary);
+            document.getElementById('salaryModalDeduction').innerText = `-${formatVND(deductionAmount)}`;
+            document.getElementById('salaryModalOTBonus').innerText = `+${formatVND(otBonusAmount)}`;
 
             let totalCommission = 0;
             let logsHTML = '';
 
             Object.keys(globalServiceLogs).forEach(k => {
                 const log = globalServiceLogs[k];
-                if (log.items && log.items.length > 0) {
+                if (log.date.startsWith(selectedMonthStr) && log.items && log.items.length > 0) {
                     log.items.forEach(it => {
                         if (it.staff === staffName) {
                             totalCommission += (it.commissionAmount || 0);
@@ -1142,11 +1313,48 @@
                 }
             });
 
+            // Lịch sử điều chỉnh lương
+            let historyHTML = '';
+            if (userObj && userObj.salaryHistory) {
+                historyHTML = userObj.salaryHistory.map(h => `
+                    <div class="flex justify-between text-[11px] text-gray-600 bg-gray-50 p-1.5 rounded-lg">
+                        <span>Áp dụng từ: <strong>${formatDateVN(h.effectiveDate)}</strong></span>
+                        <strong class="text-brand-darkgreen">${formatVND(h.baseSalary)}</strong>
+                    </div>
+                `).join('');
+            } else {
+                historyHTML = `<div class="text-[11px] text-gray-500">Mức lương cố định: ${formatVND(userObj ? userObj.baseSalary : 0)}</div>`;
+            }
+
+            document.getElementById('salaryModalHistoryList').innerHTML = historyHTML;
             document.getElementById('salaryModalCommission').innerText = formatVND(totalCommission);
-            document.getElementById('salaryModalTotal').innerText = formatVND(baseSalary + totalCommission);
-            document.getElementById('salaryModalLogsList').innerHTML = logsHTML || '<p class="text-xs text-gray-400 italic py-2">Chưa có hoa hồng từ lượt dịch vụ/sản phẩm hoàn thành nào.</p>';
+
+            const finalTotalSalary = Math.max(0, salaryCalc.calculatedBaseSalary - deductionAmount) + otBonusAmount + totalCommission;
+            document.getElementById('salaryModalTotal').innerText = formatVND(finalTotalSalary);
+            document.getElementById('salaryModalLogsList').innerHTML = logsHTML || '<p class="text-xs text-gray-400 italic py-2">Chưa có hoa hồng hoàn thành trong tháng này.</p>';
 
             modal.classList.remove('hidden');
+        }
+
+        function saveStaffAttendanceAndOT() {
+            if (!currentActiveSalaryStaffName) return;
+            const selectedMonthStr = document.getElementById('staffReportMonth').value;
+            const offDays = parseFloat(document.getElementById('modalOffDaysInput').value) || 0;
+            const overtimeVal = parseFloat(document.getElementById('modalOvertimeValInput').value) || 0;
+            const otMode = document.querySelector('input[name="otCalcMode"]:checked').value;
+            const manualOTAmount = parseFloat(document.getElementById('modalManualOTAmountInput').value) || 0;
+
+            const staffKey = Object.keys(globalStaff).find(k => globalStaff[k].name === currentActiveSalaryStaffName);
+            if (staffKey) {
+                const attObj = { offDays, overtimeVal, otMode, manualOTAmount };
+                db.ref(`staff/${staffKey}/monthlyAttendance/${selectedMonthStr}`).set(attObj, (err) => {
+                    if (!err) {
+                        alert("Đã lưu dữ liệu Chấm công & OT thành công!");
+                        showSalaryDetailForStaff(currentActiveSalaryStaffName);
+                        generateStaffReport();
+                    }
+                });
+            }
         }
 
         function closeSalaryDetailModal() {
@@ -1154,18 +1362,12 @@
         }
 
         function generateStaffReport() {
-            const period = document.getElementById('staffReportPeriod').value;
-            const todayStr = new Date().toISOString().split('T')[0];
-            const currentMonthStr = todayStr.substring(0, 7);
-            const currentYearStr = todayStr.substring(0, 4);
+            const selectedMonthStr = document.getElementById('staffReportMonth').value;
 
             let logsList = [];
             Object.keys(globalServiceLogs).forEach(k => {
                 const log = globalServiceLogs[k];
-                if (period === 'TODAY' && log.date === todayStr) logsList.push(log);
-                else if (period === 'MONTH' && log.date.startsWith(currentMonthStr)) logsList.push(log);
-                else if (period === 'YEAR' && log.date.startsWith(currentYearStr)) logsList.push(log);
-                else if (period === 'ALL') logsList.push(log);
+                if (log.date.startsWith(selectedMonthStr)) logsList.push(log);
             });
 
             const container = document.getElementById('staffReportContainer');
@@ -1184,7 +1386,6 @@
                 const staff = globalStaff[sKey];
                 
                 let clientCount = 0;
-                let staffRevenue = 0;
                 let totalCommission = 0;
 
                 logsList.forEach(l => {
@@ -1193,17 +1394,35 @@
                         if (myItems.length > 0) {
                             clientCount++;
                             myItems.forEach(it => {
-                                staffRevenue += (it.price || 0);
                                 totalCommission += (it.commissionAmount || 0);
                             });
                         }
                     }
                 });
 
+                const userKey = Object.keys(globalUsers).find(k => globalUsers[k].fullName === staff.name);
+                const userObj = userKey ? globalUsers[userKey] : null;
+
+                const salaryCalc = calculateMonthlyBaseSalary(userObj, selectedMonthStr);
+                
+                let attendanceMap = (staff.monthlyAttendance) ? staff.monthlyAttendance : {};
+                let currentAtt = attendanceMap[selectedMonthStr] || { offDays: 0, overtimeVal: 0, otMode: 'AUTO', manualOTAmount: 0 };
+
+                const deductionAmount = (currentAtt.offDays || 0) * salaryCalc.latestDailyRate;
+                
+                let otBonusAmount = 0;
+                if (currentAtt.otMode === 'MANUAL_AMOUNT') {
+                    otBonusAmount = parseFloat(currentAtt.manualOTAmount) || 0;
+                } else {
+                    otBonusAmount = (parseFloat(currentAtt.overtimeVal) || 0) * salaryCalc.latestHourlyRate;
+                }
+
+                const finalSalary = Math.max(0, salaryCalc.calculatedBaseSalary - deductionAmount) + otBonusAmount + totalCommission;
+
                 const deleteBtn = isAdmin ? `<button onclick="event.stopPropagation(); deleteStaff('${sKey}')" class="text-red-500 text-xs font-bold">🗑 Xóa</button>` : '';
 
                 const cardHTML = `
-                    <div onclick="showSalaryDetailForStaff('${staff.name}')" class="p-3.5 bg-brand-cream/40 hover:bg-brand-cream/80 transition rounded-2xl border border-gray-100 space-y-1 cursor-pointer">
+                    <div onclick="showSalaryDetailForStaff('${staff.name}')" class="p-3.5 bg-brand-cream/40 hover:bg-brand-cream/80 transition rounded-2xl border border-gray-100 space-y-1.5 cursor-pointer">
                         <div class="flex justify-between items-center">
                             <div>
                                 <span class="font-bold text-brand-darkgreen text-xs">${staff.name}</span>
@@ -1213,7 +1432,9 @@
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-xs pt-1">
                             <div>Lượt phục vụ: <strong>${clientCount} lượt</strong></div>
-                            <div>Hoa hồng: <strong class="text-amber-700">${formatVND(totalCommission)}</strong></div>
+                            <div>Ngày nghỉ: <strong class="text-red-600">${currentAtt.offDays || 0} ngày</strong></div>
+                            <div>Thưởng OT/Thêm: <strong class="text-indigo-800">${formatVND(otBonusAmount)}</strong></div>
+                            <div>Lương thực nhận: <strong class="text-emerald-700 font-extrabold">${formatVND(finalSalary)}</strong></div>
                         </div>
                         <div class="flex justify-between items-center pt-1 text-xs border-t border-gray-100">
                             <span class="text-emerald-700 font-bold">▶ Click xem Bảng Lương & Chi tiết ➔</span>
@@ -1351,7 +1572,6 @@
 
             filteredKeys.forEach(key => {
                 const log = globalServiceLogs[key];
-                
                 let cleanCustomerName = log.customer || '';
                 if (cleanCustomerName.includes('(')) {
                     cleanCustomerName = cleanCustomerName.split('(')[0].trim();
@@ -1503,7 +1723,7 @@
             });
         }
 
-        // --- QUẢN LÝ TÀI KHOẢN ---
+        // --- QUẢN LÝ TÀI KHOẢN & SỬA CẤU HÌNH GIỜ CHUẨN ---
         function toggleAddAccountModal() {
             document.getElementById('editAccountUsername').value = '';
             document.getElementById('accountFormTitle').innerText = 'Tạo Tài Khoản Cấp Dưới Mới';
@@ -1511,6 +1731,9 @@
             document.getElementById('accUsername').value = '';
             document.getElementById('accPassword').value = '';
             document.getElementById('accBaseSalary').value = 5000000;
+            document.getElementById('accWorkingDays').value = 30;
+            document.getElementById('accStandardHours').value = 8;
+            document.getElementById('accSalaryEffectiveDate').value = new Date().toISOString().split('T')[0];
             document.getElementById('addAccountModal').classList.toggle('hidden');
         }
 
@@ -1524,6 +1747,9 @@
             const password = document.getElementById('accPassword').value;
             const role = document.getElementById('accRole').value;
             const baseSalary = parseFloat(document.getElementById('accBaseSalary').value) || 0;
+            const workingDays = parseInt(document.getElementById('accWorkingDays').value) || 30;
+            const standardHours = parseInt(document.getElementById('accStandardHours').value) || 8;
+            const effectiveDate = document.getElementById('accSalaryEffectiveDate').value;
 
             const permissions = {
                 logs: document.getElementById('perm_logs').checked,
@@ -1533,11 +1759,27 @@
                 staff: document.getElementById('perm_staff').checked
             };
 
-            db.ref('users/' + username).set({ fullName, password, role, baseSalary, permissions }, (err) => {
-                if (!err) {
-                    alert('Đã lưu tài khoản & Phân quyền thành công!');
-                    toggleAddAccountModal();
+            db.ref('users/' + username).once('value', (snap) => {
+                const existingUser = snap.val() || {};
+                let salaryHistory = existingUser.salaryHistory || [];
+
+                if (salaryHistory.length === 0) {
+                    salaryHistory.push({ baseSalary, effectiveDate });
+                } else {
+                    const lastEntry = salaryHistory[salaryHistory.length - 1];
+                    if (lastEntry.baseSalary !== baseSalary || lastEntry.effectiveDate !== effectiveDate) {
+                        salaryHistory.push({ baseSalary, effectiveDate });
+                    }
                 }
+
+                db.ref('users/' + username).update({
+                    fullName, password, role, baseSalary, workingDaysPerMonth: workingDays, standardHoursPerDay: standardHours, salaryHistory, permissions
+                }, (err) => {
+                    if (!err) {
+                        alert('Đã lưu tài khoản & Cập nhật mốc lương cơ bản thành công!');
+                        toggleAddAccountModal();
+                    }
+                });
             });
         }
 
@@ -1552,6 +1794,9 @@
             document.getElementById('accPassword').value = u.password || '';
             document.getElementById('accRole').value = u.role || 'STAFF';
             document.getElementById('accBaseSalary').value = u.baseSalary || 0;
+            document.getElementById('accWorkingDays').value = u.workingDaysPerMonth || 30;
+            document.getElementById('accStandardHours').value = u.standardHoursPerDay || 8;
+            document.getElementById('accSalaryEffectiveDate').value = new Date().toISOString().split('T')[0];
 
             const p = u.permissions || {};
             document.getElementById('perm_logs').checked = !!p.logs;
@@ -1597,12 +1842,12 @@
                                 <span class="text-[10px] text-gray-500 font-mono">(@${username})</span>
                             </div>
                             <div class="flex gap-2">
-                                <button onclick="editAccount('${username}')" class="text-brand-green text-xs font-bold">✏️ Sửa</button>
+                                <button onclick="editAccount('${username}')" class="text-brand-green text-xs font-bold">✏️ Sửa Lương & Quyền</button>
                                 ${!isSelf ? `<button onclick="deleteAccount('${username}')" class="text-red-500 text-xs font-bold">🗑 Xóa</button>` : ''}
                             </div>
                         </div>
                         <div class="flex justify-between items-center text-xs">
-                            <span>Lương CB: <strong class="text-amber-800">${formatVND(u.baseSalary)}</strong></span>
+                            <span>Lương: <strong class="text-amber-800">${formatVND(u.baseSalary)}</strong> (${u.workingDaysPerMonth || 30} ngày, ${u.standardHoursPerDay || 8}h/ngày)</span>
                             <span class="text-gray-500 font-bold">${u.role}</span>
                         </div>
                         ${permBadges}
@@ -1718,7 +1963,6 @@
             }
         }
 
-        // THÊM DÒNG DỊCH VỤ HOẶC SẢN PHẨM MỚI TẠI MÀN HÌNH NHẬT KÝ
         function addServiceRowToLog(itemType = 'SINGLE', presetService = '', presetPrice = 0) {
             const container = document.getElementById('serviceRowsContainer');
             const rowId = 'row_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
@@ -1786,311 +2030,10 @@
             document.getElementById('logTransferAmount').value = 0;
         }
 
-        function toggleAddLogForm(forceOpen = false) {
-            const form = document.getElementById('addLogForm');
-            if (forceOpen || form.classList.contains('hidden')) {
-                form.classList.remove('hidden');
-                document.getElementById('serviceRowsContainer').innerHTML = '';
-                document.getElementById('logFromBookingKey').value = '';
-                document.getElementById('customerComboContainerBox').classList.add('hidden');
-            } else form.classList.add('hidden');
-        }
+        function toggleAddLogForm(forceOpen = false)
+        // --- 8. CÁC HÀM XỬ LÝ KHÁCH HÀNG & MODAL CÒN LẠI ---
 
-        function renderPendingBookingsInLogUI() {
-            const container = document.getElementById('pendingBookingsInLogContainer');
-            if(!container) return;
-            container.innerHTML = '';
-
-            const pendingKeys = Object.keys(globalBookings).filter(k => globalBookings[k].status === 'Đang chờ');
-            document.getElementById('pendingBookingCount').innerText = `${pendingKeys.length} lịch chờ`;
-
-            if(pendingKeys.length === 0) {
-                container.innerHTML = '<p class="text-xs text-gray-500 italic">Không có lịch hẹn đang chờ...</p>';
-                return;
-            }
-
-            pendingKeys.forEach(key => {
-                const b = globalBookings[key];
-                container.insertAdjacentHTML('afterbegin', `
-                    <div class="bg-white p-3 rounded-2xl border border-amber-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                        <div>
-                            <div class="font-bold text-xs text-brand-darkgreen">${b.name} (${b.phone})</div>
-                            <div class="text-[11px] text-gray-600">Dịch vụ/SP: <strong class="text-brand-green">${b.service}</strong> - Giờ: <strong>${b.time}</strong></div>
-                        </div>
-                        <button onclick="startServiceFromBooking('${key}', '${b.name}', '${b.phone}', '${b.service}')" class="bg-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow">▶ Phục vụ ngay</button>
-                    </div>
-                `);
-            });
-        }
-
-        function startServiceFromBooking(bookingKey, custName, custPhone, serviceName) {
-            toggleAddLogForm(true);
-            document.getElementById('logFromBookingKey').value = bookingKey;
-            const select = document.getElementById('logCustomerSelect');
-            let optionExists = false;
-            for(let i=0; i<select.options.length; i++){
-                if(select.options[i].text.includes(custName) || select.options[i].text.includes(custPhone)){
-                    select.selectedIndex = i; optionExists = true; break;
-                }
-            }
-            if(!optionExists) {
-                select.value = 'NEW_CUSTOMER'; handleCustomerSelectChange();
-                document.getElementById('logNewCustName').value = custName;
-                document.getElementById('logNewCustPhone').value = custPhone;
-            } else handleCustomerSelectChange();
-
-            const servKey = Object.keys(globalServices).find(k => globalServices[k].name === serviceName);
-            const servObj = servKey ? globalServices[servKey] : null;
-            const price = servObj ? (servObj.price || 0) : 0;
-            const type = servObj ? (servObj.type === 'PRODUCT' ? 'PRODUCT' : 'SINGLE') : 'SINGLE';
-
-            addServiceRowToLog(type, serviceName, price);
-        }
-
-        function handleLogFilterModeChange() {
-            const mode = document.getElementById('logFilterMode').value;
-            document.getElementById('filterSpecificDateBox').classList.toggle('hidden', mode !== 'SPECIFIC_DATE');
-            document.getElementById('filterMonthYearBox').classList.toggle('hidden', mode !== 'MONTH_YEAR');
-            document.getElementById('filterYearBox').classList.toggle('hidden', mode !== 'YEAR');
-            renderServiceLogsUI();
-        }
-
-        function renderServiceLogsUI() {
-            const container = document.getElementById('serviceLogsContainer');
-            if(!container) return;
-            container.innerHTML = '';
-
-            const keys = Object.keys(globalServiceLogs);
-            if(keys.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Chưa có nhật ký</p>';
-                return;
-            }
-
-            const filterMode = document.getElementById('logFilterMode').value;
-            const specificDate = document.getElementById('logFilterDate').value;
-            const monthYear = document.getElementById('logFilterMonth').value;
-            const yearVal = document.getElementById('logFilterYear').value;
-            const keyword = document.getElementById('logSearchKeyword').value.trim().toLowerCase();
-            const todayStr = new Date().toISOString().split('T')[0];
-
-            let filteredKeys = keys.filter(key => {
-                const log = globalServiceLogs[key];
-                let timeMatch = true;
-                if (filterMode === 'TODAY') timeMatch = (log.date === todayStr);
-                else if (filterMode === 'SPECIFIC_DATE') timeMatch = (log.date === specificDate);
-                else if (filterMode === 'MONTH_YEAR') timeMatch = log.date.startsWith(monthYear);
-                else if (filterMode === 'YEAR') timeMatch = log.date.startsWith(yearVal);
-
-                let kwMatch = true;
-                if (keyword) kwMatch = `${log.customer} ${log.service} ${log.staff} ${log.date}`.toLowerCase().includes(keyword);
-                return timeMatch && kwMatch;
-            });
-
-            const isAdmin = currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'MANAGER';
-
-            filteredKeys.forEach(key => {
-                const log = globalServiceLogs[key];
-                const deleteBtn = isAdmin ? `<button onclick="deleteLog('${key}')" class="text-red-500 text-xs font-bold">🗑 Xóa</button>` : '';
-
-                let itemsDetailHTML = '';
-                if (log.items && log.items.length > 0) {
-                    itemsDetailHTML = log.items.map(it => `
-                        <div class="flex justify-between items-center text-[11px] text-gray-700 bg-white p-1.5 rounded-lg border border-gray-100">
-                            <span>• <strong>${it.service}</strong> (${formatVND(it.price)})</span>
-                            <span class="text-amber-800">NV: <strong>${it.staff}</strong> (+${formatVND(it.commissionAmount)})</span>
-                        </div>
-                    `).join('');
-                }
-
-                container.insertAdjacentHTML('afterbegin', `
-                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-brand-green/10 space-y-1.5">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="font-bold text-brand-darkgreen text-sm">${log.customer}</h3>
-                                <p class="text-[11px] text-gray-500 font-bold">📅 Ngày: ${formatDateVN(log.date)}</p>
-                            </div>
-                            ${deleteBtn}
-                        </div>
-                        <div class="bg-brand-cream/50 p-2.5 rounded-xl text-xs space-y-1.5">
-                            <div class="space-y-1">${itemsDetailHTML || `<div class="font-bold text-brand-green">${log.service}</div>`}</div>
-                            <div class="flex justify-between border-t pt-1 font-bold">
-                                <span>Tổng thu thực tế: ${formatVND(log.total)}</span>
-                                <span class="text-amber-700">Hoa hồng NV: ${formatVND(log.commissionAmount)}</span>
-                            </div>
-                        </div>
-                    </div>
-                `);
-            });
-        }
-
-        function deleteLog(key) {
-            if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER') return;
-            if(confirm('Xóa lượt dịch vụ/bán hàng này?')) db.ref('service_logs/' + key).remove();
-        }
-
-        function toggleLevelModal() { document.getElementById('levelModal').classList.toggle('hidden'); }
-        function saveNewLevel() {
-            const val = document.getElementById('newLevelInput').value.trim();
-            if (val && !globalLevels.includes(val)) {
-                globalLevels.push(val); db.ref('levels').set(globalLevels);
-                document.getElementById('newLevelInput').value = '';
-            }
-        }
-        function renderLevelsUI() {
-            document.getElementById('currentLevelsText').innerText = globalLevels.join(', ');
-            document.getElementById('newStaffLevel').innerHTML = globalLevels.map(l => `<option value="${l}">${l}</option>`).join('');
-            renderCommissionInputsInServiceUI();
-        }
-
-        function toggleAddStaffModal() { document.getElementById('addStaffModal').classList.toggle('hidden'); }
-        function saveNewStaff(e) {
-            e.preventDefault();
-            const name = document.getElementById('newStaffName').value;
-            const role = document.getElementById('newStaffRole').value;
-            const level = document.getElementById('newStaffLevel').value;
-            db.ref('staff').push({ name, role, level }, (err) => {
-                if(!err) { toggleAddStaffModal(); document.getElementById('newStaffName').value = ''; }
-            });
-        }
-        function deleteStaff(key) { if(confirm('Xóa nhân viên?')) db.ref('staff/' + key).remove(); }
-
-        function renderServiceSelectUI() {
-            const bookSelect = document.getElementById('bookService');
-            bookSelect.innerHTML = '';
-            Object.keys(globalServices).forEach(k => {
-                const s = globalServices[k];
-                bookSelect.innerHTML += `<option value="${s.name}">${s.name} (${s.type === 'COMBO' ? s.sessions + ' buổi' : (s.type === 'PRODUCT' ? 'Sản phẩm' : 'Lẻ')})</option>`;
-            });
-        }
-
-        function generateDailyReport() {
-            const selectedDate = document.getElementById('reportDateSelect').value;
-            let totalClients = 0, totalCash = 0, totalTransfer = 0;
-            Object.keys(globalServiceLogs).forEach(k => {
-                const l = globalServiceLogs[k];
-                if(l.date === selectedDate) {
-                    totalClients++;
-                    totalCash += (l.cash || 0);
-                    totalTransfer += (l.transfer || 0);
-                }
-            });
-            document.getElementById('statTotalCust').innerText = totalClients;
-            document.getElementById('reportCashTotal').innerText = formatVND(totalCash);
-            document.getElementById('reportTransferTotal').innerText = formatVND(totalTransfer);
-            document.getElementById('reportGrandTotal').innerText = formatVND(totalCash + totalTransfer);
-        }
-
-        function renderCustomersUI() {
-            const container = document.getElementById('customerList');
-            container.innerHTML = '';
-            Object.keys(globalCustomers).forEach(key => {
-                const c = globalCustomers[key];
-                container.insertAdjacentHTML('afterbegin', `
-                    <div id="cust-${key}" onclick="showCustomerDetails('${key}', '${c.name}', '${c.phone}', '${c.address}')" class="cust-card bg-white p-4 rounded-2xl shadow-sm border border-brand-green/10 cursor-pointer flex items-center justify-between">
-                        <div class="flex items-center gap-3.5">
-                            <div class="w-11 h-11 rounded-2xl bg-brand-green text-white font-bold flex items-center justify-center text-sm shadow-sm">${c.name ? c.name.substring(0,2).toUpperCase() : 'KH'}</div>
-                            <div>
-                                <h3 class="font-bold text-brand-darkgreen text-sm">${c.name}</h3>
-                                <p class="text-xs text-gray-500">📞 ${c.phone}</p>
-                                <p class="text-[11px] text-gray-400">📍 ${c.address}</p>
-                            </div>
-                        </div>
-                        <span class="text-xs text-brand-green font-semibold">Chi tiết ➔</span>
-                    </div>
-                `);
-            });
-        }
-
-        function renderBookingsUI(data) {
-            const container = document.getElementById('bookingList');
-            container.innerHTML = '';
-            if(!data) return;
-            Object.keys(data).forEach(key => {
-                const b = data[key];
-                const statusClass = b.status === 'Đã xong' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
-                const completeBtn = b.status === 'Đang chờ' ? `<button onclick="startServiceFromBooking('${key}', '${b.name}', '${b.phone}', '${b.service}'); switchTab('logs');" class="bg-amber-600 text-white text-xs px-3 py-1 rounded-lg font-bold">▶ Phục vụ</button>` : '';
-
-                container.insertAdjacentHTML('afterbegin', `
-                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-brand-green/10 space-y-2">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="font-bold text-brand-darkgreen text-sm">${b.name}</h3>
-                                <p class="text-xs text-gray-500">📞 ${b.phone}</p>
-                            </div>
-                            <span class="${statusClass} text-[10px] px-2 py-0.5 rounded-full font-bold">${b.status}</span>
-                        </div>
-                        <div class="bg-brand-cream/50 p-2 rounded-xl text-xs space-y-0.5">
-                            <div><strong class="text-gray-700">Dịch vụ / SP:</strong> <span class="text-brand-green font-bold">${b.service}</span></div>
-                            <div><strong class="text-gray-700">Giờ hẹn:</strong> ${b.time}</div>
-                        </div>
-                        <div class="flex justify-end gap-2 pt-1 border-t border-gray-100">
-                            ${completeBtn}
-                            <button onclick="deleteBooking('${key}')" class="bg-red-50 text-red-600 text-xs px-2.5 py-1 rounded-lg font-bold">🗑 Xóa</button>
-                        </div>
-                    </div>
-                `);
-            });
-        }
-
-        function exportCustomersToExcel() {
-            const excelData = [];
-            let stt = 1;
-            Object.keys(globalCustomers).forEach(key => {
-                const c = globalCustomers[key];
-                excelData.push({ "STT": stt++, "Họ và Tên": c.name || '', "Số Điện Thoại": c.phone || '', "Địa Chỉ": c.address || '' });
-            });
-            const worksheet = XLSX.utils.json_to_sheet(excelData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "KhachHang_KimBeauty");
-            XLSX.writeFile(workbook, `Danh_Sach_Khach_Hang_KimBeauty_${new Date().toISOString().slice(0, 10)}.xlsx`);
-        }
-
-        function saveNewCustomer(e) {
-            e.preventDefault();
-            const name = document.getElementById('newCustName').value;
-            const phone = document.getElementById('newCustPhone').value;
-            const address = document.getElementById('newCustAddress').value;
-            db.ref('customers').push({ name, phone, address }, (err) => { if(!err) closeAddCustomerModal(); });
-        }
-
-        function saveNewBooking(e) {
-            e.preventDefault();
-            const name = document.getElementById('bookCustName').value;
-            const phone = document.getElementById('bookCustPhone').value;
-            const service = document.getElementById('bookService').value;
-            const time = document.getElementById('bookTime').value;
-            const status = document.getElementById('bookStatus').value;
-            db.ref('bookings').push({ name, phone, service, time, status }, (err) => { if(!err) closeBookingModal(); });
-        }
-
-        function deleteCurrentCustomer() {
-            if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER') return;
-            if(confirm('Xóa vĩnh viễn khách hàng này?')) {
-                if(currentActiveCustKey) { db.ref('customers/' + currentActiveCustKey).remove(); closeModal(); }
-            }
-        }
-
-        function deleteBooking(key) { if(confirm('Xóa lịch hẹn?')) db.ref('bookings/' + key).remove(); }
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.nav-tab').forEach(btn => {
-                btn.classList.remove('text-brand-green', 'font-bold');
-                btn.classList.add('text-gray-400', 'font-medium');
-            });
-            document.getElementById('tab-' + tabId).classList.remove('hidden');
-            const activeBtn = document.getElementById('btn-' + tabId);
-            if (activeBtn) {
-                activeBtn.classList.remove('text-gray-400', 'font-medium');
-                activeBtn.classList.add('text-brand-green', 'font-bold');
-            }
-        }
-
-        function openAddCustomerModal() { document.getElementById('addCustModal').classList.remove('hidden'); }
-        function closeAddCustomerModal() { document.getElementById('addCustModal').classList.add('hidden'); }
-        function openBookingModal() { document.getElementById('addBookingModal').classList.remove('hidden'); }
-        function closeBookingModal() { document.getElementById('addBookingModal').classList.add('hidden'); }
-
+        // Mở Modal xem chi tiết thông tin Khách hàng & Combo/Liệu trình đã mua
         function showCustomerDetails(key, name, phone, address) {
             currentActiveCustKey = key;
             document.getElementById('modalCustName').innerText = name;
@@ -2099,27 +2042,136 @@
 
             const comboListContainer = document.getElementById('modalCustomerComboList');
             comboListContainer.innerHTML = '';
+            
             const c = globalCustomers[key];
-            if (c && c.combos) {
+            if (c && c.combos && Object.keys(c.combos).length > 0) {
                 Object.keys(c.combos).forEach(cbKey => {
                     const cb = c.combos[cbKey];
                     comboListContainer.innerHTML += `
-                        <div class="p-2.5 bg-amber-50 rounded-xl border border-amber-200 flex justify-between items-center text-xs">
-                            <div><div class="font-bold text-amber-900">${cb.serviceName}</div></div>
-                            <span class="bg-amber-200 text-amber-900 px-2.5 py-1 rounded-full font-bold">Còn ${cb.remainingSessions} / ${cb.totalSessions} buổi</span>
+                        <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex justify-between items-center text-xs">
+                            <div>
+                                <div class="font-bold text-amber-900">${cb.serviceName}</div>
+                                <div class="text-[10px] text-gray-500 mt-0.5">📅 Ngày mua: ${formatDateVN(cb.buyDate)}</div>
+                            </div>
+                            <span class="bg-amber-200 text-amber-900 px-3 py-1 rounded-full font-bold text-xs">
+                                Còn ${cb.remainingSessions} / ${cb.totalSessions} buổi
+                            </span>
                         </div>
                     `;
                 });
-            } else comboListContainer.innerHTML = '<p class="text-xs text-gray-400 italic">Khách chưa đăng ký gói Combo.</p>';
+            } else {
+                comboListContainer.innerHTML = '<p class="text-xs text-gray-400 italic py-2">Khách hàng này chưa mua gói Combo nào.</p>';
+            }
             document.getElementById('custModal').classList.remove('hidden');
         }
 
-        function closeModal() { document.getElementById('custModal').classList.add('hidden'); }
+        // Đóng Modal chi tiết Khách hàng
+        function closeModal() {
+            document.getElementById('custModal').classList.add('hidden');
+        }
+
+        // Lọc danh sách Khách hàng realtime theo ô tìm kiếm
         function filterCustomers() {
-            const input = document.getElementById('searchCust').value.toLowerCase();
+            const input = document.getElementById('searchCust').value.toLowerCase().trim();
             document.querySelectorAll('.cust-card').forEach(card => {
-                card.style.display = card.innerText.toLowerCase().includes(input) ? 'flex' : 'none';
+                const text = card.innerText.toLowerCase();
+                card.style.display = text.includes(input) ? 'flex' : 'none';
             });
+        }
+
+        // Mở / Đóng Modal Thêm Khách Hàng
+        function openAddCustomerModal() { document.getElementById('addCustModal').classList.remove('hidden'); }
+        function closeAddCustomerModal() { document.getElementById('addCustModal').classList.add('hidden'); }
+
+        // Mở / Đóng Modal Đặt Lịch Hẹn
+        function openBookingModal() { document.getElementById('addBookingModal').classList.remove('hidden'); }
+        function closeBookingModal() { document.getElementById('addBookingModal').classList.add('hidden'); }
+
+        // Thêm mới Khách hàng vào Firebase
+        function saveNewCustomer(e) {
+            e.preventDefault();
+            const name = document.getElementById('newCustName').value.trim();
+            const phone = document.getElementById('newCustPhone').value.trim();
+            const address = document.getElementById('newCustAddress').value.trim();
+
+            if (!name || !phone) {
+                alert("Vui lòng nhập đầy đủ Tên và Số điện thoại!");
+                return;
+            }
+
+            db.ref('customers').push({ name, phone, address }, (err) => {
+                if (!err) {
+                    alert("Đã thêm khách hàng mới thành công!");
+                    closeAddCustomerModal();
+                    document.getElementById('newCustName').value = '';
+                    document.getElementById('newCustPhone').value = '';
+                    document.getElementById('newCustAddress').value = '';
+                }
+            });
+        }
+
+        // Thêm Lịch hẹn mới vào Firebase
+        function saveNewBooking(e) {
+            e.preventDefault();
+            const name = document.getElementById('bookCustName').value.trim();
+            const phone = document.getElementById('bookCustPhone').value.trim();
+            const service = document.getElementById('bookService').value;
+            const time = document.getElementById('bookTime').value;
+            const status = document.getElementById('bookStatus').value;
+
+            db.ref('bookings').push({ name, phone, service, time, status }, (err) => {
+                if (!err) {
+                    alert("Đã đặt lịch hẹn thành công!");
+                    closeBookingModal();
+                    document.getElementById('bookCustName').value = '';
+                    document.getElementById('bookCustPhone').value = '';
+                }
+            });
+        }
+
+        // Xóa Khách hàng hiện tại (Super Admin / Manager)
+        function deleteCurrentCustomer() {
+            if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER') return;
+            if (confirm('Bạn có chắc chắn muốn xóa vĩnh viễn khách hàng này cùng toàn bộ lịch sử combo?')) {
+                if (currentActiveCustKey) {
+                    db.ref('customers/' + currentActiveCustKey).remove((err) => {
+                        if (!err) {
+                            closeModal();
+                            alert('Đã xóa khách hàng thành công!');
+                        }
+                    });
+                }
+            }
+        }
+
+        // Xóa Lịch hẹn
+        function deleteBooking(key) {
+            if (confirm('Xóa lịch hẹn này?')) {
+                db.ref('bookings/' + key).remove();
+            }
+        }
+
+        // Chuyển đổi Tab Menu dưới màn hình
+        function switchTab(tabId) {
+            // Ẩn toàn bộ nội dung tab
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            // Đưa tất cả nút điều hướng về trạng thái chưa chọn
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('text-brand-green', 'font-bold');
+                btn.classList.add('text-gray-400', 'font-medium');
+            });
+
+            // Hiển thị tab được chọn
+            const targetTab = document.getElementById('tab-' + tabId);
+            if (targetTab) targetTab.classList.remove('hidden');
+
+            // Highlight nút vừa bấm
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-400', 'font-medium');
+                activeBtn.classList.add('text-brand-green', 'font-bold');
+            }
         }
     </script>
 </body>
