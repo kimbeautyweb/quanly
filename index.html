@@ -409,131 +409,165 @@
                 </div>
             </section>
 
-            <!-- TAB 5: NHÂN VIÊN & BẢNG LƯƠNG -->
+            <!-- TAB 5: BẢNG LƯƠNG & CẤU HÌNH NHÂN SỰ -->
             <section id="tab-staff" class="tab-content space-y-4 hidden">
                 <div class="bg-white p-4 rounded-3xl shadow-sm border border-brand-green/10 space-y-4">
                     <div class="flex items-center justify-between">
                         <h2 class="font-bold text-brand-darkgreen text-sm uppercase flex items-center gap-1.5">
-                            <i class="fa-solid fa-users-gear text-indigo-600"></i> Quản Lý Nhân Sự & Bảng Lương
+                            <i class="fa-solid fa-users-gear text-indigo-600"></i> Quản Lý Bảng Lương & Nhân Sự
                         </h2>
-                        <div class="flex gap-1.5">
-                            <button onclick="toggleLevelModal()" class="bg-amber-600 text-white text-xs px-2.5 py-1.5 rounded-xl font-bold shadow admin-only">
-                                🏅 Cấp Bậc
-                            </button>
-                            <button onclick="toggleAddStaffModal()" class="bg-brand-green text-white text-xs px-2.5 py-1.5 rounded-xl font-bold shadow admin-only">
-                                + Thêm NV
-                            </button>
+                        <button onclick="toggleLevelModal()" class="bg-amber-600 text-white text-xs px-2.5 py-1.5 rounded-xl font-bold shadow admin-only">
+                            🏅 Cấp BẬC
+                        </button>
+                    </div>
+
+                    <!-- THẺ TÍCH CHỌN MỞ FORM MỚI (RADIO SELECTION) -->
+                    <div class="bg-brand-cream/60 p-3 rounded-2xl border border-brand-green/20 space-y-2 admin-only">
+                        <label class="block text-xs font-bold text-brand-darkgreen uppercase">Thêm Mới Dữ Liệu Nhân Sự:</label>
+                        <div class="flex gap-4 text-xs font-bold">
+                            <label class="flex items-center gap-1.5 cursor-pointer text-blue-900">
+                                <input type="radio" name="addFormType" value="NONE" checked onchange="handleFormTypeChange()" class="w-4 h-4 text-brand-green">
+                                <span>Ẩn Form</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer text-emerald-900">
+                                <input type="radio" name="addFormType" value="ACCOUNT" onchange="handleFormTypeChange()" class="w-4 h-4 text-brand-green">
+                                <span>+ Tạo Tài Khoản Cấp Dưới</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer text-amber-900">
+                                <input type="radio" name="addFormType" value="STAFF" onchange="handleFormTypeChange()" class="w-4 h-4 text-brand-green">
+                                <span>+ Thêm Nhân Viên Mới</span>
+                            </label>
                         </div>
                     </div>
 
-                    <!-- QUẢN LÝ TÀI KHOẢN HỆ THỐNG & PHÂN QUYỀN (CHỈ SUPER ADMIN) -->
-                    <div class="bg-blue-50/70 p-3.5 rounded-2xl border border-blue-200 space-y-3 superadmin-only">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-xs font-bold text-blue-900 uppercase flex items-center gap-1">
-                                <i class="fa-solid fa-user-shield"></i> Tài Khoản Đăng Nhập & Phân Quyền Hệ Thống:
-                            </h3>
-                            <button onclick="toggleAddAccountModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-xl font-bold shadow">
-                                + Tạo Tài Khoản
-                            </button>
-                        </div>
+                    <!-- FORM 1: TẠO TÀI KHOẢN CẤP DƯỚI (HIỂN THỊ KHI TÍCH BẢNG) -->
+                    <div id="addAccountModal" class="hidden bg-blue-50/60 p-4 rounded-2xl border border-blue-200 shadow-sm space-y-3">
+                        <h3 class="text-xs font-bold text-blue-900 uppercase" id="accountFormTitle">Tạo Tài Khoản Cấp Dưới Mới</h3>
+                        <form onsubmit="saveAccount(event)" class="space-y-3">
+                            <input type="hidden" id="editAccountUsername" value="">
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 mb-1">Họ và tên nhân viên *</label>
+                                    <input type="text" id="accFullName" required placeholder="Nguyễn Văn A" class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-brand-darkgreen mb-1">Số điện thoại (Định danh) *</label>
+                                    <input type="tel" id="accPhone" required placeholder="0901234567" class="w-full px-3 py-2 bg-emerald-50 rounded-xl border border-emerald-300 text-xs font-bold text-emerald-900">
+                                </div>
+                            </div>
 
-                        <!-- FORM TẠO / SỬA TÀI KHOẢN (ĐÃ THÊM Ô SĐT) -->
-                        <div id="addAccountModal" class="hidden bg-white p-4 rounded-2xl border border-brand-green/20 shadow-md space-y-3">
-                            <h3 class="text-xs font-bold text-brand-darkgreen uppercase" id="accountFormTitle">Tạo Tài Khoản Cấp Dưới Mới</h3>
-                            <form onsubmit="saveAccount(event)" class="space-y-3">
-                                <input type="hidden" id="editAccountUsername" value="">
-                                
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 mb-1">Tên đăng nhập *</label>
+                                    <input type="text" id="accUsername" required placeholder="user1" class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 mb-1">Mật khẩu *</label>
+                                    <input type="password" id="accPassword" required placeholder="••••••" class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 mb-1">Vai trò hệ thống *</label>
+                                    <select id="accRole" class="w-full px-2 py-2 bg-white rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
+                                        <option value="STAFF">Nhân viên Spa</option>
+                                        <option value="MANAGER">Quản lý Spa</option>
+                                        <option value="SUPER_ADMIN">Super Admin</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-blue-900 mb-1">Số ngày quy định</label>
+                                    <input type="number" id="accWorkingDays" min="1" max="31" value="30" placeholder="30" class="w-full px-2.5 py-2 bg-white rounded-xl border border-blue-300 text-xs font-bold text-blue-900">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-indigo-900 mb-1">Giờ chuẩn/ngày *</label>
+                                    <input type="number" id="accStandardHours" min="1" max="24" value="8" placeholder="8" class="w-full px-2.5 py-2 bg-white rounded-xl border border-indigo-300 text-xs font-bold text-indigo-900">
+                                </div>
+                            </div>
+
+                            <div class="bg-amber-50/80 p-3 rounded-2xl border border-amber-200 space-y-2">
+                                <label class="block text-xs font-bold text-amber-900 uppercase">Cài đặt Mức Lương Cơ Bản mới:</label>
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label class="block text-[11px] font-bold text-gray-600 mb-1">Họ và tên nhân viên *</label>
-                                        <input type="text" id="accFullName" required placeholder="Nguyễn Văn A" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                                        <label class="block text-[10px] font-bold text-gray-600">Lương CB (VNĐ/tháng)</label>
+                                        <input type="number" id="accBaseSalary" min="0" step="100000" placeholder="5000000" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs font-bold text-amber-800">
                                     </div>
                                     <div>
-                                        <label class="block text-[11px] font-bold text-brand-darkgreen mb-1">Số điện thoại (Định danh) *</label>
-                                        <input type="tel" id="accPhone" required placeholder="0901234567" class="w-full px-3 py-2 bg-emerald-50 rounded-xl border border-emerald-300 text-xs font-bold text-emerald-900">
+                                        <label class="block text-[10px] font-bold text-gray-600">Áp dụng từ ngày</label>
+                                        <input type="date" id="accSalaryEffectiveDate" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
                                     </div>
                                 </div>
+                            </div>
 
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-gray-600 mb-1">Tên đăng nhập *</label>
-                                        <input type="text" id="accUsername" required placeholder="user1" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-gray-600 mb-1">Mật khẩu *</label>
-                                        <input type="password" id="accPassword" required placeholder="••••••" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
-                                    </div>
+                            <div class="bg-white p-3 rounded-2xl border border-gray-200 space-y-2">
+                                <label class="block text-xs font-bold text-brand-darkgreen uppercase">Tích chọn các Mục được quyền xem:</label>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                                    <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
+                                        <input type="checkbox" id="perm_logs" checked class="w-4 h-4 text-brand-green rounded">
+                                        <span>Nhật ký dịch vụ</span>
+                                    </label>
+                                    <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
+                                        <input type="checkbox" id="perm_booking" checked class="w-4 h-4 text-brand-green rounded">
+                                        <span>Lịch hẹn</span>
+                                    </label>
+                                    <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
+                                        <input type="checkbox" id="perm_customers" checked class="w-4 h-4 text-brand-green rounded">
+                                        <span>Khách hàng</span>
+                                    </label>
+                                    <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
+                                        <input type="checkbox" id="perm_services" checked class="w-4 h-4 text-brand-green rounded">
+                                        <span>Dịch vụ & SP</span>
+                                    </label>
+                                    <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
+                                        <input type="checkbox" id="perm_staff" class="w-4 h-4 text-brand-green rounded">
+                                        <span>Nhân viên</span>
+                                    </label>
                                 </div>
+                            </div>
 
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-gray-600 mb-1">Vai trò hệ thống *</label>
-                                        <select id="accRole" class="w-full px-2 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
-                                            <option value="STAFF">Nhân viên Spa</option>
-                                            <option value="MANAGER">Quản lý Spa</option>
-                                            <option value="SUPER_ADMIN">Super Admin</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-blue-900 mb-1">Số ngày quy định</label>
-                                        <input type="number" id="accWorkingDays" min="1" max="31" value="30" placeholder="30" class="w-full px-2.5 py-2 bg-blue-50 rounded-xl border border-blue-300 text-xs font-bold text-blue-900">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-indigo-900 mb-1">Giờ chuẩn/ngày *</label>
-                                        <input type="number" id="accStandardHours" min="1" max="24" value="8" placeholder="8" class="w-full px-2.5 py-2 bg-indigo-50 rounded-xl border border-indigo-300 text-xs font-bold text-indigo-900">
-                                    </div>
+                            <div class="flex gap-2 pt-1">
+                                <button type="button" onclick="resetFormSelection()" class="w-1/2 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Hủy</button>
+                                <button type="submit" class="w-1/2 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs">Lưu Tài Khoản</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- FORM 2: THÊM NHÂN VIÊN MỚI (HIỂN THỊ KHI TÍCH BẢNG) -->
+                    <div id="addStaffModal" class="hidden bg-amber-50/60 p-4 rounded-2xl border border-amber-200 shadow-sm space-y-3">
+                        <h3 class="text-xs font-bold text-amber-900 uppercase">Thêm Nhân Sự Mới</h3>
+                        <form onsubmit="saveNewStaff(event)" class="space-y-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 mb-1">Họ & Tên *</label>
+                                    <input type="text" id="newStaffName" required placeholder="Nguyễn Văn A" class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs">
                                 </div>
-
-                                <!-- CẤU HÌNH ĐIỀU CHỈNH LƯƠNG THEO MỐC NGÀY -->
-                                <div class="bg-amber-50/80 p-3 rounded-2xl border border-amber-200 space-y-2">
-                                    <label class="block text-xs font-bold text-amber-900 uppercase">Cài đặt Mức Lương Cơ Bản mới:</label>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <label class="block text-[10px] font-bold text-gray-600">Lương CB (VNĐ/tháng)</label>
-                                            <input type="number" id="accBaseSalary" min="0" step="100000" placeholder="5000000" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs font-bold text-amber-800">
-                                        </div>
-                                        <div>
-                                            <label class="block text-[10px] font-bold text-gray-600">Áp dụng từ ngày</label>
-                                            <input type="date" id="accSalaryEffectiveDate" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
-                                        </div>
-                                    </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-brand-darkgreen mb-1">Số điện thoại *</label>
+                                    <input type="tel" id="newStaffPhone" required placeholder="0901234567" class="w-full px-3 py-2 bg-emerald-50 rounded-xl border border-emerald-300 text-xs font-bold text-emerald-900">
                                 </div>
-
-                                <div class="bg-brand-cream/60 p-3 rounded-2xl border border-brand-green/20 space-y-2">
-                                    <label class="block text-xs font-bold text-brand-darkgreen uppercase">Tích chọn các Mục được quyền xem:</label>
-                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                                        <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
-                                            <input type="checkbox" id="perm_logs" checked class="w-4 h-4 text-brand-green rounded">
-                                            <span>Nhật ký dịch vụ</span>
-                                        </label>
-                                        <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
-                                            <input type="checkbox" id="perm_booking" checked class="w-4 h-4 text-brand-green rounded">
-                                            <span>Lịch hẹn</span>
-                                        </label>
-                                        <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
-                                            <input type="checkbox" id="perm_customers" checked class="w-4 h-4 text-brand-green rounded">
-                                            <span>Khách hàng</span>
-                                        </label>
-                                        <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
-                                            <input type="checkbox" id="perm_services" checked class="w-4 h-4 text-brand-green rounded">
-                                            <span>Dịch vụ & SP</span>
-                                        </label>
-                                        <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
-                                            <input type="checkbox" id="perm_staff" class="w-4 h-4 text-brand-green rounded">
-                                            <span>Nhân viên</span>
-                                        </label>
-                                    </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 mb-1">Chức Vụ *</label>
+                                    <select id="newStaffRole" class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs">
+                                        <option value="Kỹ thuật viên Spa">Kỹ thuật viên Spa</option>
+                                        <option value="Quản lý">Quản lý</option>
+                                        <option value="Lễ tân">Lễ tân</option>
+                                    </select>
                                 </div>
-
-                                <div class="flex gap-2 pt-1">
-                                    <button type="button" onclick="toggleAddAccountModal()" class="w-1/2 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Hủy</button>
-                                    <button type="submit" class="w-1/2 py-2 bg-brand-green text-white font-bold rounded-xl text-xs">Lưu Tài Khoản</button>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 mb-1">Cấp Bậc *</label>
+                                    <select id="newStaffLevel" class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs">
+                                    </select>
                                 </div>
-                            </form>
-                        </div>
-
-                        <!-- DANH SÁCH TÀI KHOẢN -->
-                        <div id="accountsListContainer" class="space-y-2"></div>
+                            </div>
+                            <div class="flex gap-2 pt-1">
+                                <button type="button" onclick="resetFormSelection()" class="w-1/2 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Hủy</button>
+                                <button type="submit" class="w-1/2 py-2 bg-amber-700 text-white font-bold rounded-xl text-xs">Lưu Nhân Viên</button>
+                            </div>
+                        </form>
                     </div>
 
                     <!-- FORM THÊM CẤP BẬC -->
@@ -549,42 +583,6 @@
                         </div>
                     </div>
 
-                    <!-- FORM THÊM NHÂN SỰ MỚI (ĐÃ THÊM Ô SĐT) -->
-                    <div id="addStaffModal" class="hidden bg-white p-4 rounded-2xl border border-brand-green/20 shadow-sm space-y-3">
-                        <h3 class="text-xs font-bold text-brand-darkgreen uppercase">Thêm Nhân Sự Mới</h3>
-                        <form onsubmit="saveNewStaff(event)" class="space-y-3">
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 mb-1">Họ & Tên *</label>
-                                    <input type="text" id="newStaffName" required placeholder="Nguyễn Văn A" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-brand-darkgreen mb-1">Số điện thoại *</label>
-                                    <input type="tel" id="newStaffPhone" required placeholder="0901234567" class="w-full px-3 py-2 bg-emerald-50 rounded-xl border border-emerald-300 text-xs font-bold text-emerald-900">
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 mb-1">Chức Vụ *</label>
-                                    <select id="newStaffRole" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
-                                        <option value="Kỹ thuật viên Spa">Kỹ thuật viên Spa</option>
-                                        <option value="Quản lý">Quản lý</option>
-                                        <option value="Lễ tân">Lễ tân</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-gray-600 mb-1">Cấp Bậc *</label>
-                                    <select id="newStaffLevel" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="flex gap-2 pt-1">
-                                <button type="button" onclick="toggleAddStaffModal()" class="w-1/2 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Hủy</button>
-                                <button type="submit" class="w-1/2 py-2 bg-brand-green text-white font-bold rounded-xl text-xs">Lưu Nhân Viên</button>
-                            </div>
-                        </form>
-                    </div>
-
                     <!-- LỌC BÁO CÁO BẢNG LƯƠNG NHÂN VIÊN THEO THÁNG -->
                     <div class="bg-brand-cream/60 p-3 rounded-2xl border border-brand-green/20 space-y-2">
                         <div class="flex items-center justify-between">
@@ -593,7 +591,7 @@
                         </div>
                     </div>
 
-                    <!-- DANH SÁCH BẢNG LƯƠNG NHÂN VIÊN -->
+                    <!-- DANH SÁCH BẢNG LƯƠNG NHÂN VIÊN (DUY NHẤT 1 DANH SÁCH KHÔNG TRÙNG DUPLICATE) -->
                     <div id="staffReportContainer" class="space-y-2.5"></div>
                 </div>
             </section>
@@ -637,7 +635,7 @@
                     <button onclick="closeSalaryDetailModal()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center font-bold">✕</button>
                 </div>
 
-                <!-- 1. ĐIỀU CHỈNH LƯƠNG CƠ BẢN (ĐẶT LÊN ĐẦU TIÊN) -->
+                <!-- 1. ĐIỀU CHỈNH LƯƠNG CƠ BẢN -->
                 <div class="bg-blue-50/80 p-3 rounded-2xl border border-blue-200 space-y-2 admin-only">
                     <h4 class="text-xs font-bold text-blue-900 uppercase flex items-center gap-1">
                         <i class="fa-solid fa-money-bill-wave"></i> Điều Chỉnh Lương Cơ Bản:
@@ -1092,7 +1090,6 @@
         function initFirebaseListeners() {
             db.ref('users').on('value', (snap) => {
                 globalUsers = snap.val() || {};
-                renderAccountsUI();
                 generateStaffReport();
             });
 
@@ -1144,6 +1141,30 @@
                 renderBookingsUI(globalBookings);
                 renderPendingBookingsInLogUI();
             });
+        }
+
+        // --- HÀM XỬ LÝ CHỌN FORM QUA RADIO BUTTON (MỚI BỔ SUNG) ---
+        function handleFormTypeChange() {
+            const selectedType = document.querySelector('input[name="addFormType"]:checked').value;
+            const accModal = document.getElementById('addAccountModal');
+            const staffModal = document.getElementById('addStaffModal');
+
+            if (selectedType === 'ACCOUNT') {
+                accModal.classList.remove('hidden');
+                staffModal.classList.add('hidden');
+            } else if (selectedType === 'STAFF') {
+                staffModal.classList.remove('hidden');
+                accModal.classList.add('hidden');
+            } else {
+                accModal.classList.add('hidden');
+                staffModal.classList.add('hidden');
+            }
+        }
+
+        function resetFormSelection() {
+            const noneRadio = document.querySelector('input[name="addFormType"][value="NONE"]');
+            if (noneRadio) noneRadio.checked = true;
+            handleFormTypeChange();
         }
 
         // --- CÔNG THỨC: TÍNH LƯƠNG CỘNG DỒN NGÀY VÀ LƯƠNG GIỜ (OT) ---
@@ -1251,7 +1272,7 @@
                 }, (err) => {
                     if (!err) {
                         alert('Đã lưu tài khoản & Cập nhật SĐT định danh thành công!');
-                        toggleAddAccountModal();
+                        resetFormSelection();
                     }
                 });
             });
@@ -1260,6 +1281,11 @@
         function editAccount(username) {
             const u = globalUsers[username];
             if (!u) return;
+
+            // Mở form Tài khoản qua Radio Button
+            const accRadio = document.querySelector('input[name="addFormType"][value="ACCOUNT"]');
+            if (accRadio) accRadio.checked = true;
+            handleFormTypeChange();
 
             document.getElementById('editAccountUsername').value = username;
             document.getElementById('accountFormTitle').innerText = `Sửa Phân Quyền & Lương: @${username}`;
@@ -1279,8 +1305,6 @@
             document.getElementById('perm_customers').checked = !!p.customers;
             document.getElementById('perm_services').checked = !!p.services;
             document.getElementById('perm_staff').checked = !!p.staff;
-
-            document.getElementById('addAccountModal').classList.remove('hidden');
         }
 
         // --- 2. LƯU NHÂN VIÊN MỚI KÈM SỐ ĐIỆN THOẠI ---
@@ -1293,7 +1317,7 @@
 
             db.ref('staff').push({ name, phone, role, level }, (err) => {
                 if(!err) { 
-                    toggleAddStaffModal(); 
+                    resetFormSelection();
                     document.getElementById('newStaffName').value = ''; 
                     document.getElementById('newStaffPhone').value = ''; 
                     alert("Thêm nhân viên thành công!");
@@ -1430,7 +1454,7 @@
 
             const userKey = Object.keys(globalUsers).find(k => staffPhone && globalUsers[k].phone === staffPhone);
             if (!userKey) {
-                alert(`Không tìm thấy Tài khoản có SĐT "${staffPhone || 'Chưa nhập'}"! Vui lòng tạo tài khoản ở Tab "Tài khoản" trước.`);
+                alert(`Không tìm thấy Tài khoản có SĐT "${staffPhone || 'Chưa nhập'}"! Vui lòng tạo tài khoản ở Form "Tạo tài khoản" trước.`);
                 return;
             }
 
@@ -1461,7 +1485,7 @@
             });
         }
 
-        // --- 5. BÁO CÁO LƯƠNG NHÂN VIÊN HIỂN THỊ CẢ SỐ ĐIỆN THOẠI ---
+        // --- 5. DANH SÁCH BẢNG LƯƠNG NHÂN VIÊN DUY NHẤT (KHÔNG BỊ HIỂN THỊ TRÙNG TÀI KHOẢN) ---
         function generateStaffReport() {
             const selectedMonthStr = document.getElementById('staffReportMonth').value;
 
@@ -1477,11 +1501,12 @@
 
             const staffKeys = Object.keys(globalStaff);
             if(staffKeys.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-2">Chưa có nhân viên nào</p>';
+                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Chưa có nhân viên nào trong danh sách</p>';
                 return;
             }
 
             const isAdmin = currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'MANAGER';
+            const isSuperAdmin = currentUser.role === 'SUPER_ADMIN';
 
             staffKeys.forEach(sKey => {
                 const staff = globalStaff[sKey];
@@ -1521,78 +1546,32 @@
 
                 const finalSalary = Math.max(0, salaryCalc.calculatedBaseSalary - deductionAmount) + otBonusAmount + totalCommission;
 
+                const editAccBtn = (isSuperAdmin && userKey) ? `<button onclick="event.stopPropagation(); editAccount('${userKey}')" class="text-blue-600 text-xs font-bold">✏️ Sửa Tài Khoản</button>` : '';
                 const deleteBtn = isAdmin ? `<button onclick="event.stopPropagation(); deleteStaff('${sKey}')" class="text-red-500 text-xs font-bold">🗑 Xóa</button>` : '';
 
                 const cardHTML = `
-                    <div onclick="showSalaryDetailForStaff('${staff.name}')" class="p-3.5 bg-brand-cream/40 hover:bg-brand-cream/80 transition rounded-2xl border border-gray-100 space-y-1.5 cursor-pointer">
+                    <div onclick="showSalaryDetailForStaff('${staff.name}')" class="p-3.5 bg-brand-cream/40 hover:bg-brand-cream/80 transition rounded-2xl border border-gray-100 space-y-2 cursor-pointer shadow-sm">
                         <div class="flex justify-between items-center">
                             <div>
                                 <span class="font-bold text-brand-darkgreen text-xs">${staff.name}</span>
                                 <span class="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 ml-1">📞 ${staff.phone || 'N/A'}</span>
                                 <span class="text-[10px] text-gray-500 bg-white px-2 py-0.5 rounded border ml-1">${staff.role} - ${staff.level}</span>
+                                ${userKey ? `<span class="text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 ml-1 font-mono">@${userKey}</span>` : '<span class="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 ml-1">Chưa có TK</span>'}
                             </div>
-                            ${deleteBtn}
+                            <div class="flex gap-2">
+                                ${editAccBtn}
+                                ${deleteBtn}
+                            </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+                        <div class="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-gray-100">
                             <div>Lượt phục vụ: <strong>${clientCount} lượt</strong></div>
                             <div>Ngày nghỉ: <strong class="text-red-600">${currentAtt.offDays || 0} ngày</strong></div>
                             <div>Thưởng OT/Thêm: <strong class="text-indigo-800">${formatVND(otBonusAmount)}</strong></div>
-                            <div>Lương thực nhận: <strong class="text-emerald-700 font-extrabold">${formatVND(finalSalary)}</strong></div>
+                            <div>Lương thực nhận: <strong class="text-emerald-700 font-extrabold text-sm">${formatVND(finalSalary)}</strong></div>
                         </div>
-                        <div class="flex justify-between items-center pt-1 text-xs border-t border-gray-100">
-                            <span class="text-emerald-700 font-bold">▶ Click xem Bảng Lương & Chi tiết ➔</span>
+                        <div class="flex justify-between items-center pt-1 text-xs text-brand-green font-bold">
+                            <span>▶ Click xem Bảng Lương & Chấm Công Chi Tiết ➔</span>
                         </div>
-                    </div>
-                `;
-                container.insertAdjacentHTML('afterbegin', cardHTML);
-            });
-        }
-
-        // --- 6. GIAO DIỆN HIỂN THỊ DANH SÁCH TÀI KHOẢN KÈM SĐT ---
-        function renderAccountsUI() {
-            const container = document.getElementById('accountsListContainer');
-            if (!container) return;
-            container.innerHTML = '';
-
-            const keys = Object.keys(globalUsers);
-            if (keys.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-2">Chưa có tài khoản nào</p>';
-                return;
-            }
-
-            keys.forEach(username => {
-                const u = globalUsers[username];
-                const isSelf = username === currentUser.username;
-                const p = u.permissions || {};
-
-                const permBadges = `
-                    <div class="flex flex-wrap gap-1 text-[10px] pt-1">
-                        ${p.logs ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Nhật ký</span>' : ''}
-                        ${p.booking ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Lịch hẹn</span>' : ''}
-                        ${p.customers ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Khách hàng</span>' : ''}
-                        ${p.services ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Dịch vụ & SP</span>' : ''}
-                        ${p.staff ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Nhân viên</span>' : ''}
-                    </div>
-                `;
-
-                const cardHTML = `
-                    <div class="p-3 bg-brand-cream/40 rounded-2xl border border-gray-100 space-y-2">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <span class="font-bold text-brand-darkgreen text-xs">${u.fullName}</span>
-                                <span class="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 ml-1">📞 ${u.phone || 'N/A'}</span>
-                                <span class="text-[10px] text-gray-500 font-mono">(@${username})</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="editAccount('${username}')" class="text-brand-green text-xs font-bold">✏️ Sửa Lương & Quyền</button>
-                                ${!isSelf ? `<button onclick="deleteAccount('${username}')" class="text-red-500 text-xs font-bold">🗑 Xóa</button>` : ''}
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center text-xs">
-                            <span>Lương: <strong class="text-amber-800">${formatVND(u.baseSalary)}</strong> (${u.workingDaysPerMonth || 30} ngày, ${u.standardHoursPerDay || 8}h/ngày)</span>
-                            <span class="text-gray-500 font-bold">${u.role}</span>
-                        </div>
-                        ${permBadges}
                     </div>
                 `;
                 container.insertAdjacentHTML('afterbegin', cardHTML);
@@ -1893,20 +1872,6 @@
                     alert(`HOÀN THÀNH!\n- Khách: ${customerName}\n- Tổng thu: ${formatVND(actualTotalPaid)}\n- Nhân viên: ${staffListText}\n- Hoa hồng NV: ${formatVND(totalCommissionAmount)}`);
                 }
             });
-        }
-
-        function toggleAddAccountModal() {
-            document.getElementById('editAccountUsername').value = '';
-            document.getElementById('accountFormTitle').innerText = 'Tạo Tài Khoản Cấp Dưới Mới';
-            document.getElementById('accFullName').value = '';
-            document.getElementById('accPhone').value = '';
-            document.getElementById('accUsername').value = '';
-            document.getElementById('accPassword').value = '';
-            document.getElementById('accBaseSalary').value = 5000000;
-            document.getElementById('accWorkingDays').value = 30;
-            document.getElementById('accStandardHours').value = 8;
-            document.getElementById('accSalaryEffectiveDate').value = new Date().toISOString().split('T')[0];
-            document.getElementById('addAccountModal').classList.toggle('hidden');
         }
 
         function deleteAccount(username) {
@@ -2254,7 +2219,6 @@
             renderCommissionInputsInServiceUI();
         }
 
-        function toggleAddStaffModal() { document.getElementById('addStaffModal').classList.toggle('hidden'); }
         function deleteStaff(key) { if(confirm('Xóa nhân viên?')) db.ref('staff/' + key).remove(); }
 
         function renderServiceSelectUI() {
