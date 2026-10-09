@@ -2030,10 +2030,355 @@
             document.getElementById('logTransferAmount').value = 0;
         }
 
-        function toggleAddLogForm(forceOpen = false)
-        // --- 8. CÁC HÀM XỬ LÝ KHÁCH HÀNG & MODAL CÒN LẠI ---
+        function toggleAddLogForm(forceOpen = false) {
+            const form = document.getElementById('addLogForm');
+            if (forceOpen || form.classList.contains('hidden')) {
+                form.classList.remove('hidden');
+                document.getElementById('serviceRowsContainer').innerHTML = '';
+                document.getElementById('logFromBookingKey').value = '';
+                document.getElementById('customerComboContainerBox').classList.add('hidden');
+            } else form.classList.add('hidden');
+        }
 
-        // Mở Modal xem chi tiết thông tin Khách hàng & Combo/Liệu trình đã mua
+        // --- BÁO CÁO DOANH THU NGÀY ---
+        function generateDailyReport() {
+            const selectedDate = document.getElementById('reportDateSelect').value;
+            let totalClients = 0, totalCash = 0, totalTransfer = 0;
+            
+            Object.keys(globalServiceLogs).forEach(k => {
+                const l = globalServiceLogs[k];
+                if(l.date === selectedDate) {
+                    totalClients++;
+                    totalCash += (l.cash || 0);
+                    totalTransfer += (l.transfer || 0);
+                }
+            });
+
+            document.getElementById('statTotalCust').innerText = totalClients;
+            document.getElementById('reportCashTotal').innerText = formatVND(totalCash);
+            document.getElementById('reportTransferTotal').innerText = formatVND(totalTransfer);
+            document.getElementById('reportGrandTotal').innerText = formatVND(totalCash + totalTransfer);
+        }
+
+        // --- HIỂN THỊ LỊCH HẸN CHỜ BÁN HÀNG NGAY TRONG TAB NHẬT KÝ ---
+        function renderPendingBookingsInLogUI() {
+            const container = document.getElementById('pendingBookingsInLogContainer');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const pendingKeys = Object.keys(globalBookings).filter(k => globalBookings[k].status === 'Đang chờ');
+            document.getElementById('pendingBookingCount').innerText = `${pendingKeys.length} lịch chờ`;
+
+            if(pendingKeys.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-500 italic">Không có lịch hẹn nào đang chờ...</p>';
+                return;
+            }
+
+            pendingKeys.forEach(key => {
+                const b = globalBookings[key];
+                container.insertAdjacentHTML('afterbegin', `
+                    <div class="bg-white p-3 rounded-2xl border border-amber-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <div class="font-bold text-xs text-brand-darkgreen">${b.name} (${b.phone})</div>
+                            <div class="text-[11px] text-gray-600">Dịch vụ/SP: <strong class="text-brand-green">${b.service}</strong> - Giờ: <strong>${b.time}</strong></div>
+                        </div>
+                        <button onclick="startServiceFromBooking('${key}', '${b.name}', '${b.phone}', '${b.service}')" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow">▶ Phục vụ ngay</button>
+                    </div>
+                `);
+            });
+        }
+
+        function startServiceFromBooking(bookingKey, custName, custPhone, serviceName) {
+            toggleAddLogForm(true);
+            document.getElementById('logFromBookingKey').value = bookingKey;
+            const select = document.getElementById('logCustomerSelect');
+            let optionExists = false;
+
+            for(let i = 0; i < select.options.length; i++) {
+                if(select.options[i].text.includes(custName) || select.options[i].text.includes(custPhone)){
+                    select.selectedIndex = i; 
+                    optionExists = true; 
+                    break;
+                }
+            }
+
+            if(!optionExists) {
+                select.value = 'NEW_CUSTOMER'; 
+                handleCustomerSelectChange();
+                document.getElementById('logNewCustName').value = custName;
+                document.getElementById('logNewCustPhone').value = custPhone;
+            } else {
+                handleCustomerSelectChange();
+            }
+
+            const servKey = Object.keys(globalServices).find(k => globalServices[k].name === serviceName);
+            const servObj = servKey ? globalServices[servKey] : null;
+            const price = servObj ? (servObj.price || 0) : 0;
+            const type = servObj ? (servObj.type === 'PRODUCT' ? 'PRODUCT' : 'SINGLE') : 'SINGLE';
+
+            addServiceRowToLog(type, serviceName, price);
+        }
+
+        // --- HIỂN THỊ VÀ LỌC DANH SÁCH NHẬT KÝ ---
+        function handleLogFilterModeChange() {
+            const mode = document.getElementById('logFilterMode').value;
+            document.getElementById('filterSpecificDateBox').classList.toggle('hidden', mode !== 'SPECIFIC_DATE');
+            document.getElementById('filterMonthYearBox').classList.toggle('hidden', mode !== 'MONTH_YEAR');
+            document.getElementById('filterYearBox').classList.toggle('hidden', mode !== 'YEAR');
+            renderServiceLogsUI();
+        }
+
+        function renderServiceLogsUI() {
+            const container = document.getElementById('serviceLogsContainer');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const keys = Object.keys(globalServiceLogs);
+            if(keys.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Chưa có nhật ký phục vụ nào</p>';
+                return;
+            }
+
+            const filterMode = document.getElementById('logFilterMode').value;
+            const specificDate = document.getElementById('logFilterDate').value;
+            const monthYear = document.getElementById('logFilterMonth').value;
+            const yearVal = document.getElementById('logFilterYear').value;
+            const keyword = document.getElementById('logSearchKeyword').value.trim().toLowerCase();
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            let filteredKeys = keys.filter(key => {
+                const log = globalServiceLogs[key];
+                let timeMatch = true;
+                if (filterMode === 'TODAY') timeMatch = (log.date === todayStr);
+                else if (filterMode === 'SPECIFIC_DATE') timeMatch = (log.date === specificDate);
+                else if (filterMode === 'MONTH_YEAR') timeMatch = log.date.startsWith(monthYear);
+                else if (filterMode === 'YEAR') timeMatch = log.date.startsWith(yearVal);
+
+                let kwMatch = true;
+                if (keyword) kwMatch = `${log.customer} ${log.service} ${log.staff} ${log.date}`.toLowerCase().includes(keyword);
+                return timeMatch && kwMatch;
+            });
+
+            const isAdmin = currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'MANAGER';
+
+            filteredKeys.forEach(key => {
+                const log = globalServiceLogs[key];
+                const deleteBtn = isAdmin ? `<button onclick="deleteLog('${key}')" class="text-red-500 hover:text-red-700 text-xs font-bold">🗑 Xóa</button>` : '';
+
+                let itemsDetailHTML = '';
+                if (log.items && log.items.length > 0) {
+                    itemsDetailHTML = log.items.map(it => `
+                        <div class="flex justify-between items-center text-[11px] text-gray-700 bg-white p-1.5 rounded-lg border border-gray-100">
+                            <span>• <strong>${it.service}</strong> (${formatVND(it.price)})</span>
+                            <span class="text-amber-800">NV: <strong>${it.staff}</strong> (+${formatVND(it.commissionAmount)})</span>
+                        </div>
+                    `).join('');
+                }
+
+                container.insertAdjacentHTML('afterbegin', `
+                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-brand-green/10 space-y-1.5">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-brand-darkgreen text-sm">${log.customer}</h3>
+                                <p class="text-[11px] text-gray-500 font-bold">📅 Ngày: ${formatDateVN(log.date)}</p>
+                            </div>
+                            ${deleteBtn}
+                        </div>
+                        <div class="bg-brand-cream/50 p-2.5 rounded-xl text-xs space-y-1.5">
+                            <div class="space-y-1">${itemsDetailHTML || `<div class="font-bold text-brand-green">${log.service}</div>`}</div>
+                            <div class="flex justify-between border-t pt-1 font-bold">
+                                <span>Tổng thu thực tế: ${formatVND(log.total)}</span>
+                                <span class="text-amber-700">Hoa hồng NV: ${formatVND(log.commissionAmount)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        function deleteLog(key) {
+            if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER') return;
+            if(confirm('Xóa lượt dịch vụ/bán hàng này khỏi hệ thống?')) {
+                db.ref('service_logs/' + key).remove();
+            }
+        }
+
+        // --- CẤP BẬC VÀ NHÂN VIÊN ---
+        function toggleLevelModal() { document.getElementById('levelModal').classList.toggle('hidden'); }
+        function saveNewLevel() {
+            const val = document.getElementById('newLevelInput').value.trim();
+            if (val && !globalLevels.includes(val)) {
+                globalLevels.push(val); 
+                db.ref('levels').set(globalLevels);
+                document.getElementById('newLevelInput').value = '';
+            }
+        }
+        function renderLevelsUI() {
+            document.getElementById('currentLevelsText').innerText = globalLevels.join(', ');
+            document.getElementById('newStaffLevel').innerHTML = globalLevels.map(l => `<option value="${l}">${l}</option>`).join('');
+            renderCommissionInputsInServiceUI();
+        }
+
+        function toggleAddStaffModal() { document.getElementById('addStaffModal').classList.toggle('hidden'); }
+        function saveNewStaff(e) {
+            e.preventDefault();
+            const name = document.getElementById('newStaffName').value.trim();
+            const role = document.getElementById('newStaffRole').value;
+            const level = document.getElementById('newStaffLevel').value;
+            db.ref('staff').push({ name, role, level }, (err) => {
+                if(!err) { 
+                    toggleAddStaffModal(); 
+                    document.getElementById('newStaffName').value = ''; 
+                }
+            });
+        }
+        function deleteStaff(key) { 
+            if(confirm('Xóa thông tin nhân viên này?')) db.ref('staff/' + key).remove(); 
+        }
+
+        function renderServiceSelectUI() {
+            const bookSelect = document.getElementById('bookService');
+            bookSelect.innerHTML = '';
+            Object.keys(globalServices).forEach(k => {
+                const s = globalServices[k];
+                bookSelect.innerHTML += `<option value="${s.name}">${s.name} (${s.type === 'COMBO' ? s.sessions + ' buổi' : (s.type === 'PRODUCT' ? 'Sản phẩm' : 'Lẻ')})</option>`;
+            });
+        }
+
+        // --- DANH SÁCH KHÁCH HÀNG & LỊCH HẸN ---
+        function renderCustomersUI() {
+            const container = document.getElementById('customerList');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            Object.keys(globalCustomers).forEach(key => {
+                const c = globalCustomers[key];
+                container.insertAdjacentHTML('afterbegin', `
+                    <div id="cust-${key}" onclick="showCustomerDetails('${key}', '${c.name}', '${c.phone}', '${c.address}')" class="cust-card bg-white p-4 rounded-2xl shadow-sm border border-brand-green/10 cursor-pointer flex items-center justify-between hover:bg-brand-cream/30 transition">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-11 h-11 rounded-2xl bg-brand-green text-white font-bold flex items-center justify-center text-sm shadow-sm">${c.name ? c.name.substring(0,2).toUpperCase() : 'KH'}</div>
+                            <div>
+                                <h3 class="font-bold text-brand-darkgreen text-sm">${c.name}</h3>
+                                <p class="text-xs text-gray-500">📞 ${c.phone}</p>
+                                <p class="text-[11px] text-gray-400">📍 ${c.address}</p>
+                            </div>
+                        </div>
+                        <span class="text-xs text-brand-green font-semibold">Chi tiết ➔</span>
+                    </div>
+                `);
+            });
+        }
+
+        function renderBookingsUI(data) {
+            const container = document.getElementById('bookingList');
+            if(!container) return;
+            container.innerHTML = '';
+            if(!data || Object.keys(data).length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Chưa có lịch hẹn nào</p>';
+                return;
+            }
+
+            Object.keys(data).forEach(key => {
+                const b = data[key];
+                const statusClass = b.status === 'Đã xong' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+                const completeBtn = b.status === 'Đang chờ' ? `<button onclick="startServiceFromBooking('${key}', '${b.name}', '${b.phone}', '${b.service}'); switchTab('logs');" class="bg-amber-600 text-white text-xs px-3 py-1 rounded-lg font-bold shadow">▶ Phục vụ</button>` : '';
+
+                container.insertAdjacentHTML('afterbegin', `
+                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-brand-green/10 space-y-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-brand-darkgreen text-sm">${b.name}</h3>
+                                <p class="text-xs text-gray-500">📞 ${b.phone}</p>
+                            </div>
+                            <span class="${statusClass} text-[10px] px-2 py-0.5 rounded-full font-bold">${b.status}</span>
+                        </div>
+                        <div class="bg-brand-cream/50 p-2 rounded-xl text-xs space-y-0.5">
+                            <div><strong class="text-gray-700">Dịch vụ / SP:</strong> <span class="text-brand-green font-bold">${b.service}</span></div>
+                            <div><strong class="text-gray-700">Giờ hẹn:</strong> ${b.time}</div>
+                        </div>
+                        <div class="flex justify-end gap-2 pt-1 border-t border-gray-100">
+                            ${completeBtn}
+                            <button onclick="deleteBooking('${key}')" class="bg-red-50 text-red-600 text-xs px-2.5 py-1 rounded-lg font-bold">🗑 Xóa</button>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        function exportCustomersToExcel() {
+            const excelData = [];
+            let stt = 1;
+            Object.keys(globalCustomers).forEach(key => {
+                const c = globalCustomers[key];
+                excelData.push({ "STT": stt++, "Họ và Tên": c.name || '', "Số Điện Thoại": c.phone || '', "Địa Chỉ": c.address || '' });
+            });
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "KhachHang_KimBeauty");
+            XLSX.writeFile(workbook, `Danh_Sach_Khach_Hang_KimBeauty_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        }
+
+        function saveNewCustomer(e) {
+            e.preventDefault();
+            const name = document.getElementById('newCustName').value.trim();
+            const phone = document.getElementById('newCustPhone').value.trim();
+            const address = document.getElementById('newCustAddress').value.trim();
+            db.ref('customers').push({ name, phone, address }, (err) => { 
+                if(!err) {
+                    alert('Đã thêm khách hàng!');
+                    closeAddCustomerModal(); 
+                }
+            });
+        }
+
+        function saveNewBooking(e) {
+            e.preventDefault();
+            const name = document.getElementById('bookCustName').value.trim();
+            const phone = document.getElementById('bookCustPhone').value.trim();
+            const service = document.getElementById('bookService').value;
+            const time = document.getElementById('bookTime').value;
+            const status = document.getElementById('bookStatus').value;
+            db.ref('bookings').push({ name, phone, service, time, status }, (err) => { 
+                if(!err) {
+                    alert('Đã tạo lịch hẹn!');
+                    closeBookingModal(); 
+                }
+            });
+        }
+
+        function deleteCurrentCustomer() {
+            if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER') return;
+            if(confirm('Xóa vĩnh viễn khách hàng này cùng dữ liệu combo liên quan?')) {
+                if(currentActiveCustKey) { 
+                    db.ref('customers/' + currentActiveCustKey).remove(); 
+                    closeModal(); 
+                }
+            }
+        }
+
+        function deleteBooking(key) { 
+            if(confirm('Xóa lịch hẹn này?')) db.ref('bookings/' + key).remove(); 
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('text-brand-green', 'font-bold');
+                btn.classList.add('text-gray-400', 'font-medium');
+            });
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-400', 'font-medium');
+                activeBtn.classList.add('text-brand-green', 'font-bold');
+            }
+        }
+
+        function openAddCustomerModal() { document.getElementById('addCustModal').classList.remove('hidden'); }
+        function closeAddCustomerModal() { document.getElementById('addCustModal').classList.add('hidden'); }
+        function openBookingModal() { document.getElementById('addBookingModal').classList.remove('hidden'); }
+        function closeBookingModal() { document.getElementById('addBookingModal').classList.add('hidden'); }
+
         function showCustomerDetails(key, name, phone, address) {
             currentActiveCustKey = key;
             document.getElementById('modalCustName').innerText = name;
@@ -2042,7 +2387,6 @@
 
             const comboListContainer = document.getElementById('modalCustomerComboList');
             comboListContainer.innerHTML = '';
-            
             const c = globalCustomers[key];
             if (c && c.combos && Object.keys(c.combos).length > 0) {
                 Object.keys(c.combos).forEach(cbKey => {
@@ -2051,127 +2395,27 @@
                         <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex justify-between items-center text-xs">
                             <div>
                                 <div class="font-bold text-amber-900">${cb.serviceName}</div>
-                                <div class="text-[10px] text-gray-500 mt-0.5">📅 Ngày mua: ${formatDateVN(cb.buyDate)}</div>
+                                <div class="text-[10px] text-gray-500 mt-0.5">Ngày mua: ${formatDateVN(cb.buyDate)}</div>
                             </div>
-                            <span class="bg-amber-200 text-amber-900 px-3 py-1 rounded-full font-bold text-xs">
+                            <span class="bg-amber-200 text-amber-900 px-3 py-1 rounded-full font-bold">
                                 Còn ${cb.remainingSessions} / ${cb.totalSessions} buổi
                             </span>
                         </div>
                     `;
                 });
             } else {
-                comboListContainer.innerHTML = '<p class="text-xs text-gray-400 italic py-2">Khách hàng này chưa mua gói Combo nào.</p>';
+                comboListContainer.innerHTML = '<p class="text-xs text-gray-400 italic py-2">Khách chưa đăng ký gói Combo nào.</p>';
             }
             document.getElementById('custModal').classList.remove('hidden');
         }
 
-        // Đóng Modal chi tiết Khách hàng
-        function closeModal() {
-            document.getElementById('custModal').classList.add('hidden');
-        }
-
-        // Lọc danh sách Khách hàng realtime theo ô tìm kiếm
+        function closeModal() { document.getElementById('custModal').classList.add('hidden'); }
+        
         function filterCustomers() {
             const input = document.getElementById('searchCust').value.toLowerCase().trim();
             document.querySelectorAll('.cust-card').forEach(card => {
-                const text = card.innerText.toLowerCase();
-                card.style.display = text.includes(input) ? 'flex' : 'none';
+                card.style.display = card.innerText.toLowerCase().includes(input) ? 'flex' : 'none';
             });
-        }
-
-        // Mở / Đóng Modal Thêm Khách Hàng
-        function openAddCustomerModal() { document.getElementById('addCustModal').classList.remove('hidden'); }
-        function closeAddCustomerModal() { document.getElementById('addCustModal').classList.add('hidden'); }
-
-        // Mở / Đóng Modal Đặt Lịch Hẹn
-        function openBookingModal() { document.getElementById('addBookingModal').classList.remove('hidden'); }
-        function closeBookingModal() { document.getElementById('addBookingModal').classList.add('hidden'); }
-
-        // Thêm mới Khách hàng vào Firebase
-        function saveNewCustomer(e) {
-            e.preventDefault();
-            const name = document.getElementById('newCustName').value.trim();
-            const phone = document.getElementById('newCustPhone').value.trim();
-            const address = document.getElementById('newCustAddress').value.trim();
-
-            if (!name || !phone) {
-                alert("Vui lòng nhập đầy đủ Tên và Số điện thoại!");
-                return;
-            }
-
-            db.ref('customers').push({ name, phone, address }, (err) => {
-                if (!err) {
-                    alert("Đã thêm khách hàng mới thành công!");
-                    closeAddCustomerModal();
-                    document.getElementById('newCustName').value = '';
-                    document.getElementById('newCustPhone').value = '';
-                    document.getElementById('newCustAddress').value = '';
-                }
-            });
-        }
-
-        // Thêm Lịch hẹn mới vào Firebase
-        function saveNewBooking(e) {
-            e.preventDefault();
-            const name = document.getElementById('bookCustName').value.trim();
-            const phone = document.getElementById('bookCustPhone').value.trim();
-            const service = document.getElementById('bookService').value;
-            const time = document.getElementById('bookTime').value;
-            const status = document.getElementById('bookStatus').value;
-
-            db.ref('bookings').push({ name, phone, service, time, status }, (err) => {
-                if (!err) {
-                    alert("Đã đặt lịch hẹn thành công!");
-                    closeBookingModal();
-                    document.getElementById('bookCustName').value = '';
-                    document.getElementById('bookCustPhone').value = '';
-                }
-            });
-        }
-
-        // Xóa Khách hàng hiện tại (Super Admin / Manager)
-        function deleteCurrentCustomer() {
-            if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER') return;
-            if (confirm('Bạn có chắc chắn muốn xóa vĩnh viễn khách hàng này cùng toàn bộ lịch sử combo?')) {
-                if (currentActiveCustKey) {
-                    db.ref('customers/' + currentActiveCustKey).remove((err) => {
-                        if (!err) {
-                            closeModal();
-                            alert('Đã xóa khách hàng thành công!');
-                        }
-                    });
-                }
-            }
-        }
-
-        // Xóa Lịch hẹn
-        function deleteBooking(key) {
-            if (confirm('Xóa lịch hẹn này?')) {
-                db.ref('bookings/' + key).remove();
-            }
-        }
-
-        // Chuyển đổi Tab Menu dưới màn hình
-        function switchTab(tabId) {
-            // Ẩn toàn bộ nội dung tab
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            
-            // Đưa tất cả nút điều hướng về trạng thái chưa chọn
-            document.querySelectorAll('.nav-tab').forEach(btn => {
-                btn.classList.remove('text-brand-green', 'font-bold');
-                btn.classList.add('text-gray-400', 'font-medium');
-            });
-
-            // Hiển thị tab được chọn
-            const targetTab = document.getElementById('tab-' + tabId);
-            if (targetTab) targetTab.classList.remove('hidden');
-
-            // Highlight nút vừa bấm
-            const activeBtn = document.getElementById('btn-' + tabId);
-            if (activeBtn) {
-                activeBtn.classList.remove('text-gray-400', 'font-medium');
-                activeBtn.classList.add('text-brand-green', 'font-bold');
-            }
         }
     </script>
 </body>
