@@ -2,697 +2,631 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kim Beauty - POS Quản Lý Spa & Bán Hàng Realtime</title>
-
-    <!-- PWA META TAGS -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Kim Beauty POS">
-    <link rel="apple-touch-icon" href="logo.jpg">
-
-    <!-- Tailwind CSS CDN -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIM BEAUTY POS - Quản Lý Spa Online</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        brand: {
-                            green: '#708238',
-                            darkgreen: '#4D5A23',
-                            cream: '#F7F5F0',
-                            card: '#EFECE6',
-                            text: '#2D3748'
-                        }
+                        'brand-green': '#2E5A44',
+                        'brand-darkgreen': '#1C3A2B',
+                        'brand-cream': '#F9F6F0',
+                        'brand-gold': '#D4AF37'
                     }
                 }
             }
         }
     </script>
-    <!-- FontAwesome Icons -->
+    <!-- FontAwesome & SheetJS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Firebase SDK v9 Compat -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-
-    <!-- Thư viện Xuất File Excel (SheetJS) -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-    <style>
-        body { -webkit-tap-highlight-color: transparent; user-select: none; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
-<body class="bg-brand-cream text-brand-text font-sans antialiased min-h-screen pb-28 md:pb-12">
+<body class="bg-gray-100 font-sans text-gray-800 pb-20 sm:pb-6">
 
     <!-- MÀN HÌNH ĐĂNG NHẬP / KHỞI TẠO -->
-    <div id="authScreen" class="fixed inset-0 z-50 bg-brand-cream flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-brand-green/20 space-y-5">
-            <div class="text-center space-y-2">
-                <img src="logo.jpg" onerror="this.src='https://ui-avatars.com/api/?name=Kim+Beauty&background=708238&color=fff'" alt="Logo" class="w-16 h-16 rounded-full object-cover border-2 border-brand-green mx-auto shadow-sm">
-                <h2 class="text-xl font-black text-brand-darkgreen tracking-wide">KIM BEAUTY POS</h2>
-                <p id="authSubtitle" class="text-xs text-gray-500">Đăng nhập để vào hệ thống quản lý Online</p>
+    <div id="authScreen" class="fixed inset-0 z-50 bg-brand-darkgreen flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl space-y-5">
+            <div class="text-center space-y-1">
+                <h1 class="text-2xl font-black text-brand-darkgreen tracking-wide">KIM BEAUTY POS</h1>
+                <p id="authSubtitle" class="text-xs text-gray-500 font-medium">Đang kiểm tra dữ liệu hệ thống...</p>
             </div>
 
-            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-3">
+            <!-- Form Đăng Nhập -->
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-3.5">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">Tên đăng nhập / SĐT *</label>
-                    <input type="text" id="loginUsername" required placeholder="Nhập tên tài khoản..." class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm font-medium focus:outline-none focus:border-brand-green">
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Tên đăng nhập *</label>
+                    <input type="text" id="loginUsername" required placeholder="admin" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm font-medium">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-1">Mật khẩu *</label>
-                    <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm font-medium focus:outline-none focus:border-brand-green">
+                    <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm font-medium">
                 </div>
-                <button type="submit" class="w-full bg-brand-green hover:bg-brand-darkgreen text-white font-bold py-3 rounded-xl shadow-md text-sm transition">
+                <button type="submit" class="w-full py-3 bg-brand-green hover:bg-brand-darkgreen text-white font-bold rounded-xl shadow-lg transition text-sm">
                     ĐĂNG NHẬP HỆ THỐNG
                 </button>
             </form>
 
-            <form id="initSuperAdminForm" onsubmit="handleInitSuperAdmin(event)" class="space-y-3 hidden">
-                <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-xs text-amber-800 font-medium">
-                    <i class="fa-solid fa-crown text-amber-600 mr-1"></i> Chưa có tài khoản. Khởi tạo <strong>Super Admin</strong>!
+            <!-- Form Khởi Tạo Super Admin -->
+            <form id="initSuperAdminForm" onsubmit="handleInitSuperAdmin(event)" class="space-y-3.5 hidden">
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 font-medium">
+                    Hệ thống chưa có tài khoản. Vui lòng tạo tài khoản <strong>Super Admin</strong> đầu tiên!
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">Họ và tên Chủ Spa *</label>
-                    <input type="text" id="initFullName" required placeholder="Ví dụ: Cao Xuân Anh" class="w-full px-3.5 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Họ và Tên Admin *</label>
+                    <input type="text" id="initFullName" required placeholder="Nguyễn Văn A" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-1">Tên đăng nhập *</label>
-                    <input type="text" id="initUsername" required placeholder="admin" class="w-full px-3.5 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                    <input type="text" id="initUsername" required placeholder="admin" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-1">Mật khẩu *</label>
-                    <input type="password" id="initPassword" required placeholder="••••••••" class="w-full px-3.5 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                    <input type="password" id="initPassword" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
                 </div>
-                <button type="submit" class="w-full bg-brand-darkgreen hover:bg-black text-white font-bold py-3 rounded-xl shadow-md text-sm transition">
-                    KHỞI TẠO TÀI KHOẢN TỐI CAO
+                <button type="submit" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-lg transition text-sm">
+                    KHỞI TẠO SUPER ADMIN
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- MAIN APP SCREEN -->
-    <div id="mainApp" class="hidden">
-        
-        <!-- HEADER TOP -->
-        <header class="sticky top-0 z-40 bg-brand-darkgreen text-white px-4 py-3 shadow-md flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <img src="logo.jpg" onerror="this.src='https://ui-avatars.com/api/?name=Kim+Beauty&background=708238&color=fff'" alt="Logo" class="w-10 h-10 rounded-full object-cover border border-white/30 shadow-sm">
-                <div>
-                    <h1 class="font-bold text-base leading-tight tracking-wide">KIM BEAUTY POS</h1>
-                    <p class="text-[11px] text-white/80">Cloud Realtime</p>
+    <!-- MAIN APP CONTAINER -->
+    <div id="mainApp" class="hidden min-h-screen flex flex-col">
+        <!-- HEADER THÔNG TIN TÀI KHOẢN -->
+        <header class="bg-brand-darkgreen text-white px-4 py-3 sticky top-0 z-40 shadow-md">
+            <div class="max-w-4xl mx-auto flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-9 h-9 rounded-full bg-brand-gold text-brand-darkgreen font-black flex items-center justify-center text-sm shadow">KB</div>
+                    <div>
+                        <h2 class="font-bold text-sm tracking-wide leading-tight">KIM BEAUTY POS</h2>
+                        <p id="headerUserRole" class="text-[10px] text-amber-200 font-semibold">Super Admin</p>
+                    </div>
                 </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <button id="btnEnableNotify" onclick="requestNotificationPermission()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1 shadow">
-                    <i class="fa-solid fa-bell"></i> <span class="hidden sm:inline">Bật thông báo</span>
-                </button>
-
-                <div class="relative">
-                    <button onclick="toggleUserMenu()" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-1.5 rounded-2xl transition">
-                        <div class="w-7 h-7 rounded-full bg-brand-green text-white font-bold text-xs flex items-center justify-center border border-white/40">
-                            <i class="fa-solid fa-user"></i>
-                        </div>
-                        <div class="text-left hidden sm:block">
-                            <div id="headerUserName" class="text-xs font-bold leading-tight">...</div>
-                            <div id="headerUserRole" class="text-[10px] text-amber-300 leading-tight">...</div>
-                        </div>
-                        <i class="fa-solid fa-chevron-down text-[10px] text-white/70 ml-1"></i>
+                
+                <div class="flex items-center gap-2">
+                    <button id="btnEnableNotify" onclick="requestNotificationPermission()" class="text-xs bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1 rounded-lg font-bold shadow animate-pulse">
+                        🔔 Bật Thông Báo
                     </button>
-
-                    <div id="userMenuDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-brand-green/20 p-2 text-brand-text z-50">
-                        <div class="p-3 border-b border-gray-100 bg-brand-cream/50 rounded-xl mb-1">
-                            <div id="dropdownName" class="font-bold text-sm text-brand-darkgreen">...</div>
-                            <div id="dropdownRole" class="text-xs font-semibold text-amber-700">...</div>
+                    
+                    <div class="relative">
+                        <button onclick="toggleUserMenu()" class="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-xl text-xs font-bold border border-white/20">
+                            <span id="headerUserName">Admin</span>
+                            <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                        </button>
+                        
+                        <div id="userMenuDropdown" class="hidden absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl py-2 z-50 text-gray-800 border border-gray-100">
+                            <div class="px-4 py-2 border-b border-gray-100">
+                                <p id="dropdownName" class="font-bold text-xs text-brand-darkgreen">Admin</p>
+                                <p id="dropdownRole" class="text-[10px] text-gray-500">Super Admin</p>
+                            </div>
+                            <button onclick="openPersonalSalaryModal()" class="w-full text-left px-4 py-2 text-xs hover:bg-brand-cream flex items-center gap-2 text-brand-darkgreen font-bold">
+                                💵 Bảng Lương Cá Nhân
+                            </button>
+                            <button onclick="openChangePasswordModal()" class="w-full text-left px-4 py-2 text-xs hover:bg-brand-cream flex items-center gap-2 text-gray-700 font-medium">
+                                🔑 Đổi mật khẩu
+                            </button>
+                            <button onclick="handleLogout()" class="w-full text-left px-4 py-2 text-xs hover:bg-red-50 text-red-600 font-bold flex items-center gap-2 border-t border-gray-100">
+                                🚪 Đăng xuất
+                            </button>
                         </div>
-                        <button onclick="openPersonalSalaryModal()" class="w-full text-left px-3 py-2 hover:bg-amber-50 rounded-xl text-xs font-bold flex items-center gap-2 text-amber-800">
-                            <i class="fa-solid fa-wallet text-amber-600"></i> Xem Lương & Thu Nhập
-                        </button>
-                        <button onclick="openChangePasswordModal()" class="w-full text-left px-3 py-2 hover:bg-brand-cream rounded-xl text-xs font-medium flex items-center gap-2 text-gray-700">
-                            <i class="fa-solid fa-key text-brand-green"></i> Đổi mật khẩu
-                        </button>
-                        <button onclick="handleLogout()" class="w-full text-left px-3 py-2 hover:bg-red-50 rounded-xl text-xs font-bold flex items-center gap-2 text-red-600">
-                            <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
-                        </button>
                     </div>
                 </div>
             </div>
         </header>
 
-        <!-- MAIN CONTAINER -->
-        <main class="max-w-5xl mx-auto p-4 space-y-6">
-
-            <!-- 1. TAB TRANG CHỦ & BÁO CÁO DOANH THU -->
-            <div id="tab-home" class="tab-content space-y-5">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-lg font-bold text-brand-darkgreen uppercase">Tổng Quan & Báo Cáo Ngày</h2>
-                    <span class="text-xs font-semibold text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">Thời gian thực</span>
-                </div>
-
-                <div class="bg-white p-4 rounded-2xl border border-brand-green/20 shadow-sm flex items-center justify-between gap-3">
-                    <div class="flex-1">
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Chọn ngày báo cáo doanh thu</label>
-                        <input type="date" id="reportDateSelect" onchange="generateDailyReport()" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm font-bold text-brand-darkgreen">
-                    </div>
-                    <button onclick="generateDailyReport()" class="bg-brand-green text-white px-4 py-2.5 rounded-xl font-bold text-xs shrink-0 self-end">
-                        <i class="fa-solid fa-rotate mr-1"></i> Cập nhật
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-brand-green/10 text-center">
-                        <div class="text-[11px] text-gray-500 font-bold uppercase">Lượt khách</div>
-                        <div id="statTotalCust" class="text-xl font-black text-brand-darkgreen mt-1">0</div>
-                        <span class="text-[10px] text-gray-400">lượt làm</span>
-                    </div>
-
-                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-brand-green/10 text-center admin-only">
-                        <div class="text-[11px] text-emerald-700 font-bold uppercase">Tiền mặt</div>
-                        <div id="reportCashTotal" class="text-base font-bold text-emerald-700 mt-1">0 đ</div>
-                        <span class="text-[10px] text-gray-400">trực tiếp</span>
-                    </div>
-
-                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-brand-green/10 text-center admin-only">
-                        <div class="text-[11px] text-blue-700 font-bold uppercase">Chuyển khoản</div>
-                        <div id="reportTransferTotal" class="text-base font-bold text-blue-700 mt-1">0 đ</div>
-                        <span class="text-[10px] text-gray-400">ngân hàng/QR</span>
-                    </div>
-
-                    <div class="bg-brand-green text-white p-3.5 rounded-2xl shadow-md text-center col-span-2 sm:col-span-1 admin-only">
-                        <div class="text-[11px] text-white/80 font-bold uppercase">Tổng Doanh Thu</div>
-                        <div id="reportGrandTotal" class="text-lg font-black mt-1">0 đ</div>
-                        <span class="text-[10px] text-white/70">tổng cộng</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. TAB NHẬT KÝ DỊCH VỤ & SẢN PHẨM -->
-            <div id="tab-logs" class="tab-content hidden space-y-5">
-                <div class="bg-white p-4 rounded-3xl border border-brand-green/20 shadow-sm space-y-3">
-                    <div class="flex justify-between items-center">
-                        <h2 class="text-xs font-bold text-brand-darkgreen uppercase flex items-center gap-1.5">
-                            <i class="fa-solid fa-filter text-brand-green"></i> Nhật Ký Dịch Vụ & Bán Sản Phẩm
+        <!-- NỘI DUNG CÁC TAB -->
+        <main class="flex-1 max-w-4xl w-full mx-auto p-3 sm:p-4">
+            
+            <!-- TAB 1: NHẬT KÝ DỊCH VỤ & BÁN HÀNG -->
+            <section id="tab-logs" class="tab-content space-y-4">
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-brand-green/10 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h2 class="font-bold text-brand-darkgreen text-sm uppercase flex items-center gap-1.5">
+                            <i class="fa-solid fa-receipt text-amber-600"></i> Nhật Ký Phục Vụ & Bán Hàng
                         </h2>
-                        <div class="flex gap-2">
-                            <button onclick="exportServiceLogsToExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 shadow">
-                                <i class="fa-solid fa-file-excel"></i> Xuất Excel
-                            </button>
-                            <button onclick="toggleAddLogForm()" class="bg-brand-green text-white text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 shadow">
-                                <i class="fa-solid fa-plus"></i> + Thêm lượt mới
-                            </button>
+                        <button onclick="toggleAddLogForm()" class="bg-brand-green hover:bg-brand-darkgreen text-white text-xs px-3.5 py-2 rounded-xl font-bold shadow transition flex items-center gap-1">
+                            <span>+ Thêm Mới</span>
+                        </button>
+                    </div>
+
+                    <!-- BÁO CÁO DOANH THU NGÀY -->
+                    <div class="bg-brand-cream/60 p-3 rounded-2xl border border-brand-green/10 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-brand-darkgreen">📊 Doanh Thu Theo Ngày:</span>
+                            <input type="date" id="reportDateSelect" onchange="generateDailyReport()" class="px-2.5 py-1 bg-white rounded-lg border border-gray-200 text-xs font-bold text-brand-darkgreen">
+                        </div>
+                        <div class="grid grid-cols-4 gap-1.5 text-center">
+                            <div class="bg-white p-2 rounded-xl border border-gray-100">
+                                <p class="text-[10px] text-gray-500 font-medium">Lượt khách</p>
+                                <p id="statTotalCust" class="text-xs font-extrabold text-brand-darkgreen">0</p>
+                            </div>
+                            <div class="bg-white p-2 rounded-xl border border-gray-100">
+                                <p class="text-[10px] text-gray-500 font-medium">Tiền mặt</p>
+                                <p id="reportCashTotal" class="text-xs font-extrabold text-emerald-700">0 đ</p>
+                            </div>
+                            <div class="bg-white p-2 rounded-xl border border-gray-100">
+                                <p class="text-[10px] text-gray-500 font-medium">Chuyển khoản</p>
+                                <p id="reportTransferTotal" class="text-xs font-extrabold text-blue-700">0 đ</p>
+                            </div>
+                            <div class="bg-amber-50 p-2 rounded-xl border border-amber-200">
+                                <p class="text-[10px] text-amber-800 font-bold">TỔNG THU</p>
+                                <p id="reportGrandTotal" class="text-xs font-black text-amber-900">0 đ</p>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                        <div>
-                            <label class="block text-[10px] font-bold text-gray-500 mb-1">Chế độ lọc</label>
-                            <select id="logFilterMode" onchange="handleLogFilterModeChange()" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
-                                <option value="TODAY">Hôm nay</option>
-                                <option value="SPECIFIC_DATE">Theo ngày chọn...</option>
-                                <option value="MONTH_YEAR">Theo tháng / năm...</option>
-                                <option value="YEAR">Theo năm...</option>
-                                <option value="ALL">Tất cả thời gian</option>
-                            </select>
+                    <!-- LỊCH HẸN ĐANG CHỜ PHỤC VỤ -->
+                    <div class="bg-amber-50/70 p-3 rounded-2xl border border-amber-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-amber-900">🔔 Lịch Hẹn Đang Chờ:</span>
+                            <span id="pendingBookingCount" class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">0 lịch chờ</span>
                         </div>
-                        <div id="filterSpecificDateBox" class="hidden">
-                            <label class="block text-[10px] font-bold text-gray-500 mb-1">Chọn ngày</label>
-                            <input type="date" id="logFilterDate" onchange="renderServiceLogsUI()" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold">
-                        </div>
-                        <div id="filterMonthYearBox" class="hidden">
-                            <label class="block text-[10px] font-bold text-gray-500 mb-1">Chọn Tháng/Năm</label>
-                            <input type="month" id="logFilterMonth" onchange="renderServiceLogsUI()" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold">
-                        </div>
-                        <div id="filterYearBox" class="hidden">
-                            <label class="block text-[10px] font-bold text-gray-500 mb-1">Chọn Năm</label>
-                            <input type="number" id="logFilterYear" min="2020" max="2035" value="2026" onchange="renderServiceLogsUI()" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-gray-500 mb-1">Tìm từ khóa</label>
-                            <input type="text" id="logSearchKeyword" onkeyup="renderServiceLogsUI()" placeholder="Tên khách, SĐT, dịch vụ, SP, KTV..." class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
-                        </div>
+                        <div id="pendingBookingsInLogContainer" class="space-y-1.5"></div>
                     </div>
-                </div>
 
-                <!-- LỊCH HẸN ĐANG CHỜ PHỤC VỤ -->
-                <div class="bg-amber-50/80 border border-amber-200 p-4 rounded-3xl shadow-sm space-y-3">
-                    <h3 class="font-bold text-amber-900 text-xs uppercase flex items-center justify-between">
-                        <span><i class="fa-solid fa-clock text-amber-600 mr-1"></i> Lịch Hẹn Đang Chờ Đến Phục Vụ</span>
-                        <span id="pendingBookingCount" class="bg-amber-200 text-amber-900 text-[10px] px-2 py-0.5 rounded-full">0 lịch chờ</span>
-                    </h3>
-                    <div id="pendingBookingsInLogContainer" class="space-y-2">
-                        <p class="text-xs text-gray-500 italic">Không có lịch hẹn nào đang chờ...</p>
-                    </div>
-                </div>
-
-                <!-- FORM NHẬP LƯỢT PHỤC VỤ / BÁN SẢN PHẨM -->
-                <div id="addLogForm" class="hidden bg-white p-5 rounded-3xl shadow-md border border-brand-green/20 space-y-4">
-                    <h3 class="font-bold text-brand-darkgreen text-sm flex items-center justify-between border-b pb-2">
-                        <span><i class="fa-solid fa-receipt text-brand-green"></i> Phục Vụ Dịch Vụ / Bán Sản Phẩm & Thanh Toán</span>
-                        <button type="button" onclick="toggleAddLogForm()" class="text-gray-400 text-sm">✕</button>
-                    </h3>
-                    <form onsubmit="saveCustomerLog(event)" class="space-y-4">
+                    <!-- FORM THÊM NHẬT KÝ DỊCH VỤ / SẢN PHẨM MỚI -->
+                    <form id="addLogForm" onsubmit="saveCustomerLog(event)" class="hidden bg-white p-4 rounded-2xl border-2 border-brand-green/30 space-y-3.5 shadow-lg">
                         <input type="hidden" id="logFromBookingKey" value="">
-                        
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[11px] font-bold text-gray-600 mb-1">1. Ngày phục vụ / Bán hàng *</label>
-                                <input type="date" id="logDate" required class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold">
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-bold text-gray-600 mb-1">2. Chọn Khách Hàng *</label>
-                                <select id="logCustomerSelect" onchange="handleCustomerSelectChange()" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
-                                    <option value="KHACH_LA">-- Chọn Khách lạ --</option>
-                                    <option value="NEW_CUSTOMER">+ Thêm Khách mới (Lưu danh bạ)...</option>
-                                </select>
-                            </div>
+                        <div class="flex justify-between items-center border-b pb-2">
+                            <h3 class="font-bold text-xs text-brand-darkgreen uppercase">Tạo Hóa Đơn Dịch Vụ / Bán Sản Phẩm</h3>
+                            <button type="button" onclick="toggleAddLogForm()" class="text-gray-400 font-bold text-sm">✕</button>
                         </div>
 
-                        <div id="newCustomerFormBox" class="hidden bg-emerald-50/70 p-3 rounded-2xl border border-emerald-200 space-y-2">
-                            <span class="text-[10px] font-bold text-emerald-800 uppercase">Thêm Khách Hàng Mới:</span>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <input type="text" id="logNewCustName" placeholder="Họ và Tên khách *" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs font-bold">
-                                <input type="tel" id="logNewCustPhone" placeholder="Số điện thoại *" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs">
-                                <input type="text" id="logNewCustAddress" placeholder="Địa chỉ khách *" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs">
-                            </div>
-                        </div>
-
-                        <div id="customerComboContainerBox" class="hidden bg-amber-50 p-3 rounded-2xl border border-amber-200 space-y-2">
-                            <span class="text-[10px] font-bold text-amber-900 uppercase flex items-center gap-1">
-                                <i class="fa-solid fa-box-archive text-amber-600"></i> Combo / Liệu Trình Khách Đã Mua (Còn Buổi):
-                            </span>
-                            <div id="customerComboListOptions" class="space-y-2">
-                            </div>
-                        </div>
-
-                        <!-- KHU VỰC DỊCH VỤ & SẢN PHẨM -->
-                        <div class="space-y-2 bg-brand-cream/40 p-3 rounded-2xl border border-brand-green/20">
-                            <div class="flex justify-between items-center border-b pb-1">
-                                <label class="block text-xs font-black text-brand-darkgreen uppercase">3. Chọn Dịch vụ lẻ & Sản phẩm bán lẻ:</label>
-                                <div class="flex gap-2">
-                                    <button type="button" onclick="addServiceRowToLog('SINGLE')" class="bg-brand-green text-white text-[11px] px-2.5 py-1 rounded-lg font-bold">
-                                        + Thêm dịch vụ
-                                    </button>
-                                    <button type="button" onclick="addServiceRowToLog('PRODUCT')" class="bg-blue-600 text-white text-[11px] px-2.5 py-1 rounded-lg font-bold">
-                                        + Thêm sản phẩm
-                                    </button>
-                                </div>
-                            </div>
-                            <div id="serviceRowsContainer" class="space-y-2.5">
-                            </div>
-                        </div>
-
-                        <div class="bg-amber-50/70 p-3 rounded-2xl border border-amber-200 space-y-2">
-                            <div class="flex justify-between items-center font-bold text-xs text-brand-darkgreen">
-                                <span>TỔNG CỘNG TIỀN THU THỰC TẾ:</span>
-                                <span id="calculatedTotalDisplay" class="text-sm font-black text-brand-green">0 đ</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3 pt-1">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-emerald-800 mb-1">Tiền mặt (VNĐ)</label>
-                                    <input type="number" id="logCashAmount" min="0" step="1000" placeholder="0" class="w-full px-3 py-2 bg-white rounded-xl border border-emerald-300 text-xs font-bold text-emerald-700">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-blue-800 mb-1">Chuyển khoản (VNĐ)</label>
-                                    <input type="number" id="logTransferAmount" min="0" step="1000" placeholder="0" class="w-full px-3 py-2 bg-white rounded-xl border border-blue-300 text-xs font-bold text-blue-700">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-2 pt-1">
-                            <button type="button" onclick="toggleAddLogForm()" class="w-1/2 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Hủy bỏ</button>
-                            <button type="submit" class="w-1/2 py-3 bg-brand-green text-white font-bold rounded-xl text-xs shadow-md">HOÀN THÀNH & TÍNH HOA HỒNG</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="space-y-3" id="serviceLogsContainer">
-                    <p class="text-center text-gray-400 text-xs py-4">Đang tải nhật ký từ đám mây...</p>
-                </div>
-            </div>
-
-            <!-- 3. TAB LỊCH HẸN -->
-            <div id="tab-booking" class="tab-content hidden space-y-4">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-lg font-bold text-brand-darkgreen uppercase">Danh Sách Lịch Hẹn</h2>
-                    <button onclick="openBookingModal()" class="bg-brand-green text-white text-xs px-3.5 py-2 rounded-xl font-bold flex items-center gap-1 shadow">
-                        <i class="fa-solid fa-plus"></i> Tạo lịch hẹn
-                    </button>
-                </div>
-
-                <div class="space-y-3" id="bookingList">
-                    <p class="text-center text-gray-400 text-xs py-4">Đang tải lịch hẹn từ đám mây...</p>
-                </div>
-            </div>
-
-            <!-- 4. TAB KHÁCH HÀNG -->
-            <div id="tab-customers" class="tab-content hidden space-y-4">
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <div class="relative flex-1">
-                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400"></i>
-                        <input type="text" id="searchCust" onkeyup="filterCustomers()" placeholder="Tìm tên khách, SĐT, địa chỉ..." class="w-full pl-11 pr-4 py-3 bg-white rounded-2xl border border-brand-green/20 focus:outline-none focus:border-brand-green shadow-sm text-sm">
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="openAddCustomerModal()" class="flex-1 sm:flex-initial bg-brand-green hover:bg-brand-darkgreen text-white px-4 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-1.5 shadow-md shrink-0">
-                            <i class="fa-solid fa-user-plus"></i>
-                            <span>Thêm khách</span>
-                        </button>
-                        <button onclick="exportCustomersToExcel()" class="flex-1 sm:flex-initial bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-1.5 shadow-md shrink-0">
-                            <i class="fa-solid fa-file-excel"></i>
-                            <span>Xuất Excel</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="space-y-3" id="customerList">
-                    <p class="text-center text-gray-400 text-xs py-4">Đang tải danh sách khách hàng...</p>
-                </div>
-            </div>
-
-            <!-- 5. TAB QUẢN LÝ DỊCH VỤ, COMBO & SẢN PHẨM -->
-            <div id="tab-services" class="tab-content hidden space-y-6">
-                <!-- FORM THÊM MỚI MỤC -->
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-brand-green/10 space-y-4 admin-only">
-                    <h2 class="text-lg font-bold text-brand-darkgreen flex items-center gap-2">
-                        <i class="fa-solid fa-plus text-brand-green"></i> Thêm Mục Mới Vào Danh Mục
-                    </h2>
-                    <form onsubmit="addNewService(event)" class="space-y-3">
-                        <div class="grid grid-cols-3 gap-2 bg-brand-cream/60 p-2.5 rounded-2xl border border-gray-200">
-                            <label class="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-brand-darkgreen">
-                                <input type="radio" name="servType" value="SINGLE" checked onchange="toggleServiceTypeInput()" class="w-3.5 h-3.5 text-brand-green">
-                                <span>💆 Dịch vụ lẻ</span>
-                            </label>
-                            <label class="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-blue-800">
-                                <input type="radio" name="servType" value="PRODUCT" onchange="toggleServiceTypeInput()" class="w-3.5 h-3.5 text-blue-600">
-                                <span>📦 Sản phẩm</span>
-                            </label>
-                            <label class="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-amber-900">
-                                <input type="radio" name="servType" value="COMBO" onchange="toggleServiceTypeInput()" class="w-3.5 h-3.5 text-amber-600">
-                                <span>🎟️ Gói Combo</span>
-                            </label>
-                        </div>
-
-                        <div>
-                            <label id="servNameLabel" class="block text-xs font-semibold text-gray-600 mb-1">Tên Dịch vụ lẻ *</label>
-                            <input type="text" id="servName" required placeholder="Nhập tên..." class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label id="servPriceLabel" class="block text-xs font-semibold text-gray-600 mb-1">Giá bán niêm yết (VNĐ) *</label>
-                                <input type="number" id="servPrice" required placeholder="0" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
-                            </div>
-                            <div id="comboSessionsBox" class="hidden">
-                                <label class="block text-xs font-semibold text-amber-800 mb-1">Số buổi thực hiện *</label>
-                                <input type="number" id="servSessions" min="1" value="10" placeholder="Số buổi..." class="w-full px-4 py-2.5 bg-amber-50 rounded-xl border border-amber-300 text-sm font-bold text-amber-900">
-                            </div>
-                        </div>
-
-                        <div class="bg-brand-cream/60 p-3.5 rounded-2xl border border-brand-green/20 space-y-3">
-                            <div class="flex justify-between items-center">
-                                <label class="block text-xs font-bold text-brand-darkgreen uppercase">Hoa hồng cho KTV / NV bán hàng:</label>
-                                <div class="flex gap-3 text-xs font-bold">
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="commType" value="PERCENT" checked onchange="renderCommissionInputsInServiceUI()" class="w-3.5 h-3.5 text-brand-green">
-                                        <span>Tính theo %</span>
-                                    </label>
-                                    <label class="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="commType" value="FIXED" onchange="renderCommissionInputsInServiceUI()" class="w-3.5 h-3.5 text-brand-green">
-                                        <span>Số tiền (VNĐ)</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div id="commissionRatesInputsContainer" class="grid grid-cols-2 gap-2">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="w-full bg-brand-green hover:bg-brand-darkgreen text-white font-bold py-3 rounded-xl shadow-md text-sm">
-                            + LƯU VÀO DANH MỤC
-                        </button>
-                    </form>
-                </div>
-
-                <!-- HIỂN THỊ HIỆN TẠI TÁCH THÀNH 3 CỘT RIÊNG BỆT -->
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between border-b border-gray-200 pb-2">
-                        <h3 class="text-sm font-bold text-brand-darkgreen uppercase">
-                            <i class="fa-solid fa-boxes-stacked text-brand-green mr-1"></i> Danh Mục Phân Loại Chi Tiết
-                        </h3>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <!-- CỘT 1: DỊCH VỤ LẺ -->
-                        <div class="bg-white p-4 rounded-3xl border border-brand-green/20 shadow-sm space-y-3">
-                            <div class="flex justify-between items-center border-b pb-2">
-                                <h4 class="font-bold text-xs text-brand-darkgreen uppercase flex items-center gap-1.5">
-                                    <span class="w-2 h-2 rounded-full bg-brand-green"></span>
-                                    <span>💆 Dịch Vụ Lẻ</span>
-                                </h4>
-                                <span id="countSingleServ" class="bg-brand-green/10 text-brand-darkgreen font-bold text-[10px] px-2 py-0.5 rounded-full">0</span>
-                            </div>
-                            <div id="singleServiceListContainer" class="space-y-2.5">
-                                <p class="text-center text-gray-400 text-xs py-2">Chưa có dịch vụ lẻ</p>
-                            </div>
-                        </div>
-
-                        <!-- CỘT 2: SẢN PHẨM BÁN KÈM -->
-                        <div class="bg-white p-4 rounded-3xl border border-blue-200 shadow-sm space-y-3">
-                            <div class="flex justify-between items-center border-b pb-2">
-                                <h4 class="font-bold text-xs text-blue-900 uppercase flex items-center gap-1.5">
-                                    <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                                    <span>📦 Sản Phẩm Bán</span>
-                                </h4>
-                                <span id="countProductServ" class="bg-blue-100 text-blue-900 font-bold text-[10px] px-2 py-0.5 rounded-full">0</span>
-                            </div>
-                            <div id="productServiceListContainer" class="space-y-2.5">
-                                <p class="text-center text-gray-400 text-xs py-2">Chưa có sản phẩm</p>
-                            </div>
-                        </div>
-
-                        <!-- CỘT 3: GÓI COMBO -->
-                        <div class="bg-white p-4 rounded-3xl border border-amber-200 shadow-sm space-y-3">
-                            <div class="flex justify-between items-center border-b pb-2">
-                                <h4 class="font-bold text-xs text-amber-900 uppercase flex items-center gap-1.5">
-                                    <span class="w-2 h-2 rounded-full bg-amber-600"></span>
-                                    <span>🎟️ Gói Combo</span>
-                                </h4>
-                                <span id="countComboServ" class="bg-amber-100 text-amber-900 font-bold text-[10px] px-2 py-0.5 rounded-full">0</span>
-                            </div>
-                            <div id="comboServiceListContainer" class="space-y-2.5">
-                                <p class="text-center text-gray-400 text-xs py-2">Chưa có combo</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 6. TAB QUẢN LÝ TÀI KHOẢN -->
-            <div id="tab-accounts" class="tab-content hidden space-y-5">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-lg font-bold text-brand-darkgreen uppercase">Tài Khoản & Cấu Hình Giờ Chuẩn</h2>
-                    <button onclick="toggleAddAccountModal()" class="bg-brand-green text-white text-xs px-3.5 py-2 rounded-xl font-bold flex items-center gap-1 shadow">
-                        <i class="fa-solid fa-user-shield"></i> + Tạo Tài Khoản Mới
-                    </button>
-                </div>
-
-                <div id="addAccountModal" class="hidden bg-white p-4 rounded-2xl border border-brand-green/20 shadow-md space-y-3">
-                    <h3 class="text-xs font-bold text-brand-darkgreen uppercase" id="accountFormTitle">Tạo Tài Khoản Cấp Dưới Mới</h3>
-                    <form onsubmit="saveAccount(event)" class="space-y-3">
-                        <input type="hidden" id="editAccountUsername" value="">
-                        
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-600 mb-1">Họ và tên nhân viên *</label>
-                            <input type="text" id="accFullName" required placeholder="Nguyễn Văn A" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
-                        </div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-[11px] font-bold text-gray-600 mb-1">Tên đăng nhập *</label>
-                                <input type="text" id="accUsername" required placeholder="user1" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                                <label class="block text-[11px] font-bold text-gray-600 mb-1">Ngày thực hiện *</label>
+                                <input type="date" id="logDate" required class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold text-gray-600 mb-1">Mật khẩu *</label>
-                                <input type="password" id="accPassword" required placeholder="••••••" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2">
-                            <div>
-                                <label class="block text-[11px] font-bold text-gray-600 mb-1">Vai trò hệ thống *</label>
-                                <select id="accRole" class="w-full px-2 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
-                                    <option value="STAFF">Nhân viên Spa</option>
-                                    <option value="MANAGER">Quản lý Spa</option>
-                                    <option value="SUPER_ADMIN">Super Admin</option>
+                                <label class="block text-[11px] font-bold text-gray-600 mb-1">Khách hàng *</label>
+                                <select id="logCustomerSelect" onchange="handleCustomerSelectChange()" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
                                 </select>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-bold text-blue-900 mb-1">Số ngày quy định/tháng</label>
-                                <input type="number" id="accWorkingDays" min="1" max="31" value="30" placeholder="30" class="w-full px-2.5 py-2 bg-blue-50 rounded-xl border border-blue-300 text-xs font-bold text-blue-900">
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-bold text-indigo-900 mb-1">Giờ chuẩn/ngày *</label>
-                                <input type="number" id="accStandardHours" min="1" max="24" value="8" placeholder="8" class="w-full px-2.5 py-2 bg-indigo-50 rounded-xl border border-indigo-300 text-xs font-bold text-indigo-900">
                             </div>
                         </div>
 
-                        <!-- CẤU HÌNH ĐIỀU CHỈNH LƯƠNG THEO MỐC NGÀY -->
-                        <div class="bg-amber-50/80 p-3 rounded-2xl border border-amber-200 space-y-2">
-                            <label class="block text-xs font-bold text-amber-900 uppercase">Cài đặt Mức Lương Cơ Bản mới:</label>
+                        <!-- Ô NHẬP TÊN KHÁCH MỚI -->
+                        <div id="newCustomerFormBox" class="hidden bg-amber-50 p-3 rounded-xl border border-amber-200 space-y-2">
+                            <p class="text-[11px] font-bold text-amber-900">Thông tin Khách Hàng Mới:</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="logNewCustName" placeholder="Tên khách hàng *" class="w-full px-3 py-1.5 bg-white rounded-lg border border-gray-200 text-xs">
+                                <input type="tel" id="logNewCustPhone" placeholder="Số điện thoại *" class="w-full px-3 py-1.5 bg-white rounded-lg border border-gray-200 text-xs">
+                            </div>
+                            <input type="text" id="logNewCustAddress" placeholder="Địa chỉ (Tùy chọn)..." class="w-full px-3 py-1.5 bg-white rounded-lg border border-gray-200 text-xs">
+                        </div>
+
+                        <!-- KHU VỰC CHỌN LÀM DỊCH VỤ TỪ THẺ COMBO ĐÃ MUA -->
+                        <div id="customerComboContainerBox" class="hidden bg-amber-50/90 p-3 rounded-2xl border border-amber-300 space-y-2">
+                            <span class="text-xs font-bold text-amber-900 uppercase">Khách sử dụng Gói Combo đã mua:</span>
+                            <div id="customerComboListOptions" class="space-y-2"></div>
+                        </div>
+
+                        <!-- KHU VỰC THÊM DỊCH VỤ LẺ / SẢN PHẨM BÁN -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <label class="block text-xs font-bold text-brand-darkgreen uppercase">Danh sách Dịch Vụ & Sản Phẩm Mua Hôm Nay:</label>
+                                <div class="flex gap-1.5">
+                                    <button type="button" onclick="addServiceRowToLog('SINGLE')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-[11px] px-2.5 py-1 rounded-lg">
+                                        + Dịch vụ lẻ
+                                    </button>
+                                    <button type="button" onclick="addServiceRowToLog('PRODUCT')" class="bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-300 font-bold text-[11px] px-2.5 py-1 rounded-lg">
+                                        + Sản phẩm
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="serviceRowsContainer" class="space-y-2"></div>
+                        </div>
+
+                        <!-- TÍNH TOÁN THANH TOÁN -->
+                        <div class="bg-brand-cream/60 p-3 rounded-2xl border border-brand-green/20 space-y-2">
+                            <div class="flex justify-between items-center text-xs font-bold">
+                                <span>TỔNG CẦN THU:</span>
+                                <span id="calculatedTotalDisplay" class="text-base text-emerald-700 font-black">0 đ</span>
+                            </div>
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label class="block text-[10px] font-bold text-gray-600">Lương CB (VNĐ/tháng)</label>
-                                    <input type="number" id="accBaseSalary" min="0" step="100000" placeholder="5000000" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs font-bold text-amber-800">
+                                    <label class="block text-[10px] font-bold text-gray-600 mb-0.5">Tiền mặt (VNĐ)</label>
+                                    <input type="number" id="logCashAmount" min="0" placeholder="0" class="w-full px-2.5 py-1.5 bg-white rounded-lg border border-gray-200 text-xs font-bold text-emerald-800">
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-bold text-gray-600">Áp dụng từ ngày</label>
-                                    <input type="date" id="accSalaryEffectiveDate" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
+                                    <label class="block text-[10px] font-bold text-gray-600 mb-0.5">Chuyển khoản (VNĐ)</label>
+                                    <input type="number" id="logTransferAmount" min="0" placeholder="0" class="w-full px-2.5 py-1.5 bg-white rounded-lg border border-gray-200 text-xs font-bold text-blue-800">
                                 </div>
                             </div>
                         </div>
 
-                        <div class="bg-brand-cream/60 p-3 rounded-2xl border border-brand-green/20 space-y-2">
-                            <label class="block text-xs font-bold text-brand-darkgreen uppercase">Tích chọn các Mục được quyền xem:</label>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                                <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
-                                    <input type="checkbox" id="perm_logs" checked class="w-4 h-4 text-brand-green rounded">
-                                    <span>Nhật ký dịch vụ</span>
+                        <div class="flex gap-2 pt-1">
+                            <button type="button" onclick="toggleAddLogForm()" class="w-1/3 py-2.5 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Hủy</button>
+                            <button type="submit" class="w-2/3 py-2.5 bg-brand-green text-white font-bold rounded-xl text-xs shadow">XÁC NHẬN THANH TOÁN</button>
+                        </div>
+                    </form>
+
+                    <!-- KHU VỰC LỌC NHẬT KÝ & XUẤT EXCEL -->
+                    <div class="space-y-2 border-t pt-3">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <select id="logFilterMode" onchange="handleLogFilterModeChange()" class="px-2.5 py-1.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
+                                    <option value="TODAY">Hôm nay</option>
+                                    <option value="SPECIFIC_DATE">Theo ngày chọn</option>
+                                    <option value="MONTH_YEAR">Theo Tháng/Năm</option>
+                                    <option value="YEAR">Theo Năm</option>
+                                    <option value="ALL">Tất cả lịch sử</option>
+                                </select>
+
+                                <div id="filterSpecificDateBox" class="hidden">
+                                    <input type="date" id="logFilterDate" onchange="renderServiceLogsUI()" class="px-2 py-1 bg-white rounded-xl border border-gray-200 text-xs font-bold">
+                                </div>
+                                <div id="filterMonthYearBox" class="hidden">
+                                    <input type="month" id="logFilterMonth" onchange="renderServiceLogsUI()" class="px-2 py-1 bg-white rounded-xl border border-gray-200 text-xs font-bold">
+                                </div>
+                                <div id="filterYearBox" class="hidden">
+                                    <input type="number" id="logFilterYear" min="2020" max="2035" value="2026" onchange="renderServiceLogsUI()" class="w-20 px-2 py-1 bg-white rounded-xl border border-gray-200 text-xs font-bold">
+                                </div>
+                            </div>
+
+                            <button onclick="exportServiceLogsToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-xl font-bold shadow flex items-center gap-1 shrink-0">
+                                <i class="fa-solid fa-file-excel"></i> Xuất Excel Nhật Ký
+                            </button>
+                        </div>
+
+                        <div>
+                            <input type="text" id="logSearchKeyword" onkeyup="renderServiceLogsUI()" placeholder="🔍 Tìm tên khách, tên dịch vụ, nhân viên..." class="w-full px-3 py-2 bg-brand-cream/40 rounded-xl border border-gray-200 text-xs">
+                        </div>
+                    </div>
+
+                    <!-- DANH SÁCH NHẬT KÝ -->
+                    <div id="serviceLogsContainer" class="space-y-2.5"></div>
+                </div>
+            </section>
+
+            <!-- TAB 2: ĐẶT LỊCH HẸN -->
+            <section id="tab-booking" class="tab-content space-y-4 hidden">
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-brand-green/10 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h2 class="font-bold text-brand-darkgreen text-sm uppercase flex items-center gap-1.5">
+                            <i class="fa-solid fa-calendar-check text-emerald-600"></i> Quản Lý Lịch Hẹn Khách Hàng
+                        </h2>
+                        <button onclick="openBookingModal()" class="bg-brand-green hover:bg-brand-darkgreen text-white text-xs px-3.5 py-2 rounded-xl font-bold shadow flex items-center gap-1">
+                            <span>+ Đặt Lịch Hẹn</span>
+                        </button>
+                    </div>
+
+                    <div id="bookingList" class="space-y-2.5"></div>
+                </div>
+            </section>
+
+            <!-- TAB 3: KHÁCH HÀNG -->
+            <section id="tab-customers" class="tab-content space-y-4 hidden">
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-brand-green/10 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h2 class="font-bold text-brand-darkgreen text-sm uppercase flex items-center gap-1.5">
+                            <i class="fa-solid fa-users text-blue-600"></i> Danh Sách Khách Hàng Spa
+                        </h2>
+                        <div class="flex gap-2">
+                            <button onclick="exportCustomersToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-xl font-bold shadow flex items-center gap-1">
+                                <i class="fa-solid fa-file-excel"></i> Excel
+                            </button>
+                            <button onclick="openAddCustomerModal()" class="bg-brand-green hover:bg-brand-darkgreen text-white text-xs px-3 py-2 rounded-xl font-bold shadow flex items-center gap-1">
+                                <span>+ Thêm Khách</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <input type="text" id="searchCust" onkeyup="filterCustomers()" placeholder="🔍 Tìm theo Tên hoặc Số điện thoại..." class="w-full px-3.5 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+
+                    <div id="customerList" class="space-y-2.5"></div>
+                </div>
+            </section>
+
+            <!-- TAB 4: DỊCH VỤ & SẢN PHẨM -->
+            <section id="tab-services" class="tab-content space-y-4 hidden">
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-brand-green/10 space-y-4">
+                    <h2 class="font-bold text-brand-darkgreen text-sm uppercase flex items-center gap-1.5">
+                        <i class="fa-solid fa-spa text-brand-green"></i> Danh Mục Dịch Vụ, Sản Phẩm & Hoa Hồng
+                    </h2>
+
+                    <!-- FORM THÊM CẤU HÌNH DỊCH VỤ / SẢN PHẨM -->
+                    <form onsubmit="addNewService(event)" class="bg-brand-cream/40 p-4 rounded-2xl border border-brand-green/20 space-y-3 admin-only">
+                        <h3 class="text-xs font-bold text-brand-darkgreen uppercase">Thêm Dịch Vụ / Sản Phẩm / Combo Mới</h3>
+                        
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">Loại danh mục *</label>
+                            <div class="flex gap-4 text-xs font-bold">
+                                <label class="flex items-center gap-1 cursor-pointer">
+                                    <input type="radio" name="servType" value="SINGLE" checked onchange="toggleServiceTypeInput()" class="w-4 h-4 text-brand-green">
+                                    <span>Dịch vụ lẻ</span>
                                 </label>
-                                <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
-                                    <input type="checkbox" id="perm_booking" checked class="w-4 h-4 text-brand-green rounded">
-                                    <span>Lịch hẹn</span>
+                                <label class="flex items-center gap-1 cursor-pointer">
+                                    <input type="radio" name="servType" value="PRODUCT" onchange="toggleServiceTypeInput()" class="w-4 h-4 text-brand-green">
+                                    <span>Sản phẩm bán</span>
                                 </label>
-                                <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
-                                    <input type="checkbox" id="perm_customers" checked class="w-4 h-4 text-brand-green rounded">
-                                    <span>Khách hàng</span>
-                                </label>
-                                <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
-                                    <input type="checkbox" id="perm_services" checked class="w-4 h-4 text-brand-green rounded">
-                                    <span>Dịch vụ & SP</span>
-                                </label>
-                                <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
-                                    <input type="checkbox" id="perm_staff" class="w-4 h-4 text-brand-green rounded">
-                                    <span>Nhân viên</span>
+                                <label class="flex items-center gap-1 cursor-pointer">
+                                    <input type="radio" name="servType" value="COMBO" onchange="toggleServiceTypeInput()" class="w-4 h-4 text-brand-green">
+                                    <span>Gói Combo / Liệu trình</span>
                                 </label>
                             </div>
                         </div>
 
-                        <div class="flex gap-2 pt-1">
-                            <button type="button" onclick="toggleAddAccountModal()" class="w-1/2 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Hủy</button>
-                            <button type="submit" class="w-1/2 py-2 bg-brand-green text-white font-bold rounded-xl text-xs">Lưu Tài Khoản</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="bg-white p-4 rounded-3xl border border-brand-green/10 shadow-sm space-y-3">
-                    <h3 class="text-xs font-bold text-brand-darkgreen uppercase">Danh Sách Tài Khoản Hệ Thống</h3>
-                    <div class="space-y-2.5" id="accountsListContainer">
-                        <p class="text-center text-gray-400 text-xs py-2">Đang tải danh sách tài khoản...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 7. TAB QUẢN LÝ NHÂN VIÊN & BÁO CÁO LƯƠNG/HOA HỒNG -->
-            <div id="tab-staff" class="tab-content hidden space-y-5">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-lg font-bold text-brand-darkgreen uppercase">Nhân Viên & Lương Theo Ngày / OT</h2>
-                    <div class="flex gap-2 admin-only">
-                        <button onclick="toggleLevelModal()" class="bg-white border border-brand-green/30 text-brand-darkgreen text-xs px-3 py-2 rounded-xl font-bold">
-                            <i class="fa-solid fa-layer-group"></i> Cấp bậc
-                        </button>
-                        <button onclick="toggleAddStaffModal()" class="bg-brand-green text-white text-xs px-3.5 py-2 rounded-xl font-bold flex items-center gap-1 shadow">
-                            <i class="fa-solid fa-user-plus"></i> + Thêm NV
-                        </button>
-                    </div>
-                </div>
-
-                <div id="levelModal" class="hidden bg-white p-4 rounded-2xl border border-brand-green/20 shadow-sm space-y-3">
-                    <h3 class="text-xs font-bold text-brand-darkgreen uppercase">Thêm Cấp Bậc Nhân Viên Mới</h3>
-                    <div class="flex gap-2">
-                        <input type="text" id="newLevelInput" placeholder="Tên cấp bậc mới..." class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
-                        <button onclick="saveNewLevel()" class="bg-brand-green text-white px-4 py-2 rounded-xl font-bold text-xs shrink-0">Thêm</button>
-                    </div>
-                    <div class="text-[11px] text-gray-500">Cấp bậc hiện tại: <span id="currentLevelsText" class="font-bold text-brand-darkgreen"></span></div>
-                </div>
-
-                <div id="addStaffModal" class="hidden bg-white p-4 rounded-2xl border border-brand-green/20 shadow-sm space-y-3">
-                    <h3 class="text-xs font-bold text-brand-darkgreen uppercase">Thêm Nhân Sự Mới</h3>
-                    <form onsubmit="saveNewStaff(event)" class="space-y-3">
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-600 mb-1">Họ & Tên *</label>
-                            <input type="text" id="newStaffName" required placeholder="Nguyễn Văn A" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
-                        </div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-[11px] font-bold text-gray-600 mb-1">Chức Vụ *</label>
-                                <select id="newStaffRole" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
-                                    <option value="Kỹ thuật viên Spa">Kỹ thuật viên Spa</option>
-                                    <option value="Quản lý">Quản lý</option>
-                                    <option value="Lễ tân">Lễ tân</option>
-                                </select>
+                                <label id="servNameLabel" class="block text-[11px] font-bold text-gray-600 mb-1">Tên Dịch vụ lẻ *</label>
+                                <input type="text" id="servName" required placeholder="Gội đầu dưỡng sinh..." class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-bold text-gray-600 mb-1">Cấp Bậc *</label>
-                                <select id="newStaffLevel" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
-                                </select>
+                                <label id="servPriceLabel" class="block text-[11px] font-bold text-gray-600 mb-1">Giá thu (VNĐ) *</label>
+                                <input type="number" id="servPrice" required min="0" step="1000" placeholder="100000" class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs font-bold text-emerald-800">
                             </div>
                         </div>
-                        <div class="flex gap-2 pt-1">
-                            <button type="button" onclick="toggleAddStaffModal()" class="w-1/2 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Hủy</button>
-                            <button type="submit" class="w-1/2 py-2 bg-brand-green text-white font-bold rounded-xl text-xs">Lưu Nhân Viên</button>
-                        </div>
-                    </form>
-                </div>
 
-                <div class="bg-white p-4 rounded-3xl border border-brand-green/10 shadow-sm space-y-3">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-xs font-bold text-brand-darkgreen uppercase">Báo Cáo Lương & OT Làm Thêm</h3>
-                        <div class="flex items-center gap-2">
-                            <input type="month" id="staffReportMonth" onchange="generateStaffReport()" class="px-2.5 py-1 bg-brand-cream/60 rounded-lg border border-gray-200 text-xs font-bold text-brand-darkgreen">
+                        <div id="comboSessionsBox" class="hidden">
+                            <label class="block text-[11px] font-bold text-amber-900 mb-1">Số buổi trong gói Combo *</label>
+                            <input type="number" id="servSessions" min="1" value="10" placeholder="10" class="w-full px-3 py-2 bg-white rounded-xl border border-amber-300 text-xs font-bold text-amber-900">
+                        </div>
+
+                        <!-- CẤU HÌNH HOA HỒNG THEO CẤP BẬC -->
+                        <div class="space-y-2 border-t pt-2">
+                            <div class="flex justify-between items-center">
+                                <label class="block text-xs font-bold text-brand-darkgreen">Cấu hình Hoa Hồng cho Nhân Viên:</label>
+                                <div class="flex gap-3 text-xs font-bold">
+                                    <label class="flex items-center gap-1 cursor-pointer">
+                                        <input type="radio" name="commType" value="FIXED" checked onchange="renderCommissionInputsInServiceUI()" class="w-3.5 h-3.5 text-brand-green">
+                                        <span>Số tiền cố định (VNĐ)</span>
+                                    </label>
+                                    <label class="flex items-center gap-1 cursor-pointer">
+                                        <input type="radio" name="commType" value="PERCENT" onchange="renderCommissionInputsInServiceUI()" class="w-3.5 h-3.5 text-brand-green">
+                                        <span>Theo Phần trăm (%)</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="commissionRatesInputsContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+                        </div>
+
+                        <button type="submit" class="w-full py-2.5 bg-brand-green text-white font-bold rounded-xl text-xs shadow">LƯU CẤU HÌNH DỊCH VỤ</button>
+                    </form>
+
+                    <!-- DANH SÁCH HIỂN THỊ CÁC DỊCH VỤ / SẢN PHẨM -->
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-xs font-bold text-brand-darkgreen uppercase mb-2 border-b pb-1">💆 Dịch Vụ Lẻ (<span id="countSingleServ">0</span>)</h3>
+                            <div id="singleServiceListContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-blue-900 uppercase mb-2 border-b pb-1">📦 Sản Phẩm Bán Lẻ (<span id="countProductServ">0</span>)</h3>
+                            <div id="productServiceListContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-amber-900 uppercase mb-2 border-b pb-1">🎁 Gói Combo / Liệu Trình (<span id="countComboServ">0</span>)</h3>
+                            <div id="comboServiceListContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
                         </div>
                     </div>
-                    <div class="space-y-2.5" id="staffReportContainer">
-                        <p class="text-center text-gray-400 text-xs py-2">Đang tải danh sách nhân viên...</p>
-                    </div>
                 </div>
-            </div>
+            </section>
+
+            <!-- TAB 5: NHÂN VIÊN & BẢNG LƯƠNG -->
+            <section id="tab-staff" class="tab-content space-y-4 hidden">
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-brand-green/10 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="font-bold text-brand-darkgreen text-sm uppercase flex items-center gap-1.5">
+                            <i class="fa-solid fa-users-gear text-indigo-600"></i> Quản Lý Nhân Sự & Bảng Lương
+                        </h2>
+                        <div class="flex gap-1.5">
+                            <button onclick="toggleLevelModal()" class="bg-amber-600 text-white text-xs px-2.5 py-1.5 rounded-xl font-bold shadow admin-only">
+                                🏅 Cấp Bậc
+                            </button>
+                            <button onclick="toggleAddStaffModal()" class="bg-brand-green text-white text-xs px-2.5 py-1.5 rounded-xl font-bold shadow admin-only">
+                                + Thêm NV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- QUẢN LÝ TÀI KHOẢN HỆ THỐNG & PHÂN QUYỀN (CHỈ SUPER ADMIN) -->
+                    <div class="bg-blue-50/70 p-3.5 rounded-2xl border border-blue-200 space-y-3 superadmin-only">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xs font-bold text-blue-900 uppercase flex items-center gap-1">
+                                <i class="fa-solid fa-user-shield"></i> Tài Khoản Đăng Nhập & Phân Quyền Hệ Thống:
+                            </h3>
+                            <button onclick="toggleAddAccountModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-xl font-bold shadow">
+                                + Tạo Tài Khoản
+                            </button>
+                        </div>
+
+                        <!-- FORM TẠO / SỬA TÀI KHOẢN (ĐÃ THÊM Ô SĐT) -->
+                        <div id="addAccountModal" class="hidden bg-white p-4 rounded-2xl border border-brand-green/20 shadow-md space-y-3">
+                            <h3 class="text-xs font-bold text-brand-darkgreen uppercase" id="accountFormTitle">Tạo Tài Khoản Cấp Dưới Mới</h3>
+                            <form onsubmit="saveAccount(event)" class="space-y-3">
+                                <input type="hidden" id="editAccountUsername" value="">
+                                
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-gray-600 mb-1">Họ và tên nhân viên *</label>
+                                        <input type="text" id="accFullName" required placeholder="Nguyễn Văn A" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-brand-darkgreen mb-1">Số điện thoại (Định danh) *</label>
+                                        <input type="tel" id="accPhone" required placeholder="0901234567" class="w-full px-3 py-2 bg-emerald-50 rounded-xl border border-emerald-300 text-xs font-bold text-emerald-900">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-gray-600 mb-1">Tên đăng nhập *</label>
+                                        <input type="text" id="accUsername" required placeholder="user1" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-gray-600 mb-1">Mật khẩu *</label>
+                                        <input type="password" id="accPassword" required placeholder="••••••" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-gray-600 mb-1">Vai trò hệ thống *</label>
+                                        <select id="accRole" class="w-full px-2 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
+                                            <option value="STAFF">Nhân viên Spa</option>
+                                            <option value="MANAGER">Quản lý Spa</option>
+                                            <option value="SUPER_ADMIN">Super Admin</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-blue-900 mb-1">Số ngày quy định</label>
+                                        <input type="number" id="accWorkingDays" min="1" max="31" value="30" placeholder="30" class="w-full px-2.5 py-2 bg-blue-50 rounded-xl border border-blue-300 text-xs font-bold text-blue-900">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-indigo-900 mb-1">Giờ chuẩn/ngày *</label>
+                                        <input type="number" id="accStandardHours" min="1" max="24" value="8" placeholder="8" class="w-full px-2.5 py-2 bg-indigo-50 rounded-xl border border-indigo-300 text-xs font-bold text-indigo-900">
+                                    </div>
+                                </div>
+
+                                <!-- CẤU HÌNH ĐIỀU CHỈNH LƯƠNG THEO MỐC NGÀY -->
+                                <div class="bg-amber-50/80 p-3 rounded-2xl border border-amber-200 space-y-2">
+                                    <label class="block text-xs font-bold text-amber-900 uppercase">Cài đặt Mức Lương Cơ Bản mới:</label>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-gray-600">Lương CB (VNĐ/tháng)</label>
+                                            <input type="number" id="accBaseSalary" min="0" step="100000" placeholder="5000000" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs font-bold text-amber-800">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-gray-600">Áp dụng từ ngày</label>
+                                            <input type="date" id="accSalaryEffectiveDate" class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-brand-cream/60 p-3 rounded-2xl border border-brand-green/20 space-y-2">
+                                    <label class="block text-xs font-bold text-brand-darkgreen uppercase">Tích chọn các Mục được quyền xem:</label>
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                                        <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
+                                            <input type="checkbox" id="perm_logs" checked class="w-4 h-4 text-brand-green rounded">
+                                            <span>Nhật ký dịch vụ</span>
+                                        </label>
+                                        <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
+                                            <input type="checkbox" id="perm_booking" checked class="w-4 h-4 text-brand-green rounded">
+                                            <span>Lịch hẹn</span>
+                                        </label>
+                                        <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
+                                            <input type="checkbox" id="perm_customers" checked class="w-4 h-4 text-brand-green rounded">
+                                            <span>Khách hàng</span>
+                                        </label>
+                                        <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
+                                            <input type="checkbox" id="perm_services" checked class="w-4 h-4 text-brand-green rounded">
+                                            <span>Dịch vụ & SP</span>
+                                        </label>
+                                        <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
+                                            <input type="checkbox" id="perm_staff" class="w-4 h-4 text-brand-green rounded">
+                                            <span>Nhân viên</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-2 pt-1">
+                                    <button type="button" onclick="toggleAddAccountModal()" class="w-1/2 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Hủy</button>
+                                    <button type="submit" class="w-1/2 py-2 bg-brand-green text-white font-bold rounded-xl text-xs">Lưu Tài Khoản</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- DANH SÁCH TÀI KHOẢN -->
+                        <div id="accountsListContainer" class="space-y-2"></div>
+                    </div>
+
+                    <!-- FORM THÊM CẤP BẬC -->
+                    <div id="levelModal" class="hidden bg-amber-50 p-3 rounded-2xl border border-amber-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-amber-900">Danh sách Cấp bậc Nhân viên:</span>
+                            <button onclick="toggleLevelModal()" class="text-gray-400 font-bold text-xs">✕</button>
+                        </div>
+                        <p id="currentLevelsText" class="text-xs text-gray-600 font-bold"></p>
+                        <div class="flex gap-2">
+                            <input type="text" id="newLevelInput" placeholder="Nhập cấp bậc mới..." class="w-full px-3 py-1.5 bg-white rounded-xl border border-gray-200 text-xs">
+                            <button onclick="saveNewLevel()" class="bg-amber-600 text-white font-bold px-3 py-1.5 rounded-xl text-xs shrink-0">+ Thêm</button>
+                        </div>
+                    </div>
+
+                    <!-- FORM THÊM NHÂN SỰ MỚI (ĐÃ THÊM Ô SĐT) -->
+                    <div id="addStaffModal" class="hidden bg-white p-4 rounded-2xl border border-brand-green/20 shadow-sm space-y-3">
+                        <h3 class="text-xs font-bold text-brand-darkgreen uppercase">Thêm Nhân Sự Mới</h3>
+                        <form onsubmit="saveNewStaff(event)" class="space-y-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 mb-1">Họ & Tên *</label>
+                                    <input type="text" id="newStaffName" required placeholder="Nguyễn Văn A" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-brand-darkgreen mb-1">Số điện thoại *</label>
+                                    <input type="tel" id="newStaffPhone" required placeholder="0901234567" class="w-full px-3 py-2 bg-emerald-50 rounded-xl border border-emerald-300 text-xs font-bold text-emerald-900">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 mb-1">Chức Vụ *</label>
+                                    <select id="newStaffRole" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                                        <option value="Kỹ thuật viên Spa">Kỹ thuật viên Spa</option>
+                                        <option value="Quản lý">Quản lý</option>
+                                        <option value="Lễ tân">Lễ tân</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 mb-1">Cấp Bậc *</label>
+                                    <select id="newStaffLevel" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 pt-1">
+                                <button type="button" onclick="toggleAddStaffModal()" class="w-1/2 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Hủy</button>
+                                <button type="submit" class="w-1/2 py-2 bg-brand-green text-white font-bold rounded-xl text-xs">Lưu Nhân Viên</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- LỌC BÁO CÁO BẢNG LƯƠNG NHÂN VIÊN THEO THÁNG -->
+                    <div class="bg-brand-cream/60 p-3 rounded-2xl border border-brand-green/20 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-brand-darkgreen">📅 Chọn Tháng Xem Bảng Lương:</span>
+                            <input type="month" id="staffReportMonth" onchange="generateStaffReport()" class="px-2.5 py-1 bg-white rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
+                        </div>
+                    </div>
+
+                    <!-- DANH SÁCH BẢNG LƯƠNG NHÂN VIÊN -->
+                    <div id="staffReportContainer" class="space-y-2.5"></div>
+                </div>
+            </section>
 
         </main>
 
-        <!-- BOTTOM NAVIGATION BAR -->
-        <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-brand-green/20 px-2 py-2 flex justify-around items-center z-40 shadow-lg md:max-w-md md:mx-auto md:bottom-4 md:rounded-full">
-            <button onclick="switchTab('home')" id="btn-home" class="nav-tab text-brand-green flex flex-col items-center gap-1 font-bold text-[9px]">
-                <i class="fa-solid fa-house text-base"></i>
-                <span>Trang chủ</span>
-            </button>
-            <button onclick="switchTab('logs')" id="btn-logs" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[9px]">
-                <i class="fa-solid fa-clipboard-user text-base"></i>
-                <span>Nhật ký</span>
-            </button>
-            <button onclick="switchTab('booking')" id="btn-booking" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[9px]">
-                <i class="fa-solid fa-calendar-check text-base"></i>
-                <span>Lịch hẹn</span>
-            </button>
-            <button onclick="switchTab('customers')" id="btn-customers" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[9px]">
-                <i class="fa-solid fa-users text-base"></i>
-                <span>Khách hàng</span>
-            </button>
-            <button onclick="switchTab('services')" id="btn-services" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[9px]">
-                <i class="fa-solid fa-spa text-base"></i>
-                <span>Dịch vụ & SP</span>
-            </button>
-            <button onclick="switchTab('staff')" id="btn-staff" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[9px]">
-                <i class="fa-solid fa-user-gear text-base"></i>
-                <span>Nhân viên</span>
-            </button>
-            <button onclick="switchTab('accounts')" id="btn-accounts" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[9px] superadmin-only">
-                <i class="fa-solid fa-user-shield text-base"></i>
-                <span>Tài khoản</span>
-            </button>
+        <!-- NAVIGATION TAB DƯỚI MÀN HÌNH MÁY TÍNH & ĐIỆN THOẠI -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 py-2 px-3 shadow-lg">
+            <div class="max-w-md mx-auto flex justify-between items-center text-center">
+                <button id="btn-logs" onclick="switchTab('logs')" class="nav-tab text-brand-green font-bold flex flex-col items-center gap-0.5 text-[11px]">
+                    <i class="fa-solid fa-receipt text-base"></i>
+                    <span>Nhật Ký</span>
+                </button>
+                <button id="btn-booking" onclick="switchTab('booking')" class="nav-tab text-gray-400 font-medium flex flex-col items-center gap-0.5 text-[11px]">
+                    <i class="fa-solid fa-calendar-check text-base"></i>
+                    <span>Lịch Hẹn</span>
+                </button>
+                <button id="btn-customers" onclick="switchTab('customers')" class="nav-tab text-gray-400 font-medium flex flex-col items-center gap-0.5 text-[11px]">
+                    <i class="fa-solid fa-users text-base"></i>
+                    <span>Khách Hàng</span>
+                </button>
+                <button id="btn-services" onclick="switchTab('services')" class="nav-tab text-gray-400 font-medium flex flex-col items-center gap-0.5 text-[11px]">
+                    <i class="fa-solid fa-spa text-base"></i>
+                    <span>Dịch Vụ/SP</span>
+                </button>
+                <button id="btn-staff" onclick="switchTab('staff')" class="nav-tab text-gray-400 font-medium flex flex-col items-center gap-0.5 text-[11px]">
+                    <i class="fa-solid fa-users-gear text-base"></i>
+                    <span>Bảng Lương</span>
+                </button>
+            </div>
         </nav>
 
-       <!-- POPUP CHI TIẾT BẢNG LƯƠNG NHÂN VIÊN, NGÀY NGHỈ, NGÀY/GIỜ LÀM THÊM & LƯƠNG CB -->
+        <!-- POPUP CHI TIẾT BẢNG LƯƠNG NHÂN VIÊN, NGÀY NGHỈ, NGÀY/GIỜ LÀM THÊM & LƯƠNG CB -->
         <div id="salaryDetailModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
             <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-3.5 max-h-[92vh] overflow-y-auto">
                 <div class="flex justify-between items-start border-b border-gray-100 pb-2.5">
@@ -823,7 +757,7 @@
             </div>
         </div>
 
-<!-- POPUP FORM THÊM KHÁCH HÀNG -->
+        <!-- POPUP FORM THÊM KHÁCH HÀNG -->
         <div id="addCustModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
             <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-4">
                 <div class="flex justify-between items-center border-b pb-3">
@@ -940,7 +874,6 @@
         </div>
 
     </div>
-
     <!-- SCRIPT REALTIME & LOGIC XỬ LÝ HOÀN CHỈNH -->
     <script>
         const firebaseConfig = {
@@ -1276,27 +1209,126 @@
             document.getElementById('manualOTAmountBox').classList.toggle('hidden', mode !== 'MANUAL_AMOUNT');
         }
 
-        // --- HÀM TÍNH VÀ HIỂN THỊ BẢNG LƯƠNG CHI TIẾT ---
+        // --- 1. LƯU TÀI KHOẢN KÈM SỐ ĐIỆN THOẠI ---
+        function saveAccount(e) {
+            e.preventDefault();
+            if (currentUser.role !== 'SUPER_ADMIN') return;
+
+            const editUsername = document.getElementById('editAccountUsername').value;
+            const fullName = document.getElementById('accFullName').value.trim();
+            const phone = document.getElementById('accPhone').value.trim();
+            const username = editUsername || document.getElementById('accUsername').value.trim().toLowerCase();
+            const password = document.getElementById('accPassword').value;
+            const role = document.getElementById('accRole').value;
+            const baseSalary = parseFloat(document.getElementById('accBaseSalary').value) || 0;
+            const workingDays = parseInt(document.getElementById('accWorkingDays').value) || 30;
+            const standardHours = parseInt(document.getElementById('accStandardHours').value) || 8;
+            const effectiveDate = document.getElementById('accSalaryEffectiveDate').value;
+
+            const permissions = {
+                logs: document.getElementById('perm_logs').checked,
+                booking: document.getElementById('perm_booking').checked,
+                customers: document.getElementById('perm_customers').checked,
+                services: document.getElementById('perm_services').checked,
+                staff: document.getElementById('perm_staff').checked
+            };
+
+            db.ref('users/' + username).once('value', (snap) => {
+                const existingUser = snap.val() || {};
+                let salaryHistory = existingUser.salaryHistory || [];
+
+                if (salaryHistory.length === 0) {
+                    salaryHistory.push({ baseSalary, effectiveDate });
+                } else {
+                    const lastEntry = salaryHistory[salaryHistory.length - 1];
+                    if (lastEntry.baseSalary !== baseSalary || lastEntry.effectiveDate !== effectiveDate) {
+                        salaryHistory.push({ baseSalary, effectiveDate });
+                    }
+                }
+
+                db.ref('users/' + username).update({
+                    fullName, phone, password, role, baseSalary, workingDaysPerMonth: workingDays, standardHoursPerDay: standardHours, salaryHistory, permissions
+                }, (err) => {
+                    if (!err) {
+                        alert('Đã lưu tài khoản & Cập nhật SĐT định danh thành công!');
+                        toggleAddAccountModal();
+                    }
+                });
+            });
+        }
+
+        function editAccount(username) {
+            const u = globalUsers[username];
+            if (!u) return;
+
+            document.getElementById('editAccountUsername').value = username;
+            document.getElementById('accountFormTitle').innerText = `Sửa Phân Quyền & Lương: @${username}`;
+            document.getElementById('accFullName').value = u.fullName || '';
+            document.getElementById('accPhone').value = u.phone || '';
+            document.getElementById('accUsername').value = username;
+            document.getElementById('accPassword').value = u.password || '';
+            document.getElementById('accRole').value = u.role || 'STAFF';
+            document.getElementById('accBaseSalary').value = u.baseSalary || 0;
+            document.getElementById('accWorkingDays').value = u.workingDaysPerMonth || 30;
+            document.getElementById('accStandardHours').value = u.standardHoursPerDay || 8;
+            document.getElementById('accSalaryEffectiveDate').value = new Date().toISOString().split('T')[0];
+
+            const p = u.permissions || {};
+            document.getElementById('perm_logs').checked = !!p.logs;
+            document.getElementById('perm_booking').checked = !!p.booking;
+            document.getElementById('perm_customers').checked = !!p.customers;
+            document.getElementById('perm_services').checked = !!p.services;
+            document.getElementById('perm_staff').checked = !!p.staff;
+
+            document.getElementById('addAccountModal').classList.remove('hidden');
+        }
+
+        // --- 2. LƯU NHÂN VIÊN MỚI KÈM SỐ ĐIỆN THOẠI ---
+        function saveNewStaff(e) {
+            e.preventDefault();
+            const name = document.getElementById('newStaffName').value.trim();
+            const phone = document.getElementById('newStaffPhone').value.trim();
+            const role = document.getElementById('newStaffRole').value;
+            const level = document.getElementById('newStaffLevel').value;
+
+            db.ref('staff').push({ name, phone, role, level }, (err) => {
+                if(!err) { 
+                    toggleAddStaffModal(); 
+                    document.getElementById('newStaffName').value = ''; 
+                    document.getElementById('newStaffPhone').value = ''; 
+                    alert("Thêm nhân viên thành công!");
+                }
+            });
+        }
+
+        // --- 3. TRA CỨU LIÊN KẾT BẢNG LƯƠNG THEO SỐ ĐIỆN THOẠI ---
         function showSalaryDetailForStaff(staffName) {
             currentActiveSalaryStaffName = staffName;
             const modal = document.getElementById('salaryDetailModal');
             document.getElementById('salaryModalStaffName').innerText = `Bảng Lương: ${staffName}`;
 
             const selectedMonthStr = document.getElementById('staffReportMonth').value;
-            const userKey = Object.keys(globalUsers).find(k => globalUsers[k].fullName === staffName);
+
+            // Tìm đối tượng Staff để lấy Số điện thoại
+            const staffKey = Object.keys(globalStaff).find(k => globalStaff[k].name === staffName);
+            const staffObj = staffKey ? globalStaff[staffKey] : null;
+            const staffPhone = staffObj ? staffObj.phone : null;
+
+            // TRA CỨU TÀI KHOẢN THEO SỐ ĐIỆN THOẠI
+            const userKey = Object.keys(globalUsers).find(k => staffPhone && globalUsers[k].phone === staffPhone);
             const userObj = userKey ? globalUsers[userKey] : null;
 
-            document.getElementById('salaryModalStaffRole').innerText = `Tài khoản: @${userKey || 'N/A'} - Chức vụ: ${userObj ? userObj.role : 'Nhân viên'}`;
+            if (userObj) {
+                document.getElementById('salaryModalStaffRole').innerText = `Tài khoản: @${userKey} (SĐT: ${staffPhone}) - Chức vụ: ${userObj.role}`;
+            } else {
+                document.getElementById('salaryModalStaffRole').innerText = `Chưa tạo Tài khoản (SĐT: ${staffPhone || 'Chưa có'})`;
+            }
 
-            // 1. Lương cơ bản & Lịch sử
+            // Tính toán Lương cơ bản
             const salaryCalc = calculateMonthlyBaseSalary(userObj, selectedMonthStr);
             document.getElementById('modalCurrentBaseSalaryInput').value = formatVND(salaryCalc.latestBaseSalary);
             document.getElementById('modalNewBaseSalaryInput').value = salaryCalc.latestBaseSalary;
             document.getElementById('modalSalaryEffectiveDateInput').value = new Date().toISOString().split('T')[0];
-
-            // 2. Chấm công Ngày nghỉ, Ngày làm thêm, Giờ làm thêm (OT)
-            const staffKey = Object.keys(globalStaff).find(k => globalStaff[k].name === staffName);
-            const staffObj = staffKey ? globalStaff[staffKey] : null;
 
             let attendanceMap = (staffObj && staffObj.monthlyAttendance) ? staffObj.monthlyAttendance : {};
             let currentAtt = attendanceMap[selectedMonthStr] || { offDays: 0, overtimeDays: 0, overtimeHours: 0, otMode: 'AUTO', manualOTAmount: 0 };
@@ -1310,7 +1342,6 @@
             otRadios.forEach(r => { if(r.value === (currentAtt.otMode || 'AUTO')) r.checked = true; });
             toggleOTCalcInputMode();
 
-            // 3. Tính toán các khoản cộng/trừ
             const offDays = parseFloat(currentAtt.offDays) || 0;
             const overtimeDays = parseFloat(currentAtt.overtimeDays) || 0;
             const overtimeHours = parseFloat(currentAtt.overtimeHours) || 0;
@@ -1340,7 +1371,6 @@
             document.getElementById('salaryModalOTHoursText').innerText = overtimeHours;
             document.getElementById('salaryModalOTHoursBonus').innerText = `+${formatVND(otHoursBonus)}`;
 
-            // 4. Hoa hồng bán dịch vụ & sản phẩm
             let totalCommission = 0;
             let logsHTML = '';
 
@@ -1366,11 +1396,9 @@
 
             document.getElementById('salaryModalCommission').innerText = formatVND(totalCommission);
 
-            // 5. CÔNG THỨC CHÍNH TÍNH TỔNG LƯƠNG THỰC TẾ
             const finalTotalSalary = Math.max(0, salaryCalc.calculatedBaseSalary - deductionAmount) + otDaysBonus + otHoursBonus + totalCommission;
             document.getElementById('salaryModalTotal').innerText = formatVND(finalTotalSalary);
 
-            // 6. Lịch sử điều chỉnh lương cơ bản
             let historyHTML = '';
             if (userObj && userObj.salaryHistory) {
                 historyHTML = userObj.salaryHistory.map(h => `
@@ -1389,16 +1417,20 @@
             modal.classList.remove('hidden');
         }
 
-        // --- HÀM LƯU LƯƠNG ĐIỀU CHỈNH TRỰC TIẾP TỪ MODAL ---
+        // --- 4. HÀM TỰ ĐỘNG LƯU ĐIỀU CHỈNH LƯƠNG TRỰC TIẾP TỪ MODAL THEO SĐT ---
         function saveSalaryAdjustmentFromModal() {
             if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER') {
                 alert("Bạn không có quyền chỉnh sửa Lương cơ bản!");
                 return;
             }
 
-            const userKey = Object.keys(globalUsers).find(k => globalUsers[k].fullName === currentActiveSalaryStaffName);
+            const staffKey = Object.keys(globalStaff).find(k => globalStaff[k].name === currentActiveSalaryStaffName);
+            const staffObj = staffKey ? globalStaff[staffKey] : null;
+            const staffPhone = staffObj ? staffObj.phone : null;
+
+            const userKey = Object.keys(globalUsers).find(k => staffPhone && globalUsers[k].phone === staffPhone);
             if (!userKey) {
-                alert("Nhân viên này chưa liên kết tài khoản hệ thống!");
+                alert(`Không tìm thấy Tài khoản có SĐT "${staffPhone || 'Chưa nhập'}"! Vui lòng tạo tài khoản ở Tab "Tài khoản" trước.`);
                 return;
             }
 
@@ -1429,33 +1461,7 @@
             });
         }
 
-        // --- HÀM LƯU CHẤM CÔNG NGÀY NGHỈ, NGÀY & GIỜ LÀM THÊM ---
-        function saveStaffAttendanceAndOT() {
-            if (!currentActiveSalaryStaffName) return;
-            const selectedMonthStr = document.getElementById('staffReportMonth').value;
-            const offDays = parseFloat(document.getElementById('modalOffDaysInput').value) || 0;
-            const overtimeDays = parseFloat(document.getElementById('modalOvertimeDaysInput').value) || 0;
-            const overtimeHours = parseFloat(document.getElementById('modalOvertimeHoursInput').value) || 0;
-            const otMode = document.querySelector('input[name="otCalcMode"]:checked').value;
-            const manualOTAmount = parseFloat(document.getElementById('modalManualOTAmountInput').value) || 0;
-
-            const staffKey = Object.keys(globalStaff).find(k => globalStaff[k].name === currentActiveSalaryStaffName);
-            if (staffKey) {
-                const attObj = { offDays, overtimeDays, overtimeHours, otMode, manualOTAmount };
-                db.ref(`staff/${staffKey}/monthlyAttendance/${selectedMonthStr}`).set(attObj, (err) => {
-                    if (!err) {
-                        alert("Đã lưu dữ liệu Chấm công & OT thành công!");
-                        showSalaryDetailForStaff(currentActiveSalaryStaffName);
-                        generateStaffReport();
-                    }
-                });
-            }
-        }
-
-        function closeSalaryDetailModal() {
-            document.getElementById('salaryDetailModal').classList.add('hidden');
-        }
-
+        // --- 5. BÁO CÁO LƯƠNG NHÂN VIÊN HIỂN THỊ CẢ SỐ ĐIỆN THOẠI ---
         function generateStaffReport() {
             const selectedMonthStr = document.getElementById('staffReportMonth').value;
 
@@ -1495,7 +1501,8 @@
                     }
                 });
 
-                const userKey = Object.keys(globalUsers).find(k => globalUsers[k].fullName === staff.name);
+                // Tra cứu tài khoản liên kết qua Số Điện Thoại
+                const userKey = Object.keys(globalUsers).find(k => staff.phone && globalUsers[k].phone === staff.phone);
                 const userObj = userKey ? globalUsers[userKey] : null;
 
                 const salaryCalc = calculateMonthlyBaseSalary(userObj, selectedMonthStr);
@@ -1521,6 +1528,7 @@
                         <div class="flex justify-between items-center">
                             <div>
                                 <span class="font-bold text-brand-darkgreen text-xs">${staff.name}</span>
+                                <span class="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 ml-1">📞 ${staff.phone || 'N/A'}</span>
                                 <span class="text-[10px] text-gray-500 bg-white px-2 py-0.5 rounded border ml-1">${staff.role} - ${staff.level}</span>
                             </div>
                             ${deleteBtn}
@@ -1539,6 +1547,81 @@
                 container.insertAdjacentHTML('afterbegin', cardHTML);
             });
         }
+
+        // --- 6. GIAO DIỆN HIỂN THỊ DANH SÁCH TÀI KHOẢN KÈM SĐT ---
+        function renderAccountsUI() {
+            const container = document.getElementById('accountsListContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const keys = Object.keys(globalUsers);
+            if (keys.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-2">Chưa có tài khoản nào</p>';
+                return;
+            }
+
+            keys.forEach(username => {
+                const u = globalUsers[username];
+                const isSelf = username === currentUser.username;
+                const p = u.permissions || {};
+
+                const permBadges = `
+                    <div class="flex flex-wrap gap-1 text-[10px] pt-1">
+                        ${p.logs ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Nhật ký</span>' : ''}
+                        ${p.booking ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Lịch hẹn</span>' : ''}
+                        ${p.customers ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Khách hàng</span>' : ''}
+                        ${p.services ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Dịch vụ & SP</span>' : ''}
+                        ${p.staff ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Nhân viên</span>' : ''}
+                    </div>
+                `;
+
+                const cardHTML = `
+                    <div class="p-3 bg-brand-cream/40 rounded-2xl border border-gray-100 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-bold text-brand-darkgreen text-xs">${u.fullName}</span>
+                                <span class="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 ml-1">📞 ${u.phone || 'N/A'}</span>
+                                <span class="text-[10px] text-gray-500 font-mono">(@${username})</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="editAccount('${username}')" class="text-brand-green text-xs font-bold">✏️ Sửa Lương & Quyền</button>
+                                ${!isSelf ? `<button onclick="deleteAccount('${username}')" class="text-red-500 text-xs font-bold">🗑 Xóa</button>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span>Lương: <strong class="text-amber-800">${formatVND(u.baseSalary)}</strong> (${u.workingDaysPerMonth || 30} ngày, ${u.standardHoursPerDay || 8}h/ngày)</span>
+                            <span class="text-gray-500 font-bold">${u.role}</span>
+                        </div>
+                        ${permBadges}
+                    </div>
+                `;
+                container.insertAdjacentHTML('afterbegin', cardHTML);
+            });
+        }
+
+        function saveStaffAttendanceAndOT() {
+            if (!currentActiveSalaryStaffName) return;
+            const selectedMonthStr = document.getElementById('staffReportMonth').value;
+            const offDays = parseFloat(document.getElementById('modalOffDaysInput').value) || 0;
+            const overtimeDays = parseFloat(document.getElementById('modalOvertimeDaysInput').value) || 0;
+            const overtimeHours = parseFloat(document.getElementById('modalOvertimeHoursInput').value) || 0;
+            const otMode = document.querySelector('input[name="otCalcMode"]:checked').value;
+            const manualOTAmount = parseFloat(document.getElementById('modalManualOTAmountInput').value) || 0;
+
+            const staffKey = Object.keys(globalStaff).find(k => globalStaff[k].name === currentActiveSalaryStaffName);
+            if (staffKey) {
+                const attObj = { offDays, overtimeDays, overtimeHours, otMode, manualOTAmount };
+                db.ref(`staff/${staffKey}/monthlyAttendance/${selectedMonthStr}`).set(attObj, (err) => {
+                    if (!err) {
+                        alert("Đã lưu dữ liệu Chấm công & OT thành công!");
+                        showSalaryDetailForStaff(currentActiveSalaryStaffName);
+                        generateStaffReport();
+                    }
+                });
+            }
+        }
+
+        function closeSalaryDetailModal() { document.getElementById('salaryDetailModal').classList.add('hidden'); }
 
         function renderCommissionInputsInServiceUI() {
             const container = document.getElementById('commissionRatesInputsContainer');
@@ -1816,6 +1899,7 @@
             document.getElementById('editAccountUsername').value = '';
             document.getElementById('accountFormTitle').innerText = 'Tạo Tài Khoản Cấp Dưới Mới';
             document.getElementById('accFullName').value = '';
+            document.getElementById('accPhone').value = '';
             document.getElementById('accUsername').value = '';
             document.getElementById('accPassword').value = '';
             document.getElementById('accBaseSalary').value = 5000000;
@@ -1823,126 +1907,6 @@
             document.getElementById('accStandardHours').value = 8;
             document.getElementById('accSalaryEffectiveDate').value = new Date().toISOString().split('T')[0];
             document.getElementById('addAccountModal').classList.toggle('hidden');
-        }
-
-        function saveAccount(e) {
-            e.preventDefault();
-            if (currentUser.role !== 'SUPER_ADMIN') return;
-
-            const editUsername = document.getElementById('editAccountUsername').value;
-            const fullName = document.getElementById('accFullName').value.trim();
-            const username = editUsername || document.getElementById('accUsername').value.trim().toLowerCase();
-            const password = document.getElementById('accPassword').value;
-            const role = document.getElementById('accRole').value;
-            const baseSalary = parseFloat(document.getElementById('accBaseSalary').value) || 0;
-            const workingDays = parseInt(document.getElementById('accWorkingDays').value) || 30;
-            const standardHours = parseInt(document.getElementById('accStandardHours').value) || 8;
-            const effectiveDate = document.getElementById('accSalaryEffectiveDate').value;
-
-            const permissions = {
-                logs: document.getElementById('perm_logs').checked,
-                booking: document.getElementById('perm_booking').checked,
-                customers: document.getElementById('perm_customers').checked,
-                services: document.getElementById('perm_services').checked,
-                staff: document.getElementById('perm_staff').checked
-            };
-
-            db.ref('users/' + username).once('value', (snap) => {
-                const existingUser = snap.val() || {};
-                let salaryHistory = existingUser.salaryHistory || [];
-
-                if (salaryHistory.length === 0) {
-                    salaryHistory.push({ baseSalary, effectiveDate });
-                } else {
-                    const lastEntry = salaryHistory[salaryHistory.length - 1];
-                    if (lastEntry.baseSalary !== baseSalary || lastEntry.effectiveDate !== effectiveDate) {
-                        salaryHistory.push({ baseSalary, effectiveDate });
-                    }
-                }
-
-                db.ref('users/' + username).update({
-                    fullName, password, role, baseSalary, workingDaysPerMonth: workingDays, standardHoursPerDay: standardHours, salaryHistory, permissions
-                }, (err) => {
-                    if (!err) {
-                        alert('Đã lưu tài khoản & Cập nhật mốc lương cơ bản thành công!');
-                        toggleAddAccountModal();
-                    }
-                });
-            });
-        }
-
-        function editAccount(username) {
-            const u = globalUsers[username];
-            if (!u) return;
-
-            document.getElementById('editAccountUsername').value = username;
-            document.getElementById('accountFormTitle').innerText = `Sửa Phân Quyền & Lương: @${username}`;
-            document.getElementById('accFullName').value = u.fullName || '';
-            document.getElementById('accUsername').value = username;
-            document.getElementById('accPassword').value = u.password || '';
-            document.getElementById('accRole').value = u.role || 'STAFF';
-            document.getElementById('accBaseSalary').value = u.baseSalary || 0;
-            document.getElementById('accWorkingDays').value = u.workingDaysPerMonth || 30;
-            document.getElementById('accStandardHours').value = u.standardHoursPerDay || 8;
-            document.getElementById('accSalaryEffectiveDate').value = new Date().toISOString().split('T')[0];
-
-            const p = u.permissions || {};
-            document.getElementById('perm_logs').checked = !!p.logs;
-            document.getElementById('perm_booking').checked = !!p.booking;
-            document.getElementById('perm_customers').checked = !!p.customers;
-            document.getElementById('perm_services').checked = !!p.services;
-            document.getElementById('perm_staff').checked = !!p.staff;
-
-            document.getElementById('addAccountModal').classList.remove('hidden');
-        }
-
-        function renderAccountsUI() {
-            const container = document.getElementById('accountsListContainer');
-            if (!container) return;
-            container.innerHTML = '';
-
-            const keys = Object.keys(globalUsers);
-            if (keys.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-2">Chưa có tài khoản nào</p>';
-                return;
-            }
-
-            keys.forEach(username => {
-                const u = globalUsers[username];
-                const isSelf = username === currentUser.username;
-                const p = u.permissions || {};
-
-                const permBadges = `
-                    <div class="flex flex-wrap gap-1 text-[10px] pt-1">
-                        ${p.logs ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Nhật ký</span>' : ''}
-                        ${p.booking ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Lịch hẹn</span>' : ''}
-                        ${p.customers ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Khách hàng</span>' : ''}
-                        ${p.services ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Dịch vụ & SP</span>' : ''}
-                        ${p.staff ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Nhân viên</span>' : ''}
-                    </div>
-                `;
-
-                const cardHTML = `
-                    <div class="p-3 bg-brand-cream/40 rounded-2xl border border-gray-100 space-y-2">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <span class="font-bold text-brand-darkgreen text-xs">${u.fullName}</span>
-                                <span class="text-[10px] text-gray-500 font-mono">(@${username})</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="editAccount('${username}')" class="text-brand-green text-xs font-bold">✏️ Sửa Lương & Quyền</button>
-                                ${!isSelf ? `<button onclick="deleteAccount('${username}')" class="text-red-500 text-xs font-bold">🗑 Xóa</button>` : ''}
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center text-xs">
-                            <span>Lương: <strong class="text-amber-800">${formatVND(u.baseSalary)}</strong> (${u.workingDaysPerMonth || 30} ngày, ${u.standardHoursPerDay || 8}h/ngày)</span>
-                            <span class="text-gray-500 font-bold">${u.role}</span>
-                        </div>
-                        ${permBadges}
-                    </div>
-                `;
-                container.insertAdjacentHTML('afterbegin', cardHTML);
-            });
         }
 
         function deleteAccount(username) {
@@ -2291,15 +2255,6 @@
         }
 
         function toggleAddStaffModal() { document.getElementById('addStaffModal').classList.toggle('hidden'); }
-        function saveNewStaff(e) {
-            e.preventDefault();
-            const name = document.getElementById('newStaffName').value.trim();
-            const role = document.getElementById('newStaffRole').value;
-            const level = document.getElementById('newStaffLevel').value;
-            db.ref('staff').push({ name, role, level }, (err) => {
-                if(!err) { toggleAddStaffModal(); document.getElementById('newStaffName').value = ''; }
-            });
-        }
         function deleteStaff(key) { if(confirm('Xóa nhân viên?')) db.ref('staff/' + key).remove(); }
 
         function renderServiceSelectUI() {
@@ -2441,7 +2396,7 @@
         function openAddCustomerModal() { document.getElementById('addCustModal').classList.remove('hidden'); }
         function closeAddCustomerModal() { document.getElementById('addCustModal').classList.add('hidden'); }
         function openBookingModal() { document.getElementById('addBookingModal').classList.remove('hidden'); }
-        function closeBookingModal() { document.getElementById('addBookingModal').classList.close ? document.getElementById('addBookingModal').classList.add('hidden') : document.getElementById('addBookingModal').classList.add('hidden'); }
+        function closeBookingModal() { document.getElementById('addBookingModal').classList.add('hidden'); }
 
         function showCustomerDetails(key, name, phone, address) {
             currentActiveCustKey = key;
