@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kim Beauty - POS Quản Lý Spa Cloud Realtime</title>
+    <title>Kim Beauty - POS Quản Lý Spa & Bán Hàng Realtime</title>
 
     <!-- PWA META TAGS -->
     <meta name="mobile-web-app-capable" content="yes">
@@ -49,7 +49,7 @@
 </head>
 <body class="bg-brand-cream text-brand-text font-sans antialiased min-h-screen pb-28 md:pb-12">
 
-    <!-- SCREEN 1: MÀN HÌNH ĐĂNG NHẬP / KHỞI TẠO SUPER ADMIN -->
+    <!-- MÀN HÌNH ĐĂNG NHẬP / KHỞI TẠO -->
     <div id="authScreen" class="fixed inset-0 z-50 bg-brand-cream flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-brand-green/20 space-y-5">
             <div class="text-center space-y-2">
@@ -191,30 +191,32 @@
                 </div>
             </div>
 
-            <!-- 2. TAB NHẬT KÝ DỊCH VỤ -->
+            <!-- 2. TAB NHẬT KÝ DỊCH VỤ & SẢN PHẨM -->
             <div id="tab-logs" class="tab-content hidden space-y-5">
                 <div class="bg-white p-4 rounded-3xl border border-brand-green/20 shadow-sm space-y-3">
                     <div class="flex justify-between items-center">
                         <h2 class="text-xs font-bold text-brand-darkgreen uppercase flex items-center gap-1.5">
-                            <i class="fa-solid fa-filter text-brand-green"></i> Tra Cứu Nhật Ký Dịch Vụ
+                            <i class="fa-solid fa-filter text-brand-green"></i> Nhật Ký Dịch Vụ & Bán Sản Phẩm
                         </h2>
                         <div class="flex gap-2">
                             <button onclick="exportServiceLogsToExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 shadow">
                                 <i class="fa-solid fa-file-excel"></i> Xuất Excel
                             </button>
                             <button onclick="toggleAddLogForm()" class="bg-brand-green text-white text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 shadow">
-                                <i class="fa-solid fa-plus"></i> + Thêm lượt phục vụ
+                                <i class="fa-solid fa-plus"></i> + Thêm lượt mới
                             </button>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <!-- BỘ LỌC THỜI GIAN ĐÃ BỔ SUNG LỌC THEO NĂM -->
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
                         <div>
                             <label class="block text-[10px] font-bold text-gray-500 mb-1">Chế độ lọc</label>
                             <select id="logFilterMode" onchange="handleLogFilterModeChange()" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold text-brand-darkgreen">
                                 <option value="TODAY">Hôm nay</option>
                                 <option value="SPECIFIC_DATE">Theo ngày chọn...</option>
                                 <option value="MONTH_YEAR">Theo tháng / năm...</option>
+                                <option value="YEAR">Theo năm...</option>
                                 <option value="ALL">Tất cả thời gian</option>
                             </select>
                         </div>
@@ -226,9 +228,13 @@
                             <label class="block text-[10px] font-bold text-gray-500 mb-1">Chọn Tháng/Năm</label>
                             <input type="month" id="logFilterMonth" onchange="renderServiceLogsUI()" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold">
                         </div>
+                        <div id="filterYearBox" class="hidden">
+                            <label class="block text-[10px] font-bold text-gray-500 mb-1">Chọn Năm</label>
+                            <input type="number" id="logFilterYear" min="2020" max="2035" value="2026" onchange="renderServiceLogsUI()" class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold">
+                        </div>
                         <div>
                             <label class="block text-[10px] font-bold text-gray-500 mb-1">Tìm từ khóa</label>
-                            <input type="text" id="logSearchKeyword" onkeyup="renderServiceLogsUI()" placeholder="Tên khách, SĐT, dịch vụ, KTV..." class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
+                            <input type="text" id="logSearchKeyword" onkeyup="renderServiceLogsUI()" placeholder="Tên khách, SĐT, dịch vụ, SP, KTV..." class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs">
                         </div>
                     </div>
                 </div>
@@ -244,10 +250,10 @@
                     </div>
                 </div>
 
-                <!-- FORM NHẬP LƯỢT PHỤC VỤ -->
+                <!-- FORM NHẬP LƯỢT PHỤC VỤ / BÁN SẢN PHẨM -->
                 <div id="addLogForm" class="hidden bg-white p-5 rounded-3xl shadow-md border border-brand-green/20 space-y-4">
                     <h3 class="font-bold text-brand-darkgreen text-sm flex items-center justify-between border-b pb-2">
-                        <span><i class="fa-solid fa-receipt text-brand-green"></i> Hoàn Thành Phục Vụ & Thanh Toán</span>
+                        <span><i class="fa-solid fa-receipt text-brand-green"></i> Phục Vụ Dịch Vụ / Bán Sản Phẩm & Thanh Toán</span>
                         <button type="button" onclick="toggleAddLogForm()" class="text-gray-400 text-sm">✕</button>
                     </h3>
                     <form onsubmit="saveCustomerLog(event)" class="space-y-4">
@@ -255,7 +261,7 @@
                         
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-[11px] font-bold text-gray-600 mb-1">1. Ngày phục vụ *</label>
+                                <label class="block text-[11px] font-bold text-gray-600 mb-1">1. Ngày phục vụ / Bán hàng *</label>
                                 <input type="date" id="logDate" required class="w-full px-3 py-2 bg-brand-cream/50 rounded-xl border border-gray-200 text-xs font-bold">
                             </div>
                             <div>
@@ -284,12 +290,18 @@
                             </div>
                         </div>
 
+                        <!-- KHU VỰC DỊCH VỤ & SẢN PHẨM -->
                         <div class="space-y-2 bg-brand-cream/40 p-3 rounded-2xl border border-brand-green/20">
-                            <div class="flex justify-between items-center">
-                                <label class="block text-xs font-black text-brand-darkgreen uppercase">3. Dịch vụ lẻ / Làm thêm & KTV:</label>
-                                <button type="button" onclick="addServiceRowToLog()" class="bg-brand-green text-white text-[11px] px-2.5 py-1 rounded-lg font-bold">
-                                    + Thêm dịch vụ lẻ
-                                </button>
+                            <div class="flex justify-between items-center border-b pb-1">
+                                <label class="block text-xs font-black text-brand-darkgreen uppercase">3. Chọn Dịch vụ lẻ & Sản phẩm bán lẻ:</label>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="addServiceRowToLog('SERVICE')" class="bg-brand-green text-white text-[11px] px-2.5 py-1 rounded-lg font-bold">
+                                        + Thêm dịch vụ
+                                    </button>
+                                    <button type="button" onclick="addServiceRowToLog('PRODUCT')" class="bg-blue-600 text-white text-[11px] px-2.5 py-1 rounded-lg font-bold">
+                                        + Thêm sản phẩm
+                                    </button>
+                                </div>
                             </div>
                             <div id="serviceRowsContainer" class="space-y-2.5">
                             </div>
@@ -320,7 +332,7 @@
                 </div>
 
                 <div class="space-y-3" id="serviceLogsContainer">
-                    <p class="text-center text-gray-400 text-xs py-4">Đang tải nhật ký dịch vụ từ đám mây...</p>
+                    <p class="text-center text-gray-400 text-xs py-4">Đang tải nhật ký từ đám mây...</p>
                 </div>
             </div>
 
@@ -358,36 +370,41 @@
                 </div>
 
                 <div class="space-y-3" id="customerList">
-                    <p class="text-center text-gray-400 text-xs py-4">Đang tải danh sách khách hàng từ đám mây...</p>
+                    <p class="text-center text-gray-400 text-xs py-4">Đang tải danh sách khách hàng...</p>
                 </div>
             </div>
 
-            <!-- 5. TAB QUẢN LÝ DỊCH VỤ & COMBO -->
+            <!-- 5. TAB QUẢN LÝ DỊCH VỤ, COMBO & SẢN PHẨM -->
             <div id="tab-services" class="tab-content hidden space-y-6">
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-brand-green/10 space-y-4 admin-only">
                     <h2 class="text-lg font-bold text-brand-darkgreen flex items-center gap-2">
-                        <i class="fa-solid fa-plus text-brand-green"></i> Tạo Dịch Vụ Mới / Gói Combo
+                        <i class="fa-solid fa-plus text-brand-green"></i> Tạo Dịch Vụ Mới / Gói Combo / Sản Phẩm
                     </h2>
                     <form onsubmit="addNewService(event)" class="space-y-3">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Tên Dịch vụ / Gói Combo *</label>
-                            <input type="text" id="servName" required placeholder="Tên dịch vụ..." class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Tên Dịch vụ / Combo / Sản phẩm *</label>
+                            <input type="text" id="servName" required placeholder="Nhập tên..." class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
                         </div>
 
-                        <div class="grid grid-cols-2 gap-3 bg-brand-cream/60 p-2.5 rounded-2xl border border-gray-200">
-                            <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-brand-darkgreen">
-                                <input type="radio" name="servType" value="SINGLE" checked onchange="toggleServiceTypeInput()" class="w-4 h-4 text-brand-green">
+                        <!-- LỰA CHỌN PHÂN LOẠI BAO GỒM CẢ SẢN PHẨM -->
+                        <div class="grid grid-cols-3 gap-2 bg-brand-cream/60 p-2.5 rounded-2xl border border-gray-200">
+                            <label class="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-brand-darkgreen">
+                                <input type="radio" name="servType" value="SINGLE" checked onchange="toggleServiceTypeInput()" class="w-3.5 h-3.5 text-brand-green">
                                 <span>Dịch vụ lẻ</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-brand-darkgreen">
-                                <input type="radio" name="servType" value="COMBO" onchange="toggleServiceTypeInput()" class="w-4 h-4 text-brand-green">
-                                <span>Gói Combo (Liệu trình)</span>
+                            <label class="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-brand-darkgreen">
+                                <input type="radio" name="servType" value="COMBO" onchange="toggleServiceTypeInput()" class="w-3.5 h-3.5 text-brand-green">
+                                <span>Gói Combo</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-blue-800">
+                                <input type="radio" name="servType" value="PRODUCT" onchange="toggleServiceTypeInput()" class="w-3.5 h-3.5 text-blue-600">
+                                <span>Sản phẩm</span>
                             </label>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Giá thu thực tế (VNĐ) *</label>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Giá bán niêm yết (VNĐ) *</label>
                                 <input type="number" id="servPrice" required placeholder="0" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
                             </div>
                             <div id="comboSessionsBox" class="hidden">
@@ -396,10 +413,10 @@
                             </div>
                         </div>
 
-                        <!-- CẤU HÌNH LOẠI HOA HỒNG: PHẦN TRĂM HOẶC TIỀN CỐ ĐỊNH -->
+                        <!-- CẤU HÌNH LOẠI HOA HỒNG TƯƠNG TỰ BÁN SẢN PHẨM HAY DỊCH VỤ -->
                         <div class="bg-brand-cream/60 p-3.5 rounded-2xl border border-brand-green/20 space-y-3">
                             <div class="flex justify-between items-center">
-                                <label class="block text-xs font-bold text-brand-darkgreen uppercase">Cách tính hoa hồng cho KTV:</label>
+                                <label class="block text-xs font-bold text-brand-darkgreen uppercase">Hoa hồng cho KTV / NV bán hàng:</label>
                                 <div class="flex gap-3 text-xs font-bold">
                                     <label class="flex items-center gap-1 cursor-pointer">
                                         <input type="radio" name="commType" value="PERCENT" checked onchange="renderCommissionInputsInServiceUI()" class="w-3.5 h-3.5 text-brand-green">
@@ -416,17 +433,17 @@
                         </div>
 
                         <button type="submit" class="w-full bg-brand-green hover:bg-brand-darkgreen text-white font-bold py-3 rounded-xl shadow-md text-sm">
-                            + LƯU DỊCH VỤ VÀO CLOUD
+                            + LƯU VÀO CƠ SỞ DỮ LIỆU
                         </button>
                     </form>
                 </div>
 
                 <div class="bg-white p-5 rounded-3xl shadow-sm border border-brand-green/10 space-y-3">
                     <h3 class="text-sm font-bold text-brand-darkgreen flex items-center gap-2">
-                        <i class="fa-solid fa-list text-brand-green"></i> Danh Mục Dịch Vụ & Gói Combo
+                        <i class="fa-solid fa-list text-brand-green"></i> Danh Mục Dịch Vụ, Combo & Sản Phẩm
                     </h3>
                     <div class="space-y-2.5" id="serviceListContainer">
-                        <p class="text-center text-gray-400 text-xs py-2">Đang tải danh mục dịch vụ...</p>
+                        <p class="text-center text-gray-400 text-xs py-2">Đang tải danh mục...</p>
                     </div>
                 </div>
             </div>
@@ -491,7 +508,7 @@
                                 </label>
                                 <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
                                     <input type="checkbox" id="perm_services" checked class="w-4 h-4 text-brand-green rounded">
-                                    <span>Dịch vụ & Combo</span>
+                                    <span>Dịch vụ & SP</span>
                                 </label>
                                 <label class="flex items-center gap-1.5 font-bold text-gray-700 cursor-pointer">
                                     <input type="checkbox" id="perm_staff" class="w-4 h-4 text-brand-green rounded">
@@ -605,7 +622,7 @@
             </button>
             <button onclick="switchTab('services')" id="btn-services" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[9px]">
                 <i class="fa-solid fa-spa text-base"></i>
-                <span>Dịch vụ</span>
+                <span>Dịch vụ & SP</span>
             </button>
             <button onclick="switchTab('staff')" id="btn-staff" class="nav-tab text-gray-400 flex flex-col items-center gap-1 font-medium text-[9px]">
                 <i class="fa-solid fa-user-gear text-base"></i>
@@ -634,7 +651,7 @@
                         <strong id="salaryModalBase" class="text-brand-darkgreen">0 đ</strong>
                     </div>
                     <div class="flex justify-between text-xs">
-                        <span class="text-gray-600">Hoa hồng dịch vụ đã làm:</span>
+                        <span class="text-gray-600">Hoa hồng bán SP & Làm Dịch vụ:</span>
                         <strong id="salaryModalCommission" class="text-amber-800">0 đ</strong>
                     </div>
                     <div class="flex justify-between text-sm font-black pt-2 border-t border-gray-200">
@@ -644,7 +661,7 @@
                 </div>
 
                 <div class="space-y-2">
-                    <h4 class="text-xs font-bold text-brand-darkgreen uppercase">Chi Tiết Lượt Dịch Vụ Đã Phục Vụ:</h4>
+                    <h4 class="text-xs font-bold text-brand-darkgreen uppercase">Chi Tiết Lượt Phục Vụ & Bán SP:</h4>
                     <div id="salaryModalLogsList" class="space-y-2 max-h-48 overflow-y-auto">
                     </div>
                 </div>
@@ -700,7 +717,7 @@
                         <input type="tel" id="bookCustPhone" required placeholder="SĐT" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Chọn Dịch vụ Spa / Combo *</label>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Chọn Dịch vụ / Sản phẩm *</label>
                         <select id="bookService" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm">
                         </select>
                     </div>
@@ -773,7 +790,7 @@
 
     </div>
 
-    <!-- SCRIPT FIREBASE POS & FULL PERMISSIONS + DYNAMIC COMMISSION TYPES -->
+    <!-- SCRIPT REALTIME & LOGIC XỬ LÝ -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCzIUPf2Wghh6voay899bdDGN9rQVhHGsU",
@@ -811,6 +828,13 @@
             checkSystemHasUsers();
             initWebPushNotifications();
         });
+
+        function formatDateVN(dateStr) {
+            if(!dateStr) return '';
+            const parts = dateStr.split('-');
+            if(parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return dateStr;
+        }
 
         function initWebPushNotifications() {
             if ("Notification" in window) {
@@ -978,7 +1002,6 @@
             return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val || 0);
         }
 
-        // --- REALTIME LISTENERS TỪ FIREBASE CLOUD ---
         function initFirebaseListeners() {
             db.ref('users').on('value', (snap) => {
                 globalUsers = snap.val() || {};
@@ -1017,7 +1040,6 @@
 
             db.ref('bookings').on('value', (snap) => {
                 const newBookings = snap.val() || {};
-                
                 if (!isFirstBookingLoad) {
                     const oldKeys = Object.keys(globalBookings);
                     const newKeys = Object.keys(newBookings);
@@ -1025,7 +1047,7 @@
                         const addedKey = newKeys.find(k => !oldKeys.includes(k));
                         if (addedKey && newBookings[addedKey]) {
                             const b = newBookings[addedKey];
-                            sendLocalNotification("🔔 LỊCH HẸN MỚI - KIM BEAUTY", `• Tên: ${b.name}\n• Dịch vụ: ${b.service}\n• Thời gian: ${b.time}`);
+                            sendLocalNotification("🔔 LỊCH HẸN MỚI", `• Tên: ${b.name}\n• Dịch vụ: ${b.service}\n• Giờ: ${b.time}`);
                         }
                     }
                 }
@@ -1066,7 +1088,7 @@
                                 <div class="p-2 bg-brand-cream/50 rounded-xl text-xs flex justify-between items-center">
                                     <div>
                                         <div class="font-bold text-brand-darkgreen">${it.service}</div>
-                                        <div class="text-[10px] text-gray-500">Khách: ${log.customer} - Ng: ${log.date}</div>
+                                        <div class="text-[10px] text-gray-500">Khách: ${log.customer} - Ngày: ${formatDateVN(log.date)}</div>
                                     </div>
                                     <span class="text-amber-800 font-bold">+${formatVND(it.commissionAmount)}</span>
                                 </div>
@@ -1078,7 +1100,7 @@
 
             document.getElementById('salaryModalCommission').innerText = formatVND(totalCommission);
             document.getElementById('salaryModalTotal').innerText = formatVND(baseSalary + totalCommission);
-            document.getElementById('salaryModalLogsList').innerHTML = logsHTML || '<p class="text-xs text-gray-400 italic py-2">Chưa có hoa hồng từ lượt dịch vụ hoàn thành nào.</p>';
+            document.getElementById('salaryModalLogsList').innerHTML = logsHTML || '<p class="text-xs text-gray-400 italic py-2">Chưa có hoa hồng từ lượt dịch vụ/sản phẩm hoàn thành nào.</p>';
 
             modal.classList.remove('hidden');
         }
@@ -1146,7 +1168,7 @@
                             ${deleteBtn}
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-xs pt-1">
-                            <div>Lượt làm: <strong>${clientCount} lượt</strong></div>
+                            <div>Lượt phục vụ: <strong>${clientCount} lượt</strong></div>
                             <div>Hoa hồng: <strong class="text-amber-700">${formatVND(totalCommission)}</strong></div>
                         </div>
                         <div class="flex justify-between items-center pt-1 text-xs border-t border-gray-100">
@@ -1158,7 +1180,7 @@
             });
         }
 
-        // --- CẤU HÌNH TẠO DỊCH VỤ / COMBO MỚI ---
+        // --- CẤU HÌNH TẠO DỊCH VỤ / COMBO / SẢN PHẨM MỚI ---
         function renderCommissionInputsInServiceUI() {
             const container = document.getElementById('commissionRatesInputsContainer');
             const commType = document.querySelector('input[name="commType"]:checked').value;
@@ -1188,20 +1210,20 @@
 
             db.ref('services').push({ name, price, type, sessions, commType, commissions: comms }, (err) => {
                 if(!err) {
-                    alert('Lưu dịch vụ & Cấu hình Hoa hồng thành công!');
+                    alert('Lưu dữ liệu & Cấu hình Hoa hồng thành công!');
                     document.getElementById('servName').value = '';
                     document.getElementById('servPrice').value = '';
                 }
             });
         }
 
-        function deleteService(key) { if(confirm('Xóa dịch vụ này?')) db.ref('services/' + key).remove(); }
+        function deleteService(key) { if(confirm('Xóa mục này khỏi danh mục?')) db.ref('services/' + key).remove(); }
 
         function renderServicesUI() {
             const container = document.getElementById('serviceListContainer');
             container.innerHTML = '';
             if(Object.keys(globalServices).length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-2">Chưa có dịch vụ</p>';
+                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-2">Chưa có danh mục nào</p>';
                 return;
             }
 
@@ -1209,8 +1231,10 @@
 
             Object.keys(globalServices).forEach(key => {
                 const s = globalServices[key];
-                const typeBadge = (s.type === 'COMBO') ? `<span class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full text-[10px]">Combo (${s.sessions} buổi)</span>` : `<span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-full text-[10px]">Lẻ</span>`;
-                
+                let typeBadge = `<span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded-full text-[10px]">Dịch vụ lẻ</span>`;
+                if (s.type === 'COMBO') typeBadge = `<span class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full text-[10px]">Combo (${s.sessions} buổi)</span>`;
+                else if (s.type === 'PRODUCT') typeBadge = `<span class="bg-indigo-100 text-indigo-900 font-bold px-2 py-0.5 rounded-full text-[10px]">Sản phẩm</span>`;
+
                 const commBadges = isAdmin ? globalLevels.map(lvl => {
                     const r = (s.commissions && s.commissions[lvl]) ? s.commissions[lvl] : 0;
                     return `<span class="bg-brand-green/10 text-brand-darkgreen px-1.5 py-0.5 rounded text-[10px] font-semibold">${lvl}: ${s.commType === 'FIXED' ? formatVND(r) : r + '%'}</span>`;
@@ -1237,11 +1261,12 @@
             });
         }
 
-        // --- HÀM XUẤT EXCEL BÁO CÁO NHẬT KÝ DỊCH VỤ (ĐÃ SỬA CHỈ LẤY TÊN KHÁCH HÀNG Ở CỘT B) ---
+        // --- XUẤT EXCEL BÁO CÁO CÓ CỘT NGÀY VÀ TÁCH DÒNG CHI TIẾT ---
         function exportServiceLogsToExcel() {
             const filterMode = document.getElementById('logFilterMode').value;
             const specificDate = document.getElementById('logFilterDate').value;
             const monthYear = document.getElementById('logFilterMonth').value;
+            const yearVal = document.getElementById('logFilterYear').value;
             const keyword = document.getElementById('logSearchKeyword').value.trim().toLowerCase();
             const todayStr = new Date().toISOString().split('T')[0];
 
@@ -1254,6 +1279,7 @@
                 if (filterMode === 'TODAY') timeMatch = (log.date === todayStr);
                 else if (filterMode === 'SPECIFIC_DATE') timeMatch = (log.date === specificDate);
                 else if (filterMode === 'MONTH_YEAR') timeMatch = log.date.startsWith(monthYear);
+                else if (filterMode === 'YEAR') timeMatch = log.date.startsWith(yearVal);
 
                 let kwMatch = true;
                 if (keyword) kwMatch = `${log.customer} ${log.service} ${log.staff} ${log.date}`.toLowerCase().includes(keyword);
@@ -1262,10 +1288,11 @@
 
             const excelRows = [];
             let stt = 1;
+
             filteredKeys.forEach(key => {
                 const log = globalServiceLogs[key];
                 
-                // Tách loại bỏ SĐT trong ngoặc đơn "(09x...)" chỉ để lại Tên Khách Hàng
+                // Tách loại bỏ SĐT trong ngoặc đơn "(09x...)" chỉ để lại Tên Khách Hàng cho Cột B
                 let cleanCustomerName = log.customer || '';
                 if (cleanCustomerName.includes('(')) {
                     cleanCustomerName = cleanCustomerName.split('(')[0].trim();
@@ -1276,10 +1303,11 @@
                         excelRows.push({
                             "STT": stt++, 
                             "Tên khách hàng": cleanCustomerName, 
-                            "Tên dịch vụ": it.service || '',
+                            "Tên dịch vụ / Sản phẩm": it.service || '',
                             "Số tiền": it.price || 0, 
                             "Nhân viên phục vụ": it.staff || '', 
-                            "Hoa hồng nhân viên": it.commissionAmount || 0
+                            "Hoa hồng nhân viên": it.commissionAmount || 0,
+                            "Ngày sử dụng": formatDateVN(log.date)
                         });
                     });
                 }
@@ -1287,11 +1315,11 @@
 
             const worksheet = XLSX.utils.json_to_sheet(excelRows);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "NhatKyDichVu");
-            XLSX.writeFile(workbook, `Nhat_Ky_Dich_Vu_KimBeauty_${new Date().toISOString().slice(0, 10)}.xlsx`);
+            XLSX.utils.book_append_sheet(workbook, worksheet, "NhatKyDichVu_SanPham");
+            XLSX.writeFile(workbook, `Nhat_Ky_KimBeauty_${new Date().toISOString().slice(0, 10)}.xlsx`);
         }
 
-        // --- TÍNH TOÁN HOA HỒNG KHI HOÀN THÀNH PHỤC VỤ TRONG NHẬT KÝ ---
+        // --- LƯU LƯỢT PHỤC VỤ VÀ BÁN SẢN PHẨM ---
         function saveCustomerLog(e) {
             e.preventDefault();
             const date = document.getElementById('logDate').value;
@@ -1315,7 +1343,7 @@
 
             const items = [];
 
-            // 1. Trừ buổi Combo và Tính Hoa Hồng Buổi làm Combo
+            // 1. Xử lý Combo liệu trình
             const comboBoxes = document.querySelectorAll('.combo-checkbox:checked');
             for (let cb of comboBoxes) {
                 const comboKey = cb.getAttribute('data-combokey');
@@ -1354,15 +1382,16 @@
                 }
             }
 
-            // 2. Dịch vụ lẻ làm thêm
+            // 2. Dịch vụ lẻ & Bán sản phẩm
             const rows = document.querySelectorAll('.service-row');
             for (let row of rows) {
                 const serviceName = row.querySelector('.serv-select').value;
                 const price = parseFloat(row.querySelector('.serv-price').value) || 0;
                 const staffName = row.querySelector('.staff-select').value;
+                const itemType = row.getAttribute('data-itemtype') || 'SERVICE';
 
                 if (serviceName) {
-                    if (!staffName) { alert(`Chọn KTV cho dịch vụ lẻ "${serviceName}"!`); return; }
+                    if (!staffName) { alert(`Chọn nhân viên phục vụ/bán cho "${serviceName}"!`); return; }
 
                     const staffKey = Object.keys(globalStaff).find(k => globalStaff[k].name === staffName);
                     const staffObj = staffKey ? globalStaff[staffKey] : null;
@@ -1379,7 +1408,10 @@
                     }
 
                     items.push({
-                        service: serviceName, price: price, staff: staffName, commissionAmount: commAmount
+                        service: itemType === 'PRODUCT' ? `[Sản phẩm] ${serviceName}` : serviceName,
+                        price: price, 
+                        staff: staffName, 
+                        commissionAmount: commAmount
                     });
 
                     if (servObj && servObj.type === 'COMBO' && actualCustKey) {
@@ -1391,7 +1423,7 @@
                 }
             }
 
-            if (items.length === 0) { alert("Chọn ít nhất 1 dịch vụ!"); return; }
+            if (items.length === 0) { alert("Chọn ít nhất 1 dịch vụ hoặc sản phẩm!"); return; }
 
             const cash = parseFloat(document.getElementById('logCashAmount').value) || 0;
             const transfer = parseFloat(document.getElementById('logTransferAmount').value) || 0;
@@ -1407,12 +1439,12 @@
                     const bookingKey = document.getElementById('logFromBookingKey').value;
                     if (bookingKey) db.ref('bookings/' + bookingKey).update({ status: 'Đã xong' });
                     toggleAddLogForm();
-                    alert(`HOÀN THÀNH PHỤC VỤ!\n- Khách: ${customerName}\n- Dịch vụ: ${serviceListText}\n- Tổng thu: ${formatVND(actualTotalPaid)}\n- KTV: ${staffListText}\n- Hoa hồng KTV: ${formatVND(totalCommissionAmount)}`);
+                    alert(`HOÀN THÀNH!\n- Khách: ${customerName}\n- Tổng thu: ${formatVND(actualTotalPaid)}\n- Nhân viên: ${staffListText}\n- Hoa hồng NV: ${formatVND(totalCommissionAmount)}`);
                 }
             });
         }
 
-        // --- QUẢN LÝ QUYỀN HẠN TÀI KHOẢN ---
+        // --- QUẢN LÝ TÀI KHOẢN ---
         function toggleAddAccountModal() {
             document.getElementById('editAccountUsername').value = '';
             document.getElementById('accountFormTitle').innerText = 'Tạo Tài Khoản Cấp Dưới Mới';
@@ -1493,7 +1525,7 @@
                         ${p.logs ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Nhật ký</span>' : ''}
                         ${p.booking ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Lịch hẹn</span>' : ''}
                         ${p.customers ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Khách hàng</span>' : ''}
-                        ${p.services ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Dịch vụ</span>' : ''}
+                        ${p.services ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Dịch vụ & SP</span>' : ''}
                         ${p.staff ? '<span class="bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Nhân viên</span>' : ''}
                     </div>
                 `;
@@ -1532,7 +1564,7 @@
             }
         }
 
-        // --- CÁC HÀM XỬ LÝ KHÁCH HÀNG, LỊCH HẸN, KHỞI TẠO ---
+        // --- CÁC HÀM TIỆN ÍCH DỊCH VỤ / SẢN PHẨM ---
         function toggleServiceTypeInput() {
             const isCombo = document.querySelector('input[name="servType"]:checked').value === 'COMBO';
             document.getElementById('comboSessionsBox').classList.toggle('hidden', !isCombo);
@@ -1610,32 +1642,40 @@
             }
         }
 
-        function addServiceRowToLog(presetService = '', presetPrice = 0) {
+        // THÊM DÒNG DỊCH VỤ HOẶC SẢN PHẨM MỚI TẠI MÀN HÌNH NHẬT KÝ
+        function addServiceRowToLog(itemType = 'SERVICE', presetService = '', presetPrice = 0) {
             const container = document.getElementById('serviceRowsContainer');
             const rowId = 'row_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
 
-            let serviceOptionsHTML = '<option value="">-- Chọn dịch vụ lẻ --</option>';
+            const isProduct = itemType === 'PRODUCT';
+            const labelTitle = isProduct ? '📦 Sản phẩm bán:' : '💆 Dịch vụ lẻ:';
+            const borderClass = isProduct ? 'border-blue-200 bg-blue-50/30' : 'border-gray-200 bg-white';
+
+            let itemOptionsHTML = `<option value="">-- Chọn ${isProduct ? 'Sản phẩm' : 'Dịch vụ lẻ'} --</option>`;
             Object.keys(globalServices).forEach(k => {
                 const s = globalServices[k];
-                const selected = (s.name === presetService) ? 'selected' : '';
-                serviceOptionsHTML += `<option value="${s.name}" data-price="${s.price}" ${selected}>${s.name} (${formatVND(s.price)})</option>`;
+                if ((isProduct && s.type === 'PRODUCT') || (!isProduct && s.type !== 'PRODUCT')) {
+                    const selected = (s.name === presetService) ? 'selected' : '';
+                    itemOptionsHTML += `<option value="${s.name}" data-price="${s.price}" ${selected}>${s.name} (${formatVND(s.price)})</option>`;
+                }
             });
 
-            let staffOptionsHTML = '<option value="">-- Chọn KTV phục vụ --</option>';
+            let staffOptionsHTML = '<option value="">-- Chọn NV phục vụ / Bán hàng --</option>';
             Object.keys(globalStaff).forEach(k => {
                 const st = globalStaff[k];
                 staffOptionsHTML += `<option value="${st.name}">${st.name} (${st.level})</option>`;
             });
 
             const rowHTML = `
-                <div id="${rowId}" class="service-row bg-white p-2.5 rounded-xl border border-gray-200 space-y-2">
+                <div id="${rowId}" data-itemtype="${itemType}" class="service-row p-2.5 rounded-xl border ${borderClass} space-y-2">
+                    <div class="text-[10px] font-bold ${isProduct ? 'text-blue-800' : 'text-brand-darkgreen'} uppercase">${labelTitle}</div>
                     <div class="flex items-center gap-2">
-                        <select onchange="onServiceRowSelectChange('${rowId}')" class="serv-select w-full px-2.5 py-1.5 bg-brand-cream/40 rounded-lg border border-gray-200 text-xs font-bold text-brand-darkgreen">${serviceOptionsHTML}</select>
-                        <input type="number" onchange="calculateLogTotal()" min="0" placeholder="Giá thu" value="${presetPrice}" class="serv-price w-32 px-2 py-1.5 bg-brand-cream/40 rounded-lg border border-gray-200 text-xs font-bold text-emerald-700">
+                        <select onchange="onServiceRowSelectChange('${rowId}')" class="serv-select w-full px-2.5 py-1.5 bg-white rounded-lg border border-gray-200 text-xs font-bold text-brand-darkgreen">${itemOptionsHTML}</select>
+                        <input type="number" onchange="calculateLogTotal()" min="0" placeholder="Giá thu" value="${presetPrice}" class="serv-price w-32 px-2 py-1.5 bg-white rounded-lg border border-gray-200 text-xs font-bold text-emerald-700">
                         <button type="button" onclick="removeServiceRow('${rowId}')" class="text-red-500 font-bold px-2 py-1 text-xs shrink-0">✕</button>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-bold text-amber-800 shrink-0">👤 KTV Làm:</span>
+                        <span class="text-[10px] font-bold text-amber-800 shrink-0">👤 NV Phục vụ / Bán:</span>
                         <select class="staff-select w-full px-2.5 py-1.5 bg-amber-50 rounded-lg border border-amber-300 text-xs font-bold text-brand-darkgreen">${staffOptionsHTML}</select>
                     </div>
                 </div>
@@ -1699,7 +1739,7 @@
                     <div class="bg-white p-3 rounded-2xl border border-amber-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                         <div>
                             <div class="font-bold text-xs text-brand-darkgreen">${b.name} (${b.phone})</div>
-                            <div class="text-[11px] text-gray-600">Dịch vụ: <strong class="text-brand-green">${b.service}</strong> - Giờ: <strong>${b.time}</strong></div>
+                            <div class="text-[11px] text-gray-600">Dịch vụ/SP: <strong class="text-brand-green">${b.service}</strong> - Giờ: <strong>${b.time}</strong></div>
                         </div>
                         <button onclick="startServiceFromBooking('${key}', '${b.name}', '${b.phone}', '${b.service}')" class="bg-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow">▶ Phục vụ ngay</button>
                     </div>
@@ -1724,14 +1764,18 @@
             } else handleCustomerSelectChange();
 
             const servKey = Object.keys(globalServices).find(k => globalServices[k].name === serviceName);
-            const price = servKey ? (globalServices[servKey].price || 0) : 0;
-            addServiceRowToLog(serviceName, price);
+            const servObj = servKey ? globalServices[servKey] : null;
+            const price = servObj ? (servObj.price || 0) : 0;
+            const type = servObj ? (servObj.type === 'PRODUCT' ? 'PRODUCT' : 'SERVICE') : 'SERVICE';
+
+            addServiceRowToLog(type, serviceName, price);
         }
 
         function handleLogFilterModeChange() {
             const mode = document.getElementById('logFilterMode').value;
             document.getElementById('filterSpecificDateBox').classList.toggle('hidden', mode !== 'SPECIFIC_DATE');
             document.getElementById('filterMonthYearBox').classList.toggle('hidden', mode !== 'MONTH_YEAR');
+            document.getElementById('filterYearBox').classList.toggle('hidden', mode !== 'YEAR');
             renderServiceLogsUI();
         }
 
@@ -1749,6 +1793,7 @@
             const filterMode = document.getElementById('logFilterMode').value;
             const specificDate = document.getElementById('logFilterDate').value;
             const monthYear = document.getElementById('logFilterMonth').value;
+            const yearVal = document.getElementById('logFilterYear').value;
             const keyword = document.getElementById('logSearchKeyword').value.trim().toLowerCase();
             const todayStr = new Date().toISOString().split('T')[0];
 
@@ -1758,6 +1803,7 @@
                 if (filterMode === 'TODAY') timeMatch = (log.date === todayStr);
                 else if (filterMode === 'SPECIFIC_DATE') timeMatch = (log.date === specificDate);
                 else if (filterMode === 'MONTH_YEAR') timeMatch = log.date.startsWith(monthYear);
+                else if (filterMode === 'YEAR') timeMatch = log.date.startsWith(yearVal);
 
                 let kwMatch = true;
                 if (keyword) kwMatch = `${log.customer} ${log.service} ${log.staff} ${log.date}`.toLowerCase().includes(keyword);
@@ -1775,7 +1821,7 @@
                     itemsDetailHTML = log.items.map(it => `
                         <div class="flex justify-between items-center text-[11px] text-gray-700 bg-white p-1.5 rounded-lg border border-gray-100">
                             <span>• <strong>${it.service}</strong> (${formatVND(it.price)})</span>
-                            <span class="text-amber-800">KTV: <strong>${it.staff}</strong> (${formatVND(it.commissionAmount)})</span>
+                            <span class="text-amber-800">NV: <strong>${it.staff}</strong> (+${formatVND(it.commissionAmount)})</span>
                         </div>
                     `).join('');
                 }
@@ -1785,7 +1831,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <h3 class="font-bold text-brand-darkgreen text-sm">${log.customer}</h3>
-                                <p class="text-[11px] text-gray-400">📅 ${log.date}</p>
+                                <p class="text-[11px] text-gray-500 font-bold">📅 Ngày: ${formatDateVN(log.date)}</p>
                             </div>
                             ${deleteBtn}
                         </div>
@@ -1793,7 +1839,7 @@
                             <div class="space-y-1">${itemsDetailHTML || `<div class="font-bold text-brand-green">${log.service}</div>`}</div>
                             <div class="flex justify-between border-t pt-1 font-bold">
                                 <span>Tổng thu thực tế: ${formatVND(log.total)}</span>
-                                <span class="text-amber-700">Hoa hồng KTV: ${formatVND(log.commissionAmount)}</span>
+                                <span class="text-amber-700">Hoa hồng NV: ${formatVND(log.commissionAmount)}</span>
                             </div>
                         </div>
                     </div>
@@ -1803,7 +1849,7 @@
 
         function deleteLog(key) {
             if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER') return;
-            if(confirm('Xóa lượt dịch vụ này?')) db.ref('service_logs/' + key).remove();
+            if(confirm('Xóa lượt dịch vụ/bán hàng này?')) db.ref('service_logs/' + key).remove();
         }
 
         function toggleLevelModal() { document.getElementById('levelModal').classList.toggle('hidden'); }
@@ -1837,7 +1883,7 @@
             bookSelect.innerHTML = '';
             Object.keys(globalServices).forEach(k => {
                 const s = globalServices[k];
-                bookSelect.innerHTML += `<option value="${s.name}">${s.name} (${s.type === 'COMBO' ? s.sessions + ' buổi' : 'Lẻ'})</option>`;
+                bookSelect.innerHTML += `<option value="${s.name}">${s.name} (${s.type === 'COMBO' ? s.sessions + ' buổi' : (s.type === 'PRODUCT' ? 'Sản phẩm' : 'Lẻ')})</option>`;
             });
         }
 
@@ -1898,7 +1944,7 @@
                             <span class="${statusClass} text-[10px] px-2 py-0.5 rounded-full font-bold">${b.status}</span>
                         </div>
                         <div class="bg-brand-cream/50 p-2 rounded-xl text-xs space-y-0.5">
-                            <div><strong class="text-gray-700">Dịch vụ:</strong> <span class="text-brand-green font-bold">${b.service}</span></div>
+                            <div><strong class="text-gray-700">Dịch vụ / SP:</strong> <span class="text-brand-green font-bold">${b.service}</span></div>
                             <div><strong class="text-gray-700">Giờ hẹn:</strong> ${b.time}</div>
                         </div>
                         <div class="flex justify-end gap-2 pt-1 border-t border-gray-100">
