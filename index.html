@@ -619,18 +619,18 @@
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
                                     <label class="block text-[11px] font-bold text-gray-600 mb-1">Mã Module (Viết liền không dấu) *</label>
-                                    <input type="text" id="modId" required placeholder="khomydan, thuchi,..." class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs font-mono">
+                                    <input type="text" id="modId" required placeholder="thuchi, khomydan,..." class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs font-mono">
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-bold text-gray-600 mb-1">Tên Hiển Thị Tab *</label>
-                                    <input type="text" id="modTitle" required placeholder="Quản Lý Kho, Thu Chi..." class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs font-bold text-purple-900">
+                                    <input type="text" id="modTitle" required placeholder="Quản Lý Thu Chi, Kho..." class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs font-bold text-purple-900">
                                 </div>
                             </div>
 
-                            <!-- THÊM CÁC TRƯỜNG DỮ LIỆU CỦA FORM (DYNAMIC FIELDS) -->
+                            <!-- THÊM CÁC TRƯỜNG DỮ LIỆU CỦA FORM (4 Ô NHẬP THÔNG TIN MẶC ĐỊNH) -->
                             <div class="space-y-2 border-t border-purple-200 pt-2">
                                 <div class="flex justify-between items-center">
-                                    <label class="block text-xs font-bold text-purple-900">Danh Sách Trường Dữ Liệu (Fields):</label>
+                                    <label class="block text-xs font-bold text-purple-900">Danh Sách 4 Trường Dữ Liệu (Tên trường & Loại):</label>
                                     <button type="button" onclick="addModuleFieldRow()" class="bg-purple-600 text-white font-bold text-[10px] px-2.5 py-1 rounded-lg">+ Thêm Trường</button>
                                 </div>
                                 <div id="moduleFieldsContainer" class="space-y-2"></div>
@@ -935,7 +935,7 @@
         </div>
 
     </div>
-    <!-- SCRIPT REALTIME & LOGIC QUẢN TRỊ ĐỘNG (BỔ SUNG SỬA & XÓA MODULE) -->
+    <!-- SCRIPT REALTIME & LOGIC QUẢN TRỊ ĐỘNG (XUẤT EXCEL & HIỂN THỊ DANH SÁCH) -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCzIUPf2Wghh6voay899bdDGN9rQVhHGsU",
@@ -976,8 +976,20 @@
 
             checkSystemHasUsers();
             initWebPushNotifications();
-            addModuleFieldRow(); // Thêm sẵn 1 dòng field khi khởi tạo
+            
+            // Khởi tạo sẵn 4 trường mặc định cho Form tạo module mới
+            initDefaultModuleFields();
         });
+
+        function initDefaultModuleFields() {
+            const container = document.getElementById('moduleFieldsContainer');
+            container.innerHTML = '';
+            // Gợi ý 4 trường mẫu chuẩn (Ví dụ: Thu Chi)
+            addModuleFieldRow('Khoản Thu/Chi', 'text');
+            addModuleFieldRow('Danh Mục / Mô Tả', 'text');
+            addModuleFieldRow('Số Tiền', 'number');
+            addModuleFieldRow('Ngày Thực Hiện', 'date');
+        }
 
         function formatDateVN(dateStr) {
             if(!dateStr) return '';
@@ -1207,24 +1219,23 @@
                 renderPendingBookingsInLogUI();
             });
 
-            // REALTIME LISTENER CHO TRANG QUẢN TRỊ ĐỘNG (SYSTEM MODULES)
+            // REALTIME LISTENER CHO TRANG QUẢN TRỊ ĐỘNG
             db.ref('system_modules').on('value', (snap) => {
                 globalDynamicModules = snap.val() || {};
                 renderDynamicModulesUI();
             });
         }
 
-        // --- HÀM TẠO DÒNG TRƯỜNG DỮ LIỆU KHI THIẾT KẾ MODULE ĐỘNG ---
         function addModuleFieldRow(labelVal = '', typeVal = 'text') {
             const container = document.getElementById('moduleFieldsContainer');
             const rowId = 'f_' + Date.now() + '_' + Math.floor(Math.random() * 100);
             const html = `
                 <div id="${rowId}" class="dyn-field-row flex items-center gap-2 bg-white p-2 rounded-xl border border-purple-200">
-                    <input type="text" value="${labelVal}" placeholder="Tên trường (Ví dụ: Tên sp)" class="dyn-field-label w-full px-2.5 py-1.5 bg-gray-50 rounded-lg border text-xs font-bold text-purple-900" required>
+                    <input type="text" value="${labelVal}" placeholder="Tên trường (Ví dụ: Số tiền, Ngày...)" class="dyn-field-label w-full px-2.5 py-1.5 bg-gray-50 rounded-lg border text-xs font-bold text-purple-900" required>
                     <select class="dyn-field-type w-36 px-2 py-1.5 bg-gray-50 rounded-lg border text-xs font-bold text-gray-700">
-                        <option value="text" ${typeVal === 'text' ? 'selected' : ''}>Chữ (Text)</option>
-                        <option value="number" ${typeVal === 'number' ? 'selected' : ''}>Số (Number)</option>
-                        <option value="date" ${typeVal === 'date' ? 'selected' : ''}>Ngày (Date)</option>
+                        <option value="text" ${typeVal === 'text' ? 'selected' : ''}>Chữ / Text</option>
+                        <option value="number" ${typeVal === 'number' ? 'selected' : ''}>Số / Number</option>
+                        <option value="date" ${typeVal === 'date' ? 'selected' : ''}>Ngày / Date</option>
                     </select>
                     <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-red-500 font-bold px-2 py-1 text-xs">✕</button>
                 </div>
@@ -1232,7 +1243,6 @@
             container.insertAdjacentHTML('beforeend', html);
         }
 
-        // --- BỔ SUNG: HÀM SỬA MODULE CŨ ---
         function editDynamicModule(modId) {
             const mod = globalDynamicModules[modId];
             if (!mod) return;
@@ -1256,7 +1266,7 @@
                     addModuleFieldRow(f.label, f.type);
                 });
             } else {
-                addModuleFieldRow();
+                initDefaultModuleFields();
             }
         }
 
@@ -1271,11 +1281,9 @@
             document.getElementById('btnSubmitModuleForm').innerText = "🚀 LƯU & XUẤT BẢN MODULE MỚI";
             document.getElementById('btnCancelEditModule').classList.add('hidden');
 
-            document.getElementById('moduleFieldsContainer').innerHTML = '';
-            addModuleFieldRow();
+            initDefaultModuleFields();
         }
 
-        // --- LƯU HOẶC CẬP NHẬT MODULE ĐỘNG LÊN FIREBASE (CHỈ SUPER ADMIN) ---
         function saveNewDynamicModule(e) {
             e.preventDefault();
             if (currentUser.role !== 'SUPER_ADMIN') {
@@ -1294,7 +1302,7 @@
                 const label = row.querySelector('.dyn-field-label').value.trim();
                 const type = row.querySelector('.dyn-field-type').value;
                 if (label) {
-                    const key = label.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const key = label.toLowerCase().replace(/[^a-z0-9àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ]/g, '_');
                     fields.push({ key, label, type });
                 }
             });
@@ -1322,9 +1330,7 @@
             }
         }
 
-        // --- HÀM TỰ ĐỘNG VẼ CÁC TAB & FORM ĐỘNG SANG GIAO DIỆN CHÍNH ---
         function renderDynamicModulesUI() {
-            const navContainer = document.getElementById('bottomNavContainer');
             const tabsContentContainer = document.getElementById('dynamicTabsContentContainer');
             const configListContainer = document.getElementById('dynamicModulesConfigList');
 
@@ -1340,7 +1346,7 @@
             keys.forEach(modId => {
                 const mod = globalDynamicModules[modId];
 
-                // 1. Thêm Nút trên thanh Navigation dưới
+                // 1. Thêm Nút trên Navigation
                 const navBtnHTML = `
                     <button id="btn-${modId}" onclick="switchTab('${modId}')" class="dyn-nav-btn nav-tab text-purple-700 font-bold flex flex-col items-center gap-0.5 text-[11px] shrink-0">
                         <i class="fa-solid fa-cube text-base"></i>
@@ -1349,14 +1355,15 @@
                 `;
                 document.getElementById('btn-sitebuilder').insertAdjacentHTML('beforebegin', navBtnHTML);
 
-                // 2. Thêm Nội Dung Trang Tab Động bên trong
+                // 2. Thêm Nội Dung Tab Động & Nút Xuất Excel
                 let formFieldsHTML = '';
-
                 mod.fields.forEach(f => {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const defaultVal = (f.type === 'date') ? `value="${todayStr}"` : '';
                     formFieldsHTML += `
                         <div>
                             <label class="block text-[11px] font-bold text-gray-600 mb-1">${f.label} *</label>
-                            <input type="${f.type}" data-key="${f.key}" required class="dyn-input-${modId} w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs font-bold text-purple-900">
+                            <input type="${f.type}" data-key="${f.key}" ${defaultVal} required class="dyn-input-${modId} w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs font-bold text-purple-900">
                         </div>
                     `;
                 });
@@ -1368,6 +1375,9 @@
                                 <h2 class="font-bold text-purple-900 text-sm uppercase flex items-center gap-1.5">
                                     <i class="fa-solid fa-cubes text-purple-600"></i> ${mod.title}
                                 </h2>
+                                <button onclick="exportDynamicModuleToExcel('${modId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-xl font-bold shadow flex items-center gap-1">
+                                    <i class="fa-solid fa-file-excel"></i> Xuất Excel ${mod.title}
+                                </button>
                             </div>
 
                             <!-- FORM NHẬP DỮ LIỆU ĐỘNG -->
@@ -1377,7 +1387,7 @@
                                 <button type="submit" class="w-full py-2 bg-purple-700 text-white font-bold rounded-xl text-xs shadow">LƯU DỮ LIỆU</button>
                             </form>
 
-                            <!-- DANH SÁCH DỮ LIỆU ĐỘNG -->
+                            <!-- DANH SÁCH DỮ LIỆU ĐÃ LƯU HIỂN THỊ BÊN DƯỚI -->
                             <div class="space-y-2">
                                 <h3 class="text-xs font-bold text-gray-700 uppercase">Danh Sách Dữ Liệu Đã Lưu:</h3>
                                 <div id="dynDataContainer_${modId}" class="space-y-2"></div>
@@ -1387,7 +1397,7 @@
                 `;
                 tabsContentContainer.insertAdjacentHTML('beforeend', tabSectionHTML);
 
-                // 3. Render danh sách Quản Trị Module có SỬA & XÓA
+                // 3. Render Quản Trị Module
                 if (configListContainer) {
                     configListContainer.innerHTML += `
                         <div class="p-3 bg-purple-50 rounded-2xl border border-purple-200 flex justify-between items-center text-xs">
@@ -1398,7 +1408,7 @@
                             </div>
                             <div class="flex gap-2 shrink-0">
                                 <button onclick="editDynamicModule('${mod.id}')" class="text-blue-600 hover:text-blue-800 font-bold px-2 py-1 bg-white rounded-lg border border-blue-200">✏️ Sửa</button>
-                                <button onclick="deleteDynamicModule('${mod.id}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-white rounded-lg border border-red-200">🗑 Xóa</button>
+                                <button onclick="deleteDynamicModule('${mod.id}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-white rounded-lg border border-blue-200">🗑 Xóa</button>
                             </div>
                         </div>
                     `;
@@ -1410,7 +1420,6 @@
             });
         }
 
-        // --- LƯU DỮ LIỆU CỦA MODULE ĐỘNG LÊN FIREBASE ---
         function handleDynamicDataSubmit(e, modId) {
             e.preventDefault();
             const mod = globalDynamicModules[modId];
@@ -1426,6 +1435,9 @@
                 if (!err) {
                     alert("Đã lưu dữ liệu thành công!");
                     document.getElementById(`dynForm_${modId}`).reset();
+                    document.querySelectorAll(`.dyn-input-${modId}[type="date"]`).forEach(dInp => {
+                        dInp.value = new Date().toISOString().split('T')[0];
+                    });
                 }
             });
         }
@@ -1448,7 +1460,14 @@
                 const item = data[k];
                 let itemDetailsHTML = '';
                 mod.fields.forEach(f => {
-                    itemDetailsHTML += `<div><span class="text-gray-500">${f.label}:</span> <strong>${item[f.key] || ''}</strong></div>`;
+                    let val = item[f.key] || '';
+                    if(f.type === 'date') val = formatDateVN(val);
+                    else if(f.type === 'number' && !isNaN(val) && val !== '') {
+                        if(f.label.toLowerCase().includes('tiền') || f.label.toLowerCase().includes('giá') || f.label.toLowerCase().includes('thu') || f.label.toLowerCase().includes('chi')) {
+                            val = formatVND(val);
+                        }
+                    }
+                    itemDetailsHTML += `<div><span class="text-gray-500">${f.label}:</span> <strong class="text-brand-darkgreen">${val}</strong></div>`;
                 });
 
                 const deleteBtn = isAdmin ? `<button onclick="deleteDynamicDataRecord('${modId}', '${k}')" class="text-red-500 font-bold text-xs">🗑 Xóa</button>` : '';
@@ -1459,6 +1478,39 @@
                         ${deleteBtn}
                     </div>
                 `);
+            });
+        }
+
+        function exportDynamicModuleToExcel(modId) {
+            db.ref('dyn_data_' + modId).once('value', (snap) => {
+                const data = snap.val() || {};
+                const mod = globalDynamicModules[modId];
+                if (!mod) return;
+
+                const keys = Object.keys(data);
+                if (keys.length === 0) {
+                    alert("Chưa có dữ liệu để xuất Excel!");
+                    return;
+                }
+
+                const excelRows = [];
+                let stt = 1;
+
+                keys.forEach(k => {
+                    const item = data[k];
+                    let rowObj = { "STT": stt++ };
+                    mod.fields.forEach(f => {
+                        let val = item[f.key] || '';
+                        if (f.type === 'date') val = formatDateVN(val);
+                        rowObj[f.label] = val;
+                    });
+                    excelRows.push(rowObj);
+                });
+
+                const worksheet = XLSX.utils.json_to_sheet(excelRows);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, mod.title);
+                XLSX.writeFile(workbook, `${mod.id}_KimBeauty_${new Date().toISOString().slice(0, 10)}.xlsx`);
             });
         }
 
