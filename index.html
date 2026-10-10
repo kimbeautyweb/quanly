@@ -55,7 +55,7 @@
             <!-- Form Khởi Tạo Super Admin -->
             <form id="initSuperAdminForm" onsubmit="handleInitSuperAdmin(event)" class="space-y-3.5 hidden">
                 <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 font-medium">
-                    Hệ thống chưa có tài khoản. Vui lòng tạo tài khoản <strong>Super Admin</strong> đầu tiên!
+                    Hệ thống chưa có tài khoản. Vui lòng tạo tài khoản <strong>Super Admin (Tài khoản đầu tiên)</strong>!
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-1">Họ và Tên Admin *</label>
@@ -120,7 +120,7 @@
             </div>
         </header>
 
-        <!-- NỘI DUNG CÁC TAB -->
+        <!-- NỘI DUNG CÁC TAB CỐ ĐỊNH & TAB ĐỘNG -->
         <main class="flex-1 max-w-4xl w-full mx-auto p-3 sm:p-4">
             
             <!-- TAB 1: NHẬT KÝ DỊCH VỤ & BÁN HÀNG -->
@@ -417,11 +417,11 @@
                             <i class="fa-solid fa-users-gear text-indigo-600"></i> Quản Lý Bảng Lương & Nhân Sự
                         </h2>
                         <button onclick="toggleLevelModal()" class="bg-amber-600 text-white text-xs px-2.5 py-1.5 rounded-xl font-bold shadow admin-only">
-                            🏅 Cấp BẬC
+                            🏅 Cấp Bậc
                         </button>
                     </div>
 
-                    <!-- THẺ TÍCH CHỌN MỞ FORM MỚI (RADIO SELECTION) -->
+                    <!-- THẺ TÍCH CHỌN MỞ FORM MỚI -->
                     <div class="bg-brand-cream/60 p-3 rounded-2xl border border-brand-green/20 space-y-2 admin-only">
                         <label class="block text-xs font-bold text-brand-darkgreen uppercase">Thêm Mới Dữ Liệu Nhân Sự:</label>
                         <div class="flex gap-4 text-xs font-bold">
@@ -440,7 +440,7 @@
                         </div>
                     </div>
 
-                    <!-- FORM 1: TẠO TÀI KHOẢN CẤP DƯỚI (HIỂN THỊ KHI TÍCH BẢNG) -->
+                    <!-- FORM 1: TẠO TÀI KHOẢN CẤP DƯỚI -->
                     <div id="addAccountModal" class="hidden bg-blue-50/60 p-4 rounded-2xl border border-blue-200 shadow-sm space-y-3">
                         <h3 class="text-xs font-bold text-blue-900 uppercase" id="accountFormTitle">Tạo Tài Khoản Cấp Dưới Mới</h3>
                         <form onsubmit="saveAccount(event)" class="space-y-3">
@@ -534,7 +534,7 @@
                         </form>
                     </div>
 
-                    <!-- FORM 2: THÊM NHÂN VIÊN MỚI (HIỂN THỊ KHI TÍCH BẢNG) -->
+                    <!-- FORM 2: THÊM NHÂN VIÊN MỚI -->
                     <div id="addStaffModal" class="hidden bg-amber-50/60 p-4 rounded-2xl border border-amber-200 shadow-sm space-y-3">
                         <h3 class="text-xs font-bold text-amber-900 uppercase">Thêm Nhân Sự Mới</h3>
                         <form onsubmit="saveNewStaff(event)" class="space-y-3">
@@ -591,35 +591,92 @@
                         </div>
                     </div>
 
-                    <!-- DANH SÁCH BẢNG LƯƠNG NHÂN VIÊN (DUY NHẤT 1 DANH SÁCH KHÔNG TRÙNG DUPLICATE) -->
+                    <!-- DANH SÁCH BẢNG LƯƠNG NHÂN VIÊN -->
                     <div id="staffReportContainer" class="space-y-2.5"></div>
                 </div>
             </section>
+
+            <!-- TAB 6: TRANG QUẢN TRỊ ĐỘNG - CHỈ SUPER ADMIN TRUY CẬP -->
+            <section id="tab-sitebuilder" class="tab-content space-y-4 hidden superadmin-only">
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-purple-200 space-y-4">
+                    <div class="flex items-center justify-between border-b pb-3">
+                        <h2 class="font-bold text-purple-900 text-sm uppercase flex items-center gap-1.5">
+                            <i class="fa-solid fa-cubes text-purple-600"></i> Quản Trị Hệ Thống & Tự Tạo Module Mới
+                        </h2>
+                        <span class="bg-purple-100 text-purple-800 text-[10px] font-extrabold px-2.5 py-1 rounded-full">Chỉ Super Admin</span>
+                    </div>
+
+                    <!-- FORM TẠO MODULE ĐỘNG MỚI -->
+                    <div class="bg-purple-50/60 p-4 rounded-2xl border border-purple-200 space-y-3">
+                        <h3 class="text-xs font-bold text-purple-900 uppercase">🛠 Khởi Tạo Module / Tab Mới</h3>
+                        <form onsubmit="saveNewDynamicModule(event)" class="space-y-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 mb-1">Mã Module (Viết liền không dấu) *</label>
+                                    <input type="text" id="modId" required placeholder="khomydan, thuchi,..." class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-gray-600 mb-1">Tên Hiển Thị Tab *</label>
+                                    <input type="text" id="modTitle" required placeholder="Quản Lý Kho, Thu Chi..." class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs font-bold text-purple-900">
+                                </div>
+                            </div>
+
+                            <!-- THÊM CÁC TRƯỜNG DỮ LIỆU CỦA FORM (DYNAMIC FIELDS) -->
+                            <div class="space-y-2 border-t border-purple-200 pt-2">
+                                <div class="flex justify-between items-center">
+                                    <label class="block text-xs font-bold text-purple-900">Danh Sách Trường Dữ Liệu (Fields):</label>
+                                    <button type="button" onclick="addModuleFieldRow()" class="bg-purple-600 text-white font-bold text-[10px] px-2.5 py-1 rounded-lg">+ Thêm Trường</button>
+                                </div>
+                                <div id="moduleFieldsContainer" class="space-y-2"></div>
+                            </div>
+
+                            <button type="submit" class="w-full py-2.5 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-xl text-xs shadow-md">
+                                🚀 LƯU & XUẤT BẢN MODULE MỚI
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- DANH SÁCH CÁC MODULE ĐỘNG ĐÃ TẠO -->
+                    <div class="space-y-2 pt-2">
+                        <h3 class="text-xs font-bold text-gray-700 uppercase">Danh Sách Dynamic Module Đang Hoạt Động:</h3>
+                        <div id="dynamicModulesConfigList" class="space-y-2"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CONTAINER CHỨA CÁC TAB ĐỘNG ĐƯỢC TỰ ĐỘNG TẠO SẼ RENDER TẠI ĐÂY -->
+            <div id="dynamicTabsContentContainer"></div>
 
         </main>
 
         <!-- NAVIGATION TAB DƯỚI MÀN HÌNH MÁY TÍNH & ĐIỆN THOẠI -->
         <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 py-2 px-3 shadow-lg">
-            <div class="max-w-md mx-auto flex justify-between items-center text-center">
-                <button id="btn-logs" onclick="switchTab('logs')" class="nav-tab text-brand-green font-bold flex flex-col items-center gap-0.5 text-[11px]">
+            <div id="bottomNavContainer" class="max-w-xl mx-auto flex justify-between items-center text-center overflow-x-auto gap-2">
+                <button id="btn-logs" onclick="switchTab('logs')" class="nav-tab text-brand-green font-bold flex flex-col items-center gap-0.5 text-[11px] shrink-0">
                     <i class="fa-solid fa-receipt text-base"></i>
                     <span>Nhật Ký</span>
                 </button>
-                <button id="btn-booking" onclick="switchTab('booking')" class="nav-tab text-gray-400 font-medium flex flex-col items-center gap-0.5 text-[11px]">
+                <button id="btn-booking" onclick="switchTab('booking')" class="nav-tab text-gray-400 font-medium flex flex-col items-center gap-0.5 text-[11px] shrink-0">
                     <i class="fa-solid fa-calendar-check text-base"></i>
                     <span>Lịch Hẹn</span>
                 </button>
-                <button id="btn-customers" onclick="switchTab('customers')" class="nav-tab text-gray-400 font-medium flex flex-col items-center gap-0.5 text-[11px]">
+                <button id="btn-customers" onclick="switchTab('customers')" class="nav-tab text-gray-400 font-medium flex flex-col items-center gap-0.5 text-[11px] shrink-0">
                     <i class="fa-solid fa-users text-base"></i>
                     <span>Khách Hàng</span>
                 </button>
-                <button id="btn-services" onclick="switchTab('services')" class="nav-tab text-gray-400 font-medium flex flex-col items-center gap-0.5 text-[11px]">
+                <button id="btn-services" onclick="switchTab('services')" class="nav-tab text-gray-400 font-medium flex flex-col items-center gap-0.5 text-[11px] shrink-0">
                     <i class="fa-solid fa-spa text-base"></i>
                     <span>Dịch Vụ/SP</span>
                 </button>
-                <button id="btn-staff" onclick="switchTab('staff')" class="nav-tab text-gray-400 font-medium flex flex-col items-center gap-0.5 text-[11px]">
+                <button id="btn-staff" onclick="switchTab('staff')" class="nav-tab text-gray-400 font-medium flex flex-col items-center gap-0.5 text-[11px] shrink-0">
                     <i class="fa-solid fa-users-gear text-base"></i>
                     <span>Bảng Lương</span>
+                </button>
+
+                <!-- THẺ CHỈ SUPER ADMIN MỚI THẤY ĐỂ QUẢN TRỊ TRANG -->
+                <button id="btn-sitebuilder" onclick="switchTab('sitebuilder')" class="nav-tab text-purple-600 font-bold flex flex-col items-center gap-0.5 text-[11px] shrink-0 superadmin-only hidden">
+                    <i class="fa-solid fa-cubes text-base"></i>
+                    <span>⚙️ Quản Trị</span>
                 </button>
             </div>
         </nav>
@@ -872,7 +929,7 @@
         </div>
 
     </div>
-    <!-- SCRIPT REALTIME & LOGIC XỬ LÝ HOÀN CHỈNH -->
+    <!-- SCRIPT REALTIME & LOGIC QUẢN TRỊ ĐỘNG HOÀN CHỈNH -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCzIUPf2Wghh6voay899bdDGN9rQVhHGsU",
@@ -899,6 +956,7 @@
         let globalLevels = ['Tập sự', 'Chính thức', 'Cao cấp', 'Quản lý'];
         let globalServiceLogs = {};
         let globalBookings = {};
+        let globalDynamicModules = {};
         let isFirstBookingLoad = true;
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -912,6 +970,7 @@
 
             checkSystemHasUsers();
             initWebPushNotifications();
+            addModuleFieldRow(); // Thêm sẵn 1 dòng field khi khởi tạo
         });
 
         function formatDateVN(dateStr) {
@@ -1141,9 +1200,230 @@
                 renderBookingsUI(globalBookings);
                 renderPendingBookingsInLogUI();
             });
+
+            // REALTIME LISTENER CHO TRANG QUẢN TRỊ ĐỘNG (SYSTEM MODULES)
+            db.ref('system_modules').on('value', (snap) => {
+                globalDynamicModules = snap.val() || {};
+                renderDynamicModulesUI();
+            });
         }
 
-        // --- HÀM XỬ LÝ CHỌN FORM QUA RADIO BUTTON (MỚI BỔ SUNG) ---
+        // --- HÀM TẠO DÒNG TRƯỜNG DỮ LIỆU KHI THIẾT KẾ MODULE ĐỘNG ---
+        function addModuleFieldRow() {
+            const container = document.getElementById('moduleFieldsContainer');
+            const rowId = 'f_' + Date.now();
+            const html = `
+                <div id="${rowId}" class="dyn-field-row flex items-center gap-2 bg-white p-2 rounded-xl border border-purple-200">
+                    <input type="text" placeholder="Tên trường (Ví dụ: Tên sp)" class="dyn-field-label w-full px-2.5 py-1.5 bg-gray-50 rounded-lg border text-xs font-bold text-purple-900" required>
+                    <select class="dyn-field-type w-36 px-2 py-1.5 bg-gray-50 rounded-lg border text-xs font-bold text-gray-700">
+                        <option value="text">Chữ (Text)</option>
+                        <option value="number">Số (Number)</option>
+                        <option value="date">Ngày (Date)</option>
+                    </select>
+                    <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-red-500 font-bold px-2 py-1 text-xs">✕</button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        // --- LƯU MODULE ĐỘNG MỚI LÊN FIREBASE (CHỈ SUPER ADMIN) ---
+        function saveNewDynamicModule(e) {
+            e.preventDefault();
+            if (currentUser.role !== 'SUPER_ADMIN') {
+                alert("Chỉ Super Admin mới có quyền tạo Module mới!");
+                return;
+            }
+
+            const modId = document.getElementById('modId').value.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+            const modTitle = document.getElementById('modTitle').value.trim();
+
+            const fieldRows = document.querySelectorAll('.dyn-field-row');
+            const fields = [];
+
+            fieldRows.forEach(row => {
+                const label = row.querySelector('.dyn-field-label').value.trim();
+                const type = row.querySelector('.dyn-field-type').value;
+                if (label) {
+                    const key = label.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    fields.push({ key, label, type });
+                }
+            });
+
+            if (fields.length === 0) {
+                alert("Vui lòng thêm ít nhất 1 trường dữ liệu!");
+                return;
+            }
+
+            db.ref('system_modules/' + modId).set({
+                id: modId, title: modTitle, fields: fields
+            }, (err) => {
+                if (!err) {
+                    alert(`Đã xuất bản Module "${modTitle}" thành công!`);
+                    document.getElementById('modId').value = '';
+                    document.getElementById('modTitle').value = '';
+                    document.getElementById('moduleFieldsContainer').innerHTML = '';
+                    addModuleFieldRow();
+                }
+            });
+        }
+
+        function deleteDynamicModule(modId) {
+            if (currentUser.role !== 'SUPER_ADMIN') return;
+            if (confirm(`Xóa vĩnh viễn Module "${modId}" cùng toàn bộ dữ liệu của nó?`)) {
+                db.ref('system_modules/' + modId).remove();
+                db.ref('dyn_data_' + modId).remove();
+            }
+        }
+
+        // --- HÀM TỰ ĐỘNG VẼ CÁC TAB & FORM ĐỘNG SANG GIAO DIỆN CHÍNH ---
+        function renderDynamicModulesUI() {
+            const navContainer = document.getElementById('bottomNavContainer');
+            const tabsContentContainer = document.getElementById('dynamicTabsContentContainer');
+            const configListContainer = document.getElementById('dynamicModulesConfigList');
+
+            // Xóa các nút dynamic cũ
+            document.querySelectorAll('.dyn-nav-btn').forEach(el => el.remove());
+            tabsContentContainer.innerHTML = '';
+            if (configListContainer) configListContainer.innerHTML = '';
+
+            const keys = Object.keys(globalDynamicModules);
+            if (keys.length === 0 && configListContainer) {
+                configListContainer.innerHTML = '<p class="text-xs text-gray-400 italic">Chưa có Module động nào được tạo.</p>';
+            }
+
+            keys.forEach(modId => {
+                const mod = globalDynamicModules[modId];
+
+                // 1. Thêm Nút trên thanh Navigation dưới
+                const navBtnHTML = `
+                    <button id="btn-${modId}" onclick="switchTab('${modId}')" class="dyn-nav-btn nav-tab text-purple-700 font-bold flex flex-col items-center gap-0.5 text-[11px] shrink-0">
+                        <i class="fa-solid fa-cube text-base"></i>
+                        <span>${mod.title}</span>
+                    </button>
+                `;
+                document.getElementById('btn-sitebuilder').insertAdjacentHTML('beforebegin', navBtnHTML);
+
+                // 2. Thêm Nội Dung Trang Tab Động bên trong
+                let formFieldsHTML = '';
+                let tableHeadersHTML = '';
+
+                mod.fields.forEach(f => {
+                    formFieldsHTML += `
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">${f.label} *</label>
+                            <input type="${f.type}" data-key="${f.key}" required class="dyn-input-${modId} w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs font-bold text-purple-900">
+                        </div>
+                    `;
+                    tableHeadersHTML += `<th class="p-2 border text-left">${f.label}</th>`;
+                });
+
+                const tabSectionHTML = `
+                    <section id="tab-${modId}" class="tab-content space-y-4 hidden">
+                        <div class="bg-white p-4 rounded-3xl shadow-sm border border-purple-100 space-y-4">
+                            <div class="flex items-center justify-between border-b pb-2">
+                                <h2 class="font-bold text-purple-900 text-sm uppercase flex items-center gap-1.5">
+                                    <i class="fa-solid fa-cubes text-purple-600"></i> ${mod.title}
+                                </h2>
+                                <button onclick="saveDynamicModuleData('${modId}')" class="bg-purple-700 hover:bg-purple-800 text-white text-xs px-3.5 py-2 rounded-xl font-bold shadow">+ Thêm Mới Dữ Liệu</button>
+                            </div>
+
+                            <!-- FORM NHẬP DỮ LIỆU ĐỘNG -->
+                            <form id="dynForm_${modId}" onsubmit="handleDynamicDataSubmit(event, '${modId}')" class="bg-purple-50/50 p-3.5 rounded-2xl border border-purple-200 space-y-3">
+                                <h3 class="text-xs font-bold text-purple-900 uppercase">Nhập Thông Tin ${mod.title}:</h3>
+                                <div class="grid grid-cols-2 gap-2">${formFieldsHTML}</div>
+                                <button type="submit" class="w-full py-2 bg-purple-700 text-white font-bold rounded-xl text-xs shadow">LƯU DỮ LIỆU</button>
+                            </form>
+
+                            <!-- DANH SÁCH DỮ LIỆU ĐỘNG -->
+                            <div class="space-y-2">
+                                <h3 class="text-xs font-bold text-gray-700 uppercase">Danh Sách Dữ Liệu Đã Lưu:</h3>
+                                <div id="dynDataContainer_${modId}" class="space-y-2"></div>
+                            </div>
+                        </div>
+                    </section>
+                `;
+                tabsContentContainer.insertAdjacentHTML('beforeend', tabSectionHTML);
+
+                // 3. Render danh sách Quản Trị Module trong Tab Site Builder
+                if (configListContainer) {
+                    configListContainer.innerHTML += `
+                        <div class="p-3 bg-purple-50 rounded-2xl border border-purple-200 flex justify-between items-center text-xs">
+                            <div>
+                                <span class="font-bold text-purple-900">${mod.title}</span>
+                                <span class="text-gray-500 font-mono ml-2">(${mod.id})</span>
+                                <p class="text-[10px] text-gray-600 mt-0.5">Trường: ${mod.fields.map(f => f.label).join(', ')}</p>
+                            </div>
+                            <button onclick="deleteDynamicModule('${modId}')" class="text-red-500 font-bold px-2 py-1">🗑 Xóa</button>
+                        </div>
+                    `;
+                }
+
+                // Lắng nghe dữ liệu của Module động này từ Firebase
+                db.ref('dyn_data_' + modId).on('value', (snap) => {
+                    renderDynamicDataList(modId, snap.val() || {});
+                });
+            });
+        }
+
+        // --- LƯU DỮ LIỆU CỦA MODULE ĐỘNG NAY LÊN FIREBASE ---
+        function handleDynamicDataSubmit(e, modId) {
+            e.preventDefault();
+            const mod = globalDynamicModules[modId];
+            if (!mod) return;
+
+            const record = { createdAt: new Date().toISOString() };
+            document.querySelectorAll(`.dyn-input-${modId}`).forEach(inp => {
+                const key = inp.getAttribute('data-key');
+                record[key] = inp.value;
+            });
+
+            db.ref('dyn_data_' + modId).push(record, (err) => {
+                if (!err) {
+                    alert("Đã lưu dữ liệu thành công!");
+                    document.getElementById(`dynForm_${modId}`).reset();
+                }
+            });
+        }
+
+        function renderDynamicDataList(modId, data) {
+            const container = document.getElementById(`dynDataContainer_${modId}`);
+            if (!container) return;
+            container.innerHTML = '';
+
+            const keys = Object.keys(data);
+            if (keys.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-2">Chưa có dữ liệu nào</p>';
+                return;
+            }
+
+            const mod = globalDynamicModules[modId];
+            const isAdmin = currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'MANAGER';
+
+            keys.forEach(k => {
+                const item = data[k];
+                let itemDetailsHTML = '';
+                mod.fields.forEach(f => {
+                    itemDetailsHTML += `<div><span class="text-gray-500">${f.label}:</span> <strong>${item[f.key] || ''}</strong></div>`;
+                });
+
+                const deleteBtn = isAdmin ? `<button onclick="deleteDynamicDataRecord('${modId}', '${k}')" class="text-red-500 font-bold text-xs">🗑 Xóa</button>` : '';
+
+                container.insertAdjacentHTML('afterbegin', `
+                    <div class="p-3 bg-purple-50/40 rounded-2xl border border-purple-100 flex justify-between items-center text-xs">
+                        <div class="grid grid-cols-2 gap-2 w-full pr-2">${itemDetailsHTML}</div>
+                        ${deleteBtn}
+                    </div>
+                `);
+            });
+        }
+
+        function deleteDynamicDataRecord(modId, recordKey) {
+            if (confirm("Xóa dòng dữ liệu này?")) {
+                db.ref(`dyn_data_${modId}/${recordKey}`).remove();
+            }
+        }
+
+        // --- HÀM XỬ LÝ CHỌN FORM QUA RADIO BUTTON ---
         function handleFormTypeChange() {
             const selectedType = document.querySelector('input[name="addFormType"]:checked').value;
             const accModal = document.getElementById('addAccountModal');
@@ -1282,7 +1562,6 @@
             const u = globalUsers[username];
             if (!u) return;
 
-            // Mở form Tài khoản qua Radio Button
             const accRadio = document.querySelector('input[name="addFormType"][value="ACCOUNT"]');
             if (accRadio) accRadio.checked = true;
             handleFormTypeChange();
@@ -1333,12 +1612,10 @@
 
             const selectedMonthStr = document.getElementById('staffReportMonth').value;
 
-            // Tìm đối tượng Staff để lấy Số điện thoại
             const staffKey = Object.keys(globalStaff).find(k => globalStaff[k].name === staffName);
             const staffObj = staffKey ? globalStaff[staffKey] : null;
             const staffPhone = staffObj ? staffObj.phone : null;
 
-            // TRA CỨU TÀI KHOẢN THEO SỐ ĐIỆN THOẠI
             const userKey = Object.keys(globalUsers).find(k => staffPhone && globalUsers[k].phone === staffPhone);
             const userObj = userKey ? globalUsers[userKey] : null;
 
@@ -1348,7 +1625,6 @@
                 document.getElementById('salaryModalStaffRole').innerText = `Chưa tạo Tài khoản (SĐT: ${staffPhone || 'Chưa có'})`;
             }
 
-            // Tính toán Lương cơ bản
             const salaryCalc = calculateMonthlyBaseSalary(userObj, selectedMonthStr);
             document.getElementById('modalCurrentBaseSalaryInput').value = formatVND(salaryCalc.latestBaseSalary);
             document.getElementById('modalNewBaseSalaryInput').value = salaryCalc.latestBaseSalary;
@@ -1485,7 +1761,7 @@
             });
         }
 
-        // --- 5. DANH SÁCH BẢNG LƯƠNG NHÂN VIÊN DUY NHẤT (KHÔNG BỊ HIỂN THỊ TRÙNG TÀI KHOẢN) ---
+        // --- 5. DANH SÁCH BẢNG LƯƠNG NHÂN VIÊN ---
         function generateStaffReport() {
             const selectedMonthStr = document.getElementById('staffReportMonth').value;
 
@@ -1526,7 +1802,6 @@
                     }
                 });
 
-                // Tra cứu tài khoản liên kết qua Số Điện Thoại
                 const userKey = Object.keys(globalUsers).find(k => staff.phone && globalUsers[k].phone === staff.phone);
                 const userObj = userKey ? globalUsers[userKey] : null;
 
@@ -2346,14 +2621,21 @@
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-tab').forEach(btn => {
-                btn.classList.remove('text-brand-green', 'font-bold');
+                btn.classList.remove('text-brand-green', 'text-purple-700', 'font-bold');
                 btn.classList.add('text-gray-400', 'font-medium');
             });
-            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            
+            const targetTab = document.getElementById('tab-' + tabId);
+            if (targetTab) targetTab.classList.remove('hidden');
+
             const activeBtn = document.getElementById('btn-' + tabId);
             if (activeBtn) {
                 activeBtn.classList.remove('text-gray-400', 'font-medium');
-                activeBtn.classList.add('text-brand-green', 'font-bold');
+                if (tabId === 'sitebuilder') {
+                    activeBtn.classList.add('text-purple-600', 'font-bold');
+                } else {
+                    activeBtn.classList.add('text-brand-green', 'font-bold');
+                }
             }
         }
 
