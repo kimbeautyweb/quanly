@@ -1395,7 +1395,10 @@
                             </form>
 
                             <div class="space-y-2">
-                                <h3 class="text-xs font-bold text-gray-700 uppercase">Danh Sách Dữ Liệu Đã Lưu:</h3>
+                                <!-- Khung Tổng được đưa lên trên danh sách -->
+                                <div id="dynTotalsContainer_${modId}"></div>
+                                
+                                <h3 class="text-xs font-bold text-gray-700 uppercase mt-3">Danh Sách Dữ Liệu Đã Lưu:</h3>
                                 <div id="dynDataContainer_${modId}" class="space-y-2"></div>
                             </div>
                         </div>
@@ -1449,8 +1452,11 @@
 
         function renderDynamicDataList(modId, data) {
             const container = document.getElementById(`dynDataContainer_${modId}`);
-            if (!container) return;
+            const totalsContainer = document.getElementById(`dynTotalsContainer_${modId}`);
+            if (!container || !totalsContainer) return;
+            
             container.innerHTML = '';
+            totalsContainer.innerHTML = '';
 
             const keys = Object.keys(data);
             if (keys.length === 0) {
@@ -1498,7 +1504,7 @@
                 `);
             });
 
-            // Hiển thị dòng tổng nếu module có chứa ít nhất 1 trường Number
+            // Hiển thị khung Tổng ở phía trên danh sách nếu module có chứa ít nhất 1 trường Number
             let hasNumberField = Object.keys(numberTotals).length > 0;
             if (hasNumberField && keys.length > 0) {
                 let totalsHTML = '';
@@ -1513,11 +1519,11 @@
                     }
                 });
 
-                container.insertAdjacentHTML('beforeend', `
-                    <div class="p-3 bg-amber-50/90 rounded-2xl border border-amber-300 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs shadow-sm mt-2">
+                totalsContainer.innerHTML = `
+                    <div class="p-3 bg-amber-50/90 rounded-2xl border border-amber-300 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs shadow-sm">
                         ${totalsHTML}
                     </div>
-                `);
+                `;
             }
         }
 
