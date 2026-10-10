@@ -2620,11 +2620,32 @@
         }
 
         function deleteCurrentCustomer() {
-            if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER') return;
-            if(confirm('Xóa vĩnh viễn khách hàng này?')) {
-                if(currentActiveCustKey) { db.ref('customers/' + currentActiveCustKey).remove(); closeModal(); }
+    if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER') return;
+    if (confirm('Xóa vĩnh viễn khách hàng này?')) {
+        if (currentActiveCustKey) {
+            // 1. Xóa đúng nhánh trên Firebase của Spa hiện tại
+            if (typeof SPA_PATH !== 'undefined' && SPA_PATH) {
+                db.ref(SPA_PATH + '/customers/' + currentActiveCustKey).remove();
+            } else {
+                db.ref('customers/' + currentActiveCustKey).remove();
             }
+
+            // 2. Gửi yêu cầu xóa kèm theo sheetId riêng của Spa xuống Google Apps Script
+            if (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) {
+                fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        sheetId: currentSheetId, // 👈 Truyền đúng ID file Sheet của cơ sở này
+                        action: 'deleteData',
+                        payload: { type: 'customer', id: currentActiveCustKey }
+                    })
+                }).catch(err => console.error("Lỗi đồng bộ xóa Sheet:", err));
+            }
+
+            closeModal();
         }
+    }
+}
 
         function deleteBooking(key) { if(confirm('Xóa lịch hẹn?')) db.ref('bookings/' + key).remove(); }
 
@@ -2737,6 +2758,16 @@ const comboListContainer = document.getElementById('modalCustomerComboList');
             }
         });
         // --- KẾT THÚC ĐOẠN MÃ BẢO MẬT ---
+        // 1. CẤU HÌNH API GOOGLE APPS SCRIPT ĐỂ TÁCH SHEET TỪNG SPA
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbykgZ0soQMcwZer8XKGBAM95v66wEg9Lh8aMPIP7LkdxMG9jBjN0yg3wVsS1JNsdx_6Hw/exec";
+
+// 2. LẤY THAM SỐ ĐỊNH DANH ĐỘC LẬP TỪ URL
+const urlParams = new URLSearchParams(window.location.search);
+const currentSpaId = urlParams.get('spaId');
+const currentSheetId = urlParams.get('sheet');
+
+// Đường dẫn phân tách dữ liệu trên Firebase riêng theo từng Spa
+const SPA_PATH = currentSpaId ? `spas/${currentSpaId}` : null;
     </script>
 </body>
 </html>
