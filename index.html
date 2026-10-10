@@ -627,10 +627,10 @@
                                 </div>
                             </div>
 
-                            <!-- THÊM CÁC TRƯỜNG DỮ LIỆU CỦA FORM (4 Ô NHẬP THÔNG TIN MẶC ĐỊNH) -->
+                            <!-- THÊM CÁC TRƯỜNG DỮ LIỆU CỦA FORM -->
                             <div class="space-y-2 border-t border-purple-200 pt-2">
                                 <div class="flex justify-between items-center">
-                                    <label class="block text-xs font-bold text-purple-900">Danh Sách 4 Trường Dữ Liệu (Tên trường & Loại):</label>
+                                    <label class="block text-xs font-bold text-purple-900">Danh Sách Trường Dữ Liệu (Mỗi lần bấm thêm 2 trường):</label>
                                     <button type="button" onclick="addModuleFieldRow()" class="bg-purple-600 text-white font-bold text-[10px] px-2.5 py-1 rounded-lg">+ Thêm Trường</button>
                                 </div>
                                 <div id="moduleFieldsContainer" class="space-y-2"></div>
@@ -935,7 +935,7 @@
         </div>
 
     </div>
-    <!-- SCRIPT REALTIME & LOGIC QUẢN TRỊ ĐỘNG (XUẤT EXCEL & HIỂN THỊ DANH SÁCH) -->
+    <!-- SCRIPT REALTIME & LOGIC QUẢN TRỊ ĐỘNG -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCzIUPf2Wghh6voay899bdDGN9rQVhHGsU",
@@ -977,18 +977,16 @@
             checkSystemHasUsers();
             initWebPushNotifications();
             
-            // Khởi tạo sẵn 4 trường mặc định cho Form tạo module mới
+            // Khởi tạo sẵn 2 cặp trường (tổng 4 ô mặc định)
             initDefaultModuleFields();
         });
 
         function initDefaultModuleFields() {
             const container = document.getElementById('moduleFieldsContainer');
             container.innerHTML = '';
-            // Gợi ý 4 trường mẫu chuẩn (Ví dụ: Thu Chi)
-            addModuleFieldRow('Khoản Thu/Chi', 'text');
-            addModuleFieldRow('Danh Mục / Mô Tả', 'text');
-            addModuleFieldRow('Số Tiền', 'number');
-            addModuleFieldRow('Ngày Thực Hiện', 'date');
+            // Tạo sẵn 2 cặp (tương ứng 4 trường chuẩn: Khoản Thu/Chi, Danh Mục, Số Tiền, Ngày Thực Hiện)
+            addModuleFieldRow('Khoản Thu/Chi', 'text', 'Danh Mục / Mô Tả', 'text');
+            addModuleFieldRow('Số Tiền', 'number', 'Ngày Thực Hiện', 'date');
         }
 
         function formatDateVN(dateStr) {
@@ -1219,25 +1217,43 @@
                 renderPendingBookingsInLogUI();
             });
 
-            // REALTIME LISTENER CHO TRANG QUẢN TRỊ ĐỘNG
             db.ref('system_modules').on('value', (snap) => {
                 globalDynamicModules = snap.val() || {};
                 renderDynamicModulesUI();
             });
         }
 
-        function addModuleFieldRow(labelVal = '', typeVal = 'text') {
+        // HÀM TẠO 2 TRƯỜNG DỮ LIỆU (TƯƠNG ỨNG 4 Ô: 2 Ô TÊN & 2 Ô SELECT)
+        function addModuleFieldRow(labelVal1 = '', typeVal1 = 'text', labelVal2 = '', typeVal2 = 'text') {
             const container = document.getElementById('moduleFieldsContainer');
-            const rowId = 'f_' + Date.now() + '_' + Math.floor(Math.random() * 100);
+            const groupKey = 'group_' + Date.now() + '_' + Math.floor(Math.random() * 100);
+            
             const html = `
-                <div id="${rowId}" class="dyn-field-row flex items-center gap-2 bg-white p-2 rounded-xl border border-purple-200">
-                    <input type="text" value="${labelVal}" placeholder="Tên trường (Ví dụ: Số tiền, Ngày...)" class="dyn-field-label w-full px-2.5 py-1.5 bg-gray-50 rounded-lg border text-xs font-bold text-purple-900" required>
-                    <select class="dyn-field-type w-36 px-2 py-1.5 bg-gray-50 rounded-lg border text-xs font-bold text-gray-700">
-                        <option value="text" ${typeVal === 'text' ? 'selected' : ''}>Chữ / Text</option>
-                        <option value="number" ${typeVal === 'number' ? 'selected' : ''}>Số / Number</option>
-                        <option value="date" ${typeVal === 'date' ? 'selected' : ''}>Ngày / Date</option>
-                    </select>
-                    <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-red-500 font-bold px-2 py-1 text-xs">✕</button>
+                <div id="${groupKey}" class="dyn-field-group bg-purple-50/80 p-2.5 rounded-xl border border-purple-200 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-purple-900 uppercase">Cặp 2 Trường Dữ Liệu:</span>
+                        <button type="button" onclick="document.getElementById('${groupKey}').remove()" class="text-red-500 font-bold px-2 py-0.5 text-xs bg-white rounded border border-red-200">✕ Xóa cặp này</button>
+                    </div>
+                    
+                    <!-- Trường thứ nhất -->
+                    <div class="dyn-field-row flex items-center gap-2">
+                        <input type="text" value="${labelVal1}" placeholder="Tên trường 1 (Ví dụ: Số tiền...)" class="dyn-field-label w-full px-2.5 py-1.5 bg-white rounded-lg border text-xs font-bold text-purple-900" required>
+                        <select class="dyn-field-type w-36 px-2 py-1.5 bg-white rounded-lg border text-xs font-bold text-gray-700">
+                            <option value="text" ${typeVal1 === 'text' ? 'selected' : ''}>Chữ / Text</option>
+                            <option value="number" ${typeVal1 === 'number' ? 'selected' : ''}>Số / Number</option>
+                            <option value="date" ${typeVal1 === 'date' ? 'selected' : ''}>Ngày / Date</option>
+                        </select>
+                    </div>
+
+                    <!-- Trường thứ hai -->
+                    <div class="dyn-field-row flex items-center gap-2">
+                        <input type="text" value="${labelVal2}" placeholder="Tên trường 2 (Ví dụ: Ghi chú...)" class="dyn-field-label w-full px-2.5 py-1.5 bg-white rounded-lg border text-xs font-bold text-purple-900">
+                        <select class="dyn-field-type w-36 px-2 py-1.5 bg-white rounded-lg border text-xs font-bold text-gray-700">
+                            <option value="text" ${typeVal2 === 'text' ? 'selected' : ''}>Chữ / Text</option>
+                            <option value="number" ${typeVal2 === 'number' ? 'selected' : ''}>Số / Number</option>
+                            <option value="date" ${typeVal2 === 'date' ? 'selected' : ''}>Ngày / Date</option>
+                        </select>
+                    </div>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', html);
@@ -1262,9 +1278,11 @@
             container.innerHTML = '';
 
             if (mod.fields && mod.fields.length > 0) {
-                mod.fields.forEach(f => {
-                    addModuleFieldRow(f.label, f.type);
-                });
+                for (let i = 0; i < mod.fields.length; i += 2) {
+                    const f1 = mod.fields[i];
+                    const f2 = mod.fields[i + 1] || { label: '', type: 'text' };
+                    addModuleFieldRow(f1.label, f1.type, f2.label, f2.type);
+                }
             } else {
                 initDefaultModuleFields();
             }
@@ -1346,7 +1364,6 @@
             keys.forEach(modId => {
                 const mod = globalDynamicModules[modId];
 
-                // 1. Thêm Nút trên Navigation
                 const navBtnHTML = `
                     <button id="btn-${modId}" onclick="switchTab('${modId}')" class="dyn-nav-btn nav-tab text-purple-700 font-bold flex flex-col items-center gap-0.5 text-[11px] shrink-0">
                         <i class="fa-solid fa-cube text-base"></i>
@@ -1355,7 +1372,6 @@
                 `;
                 document.getElementById('btn-sitebuilder').insertAdjacentHTML('beforebegin', navBtnHTML);
 
-                // 2. Thêm Nội Dung Tab Động & Nút Xuất Excel
                 let formFieldsHTML = '';
                 mod.fields.forEach(f => {
                     const todayStr = new Date().toISOString().split('T')[0];
@@ -1397,7 +1413,6 @@
                 `;
                 tabsContentContainer.insertAdjacentHTML('beforeend', tabSectionHTML);
 
-                // 3. Render Quản Trị Module
                 if (configListContainer) {
                     configListContainer.innerHTML += `
                         <div class="p-3 bg-purple-50 rounded-2xl border border-purple-200 flex justify-between items-center text-xs">
