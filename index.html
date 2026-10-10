@@ -935,7 +935,7 @@
         </div>
 
     </div>
-    <!-- SCRIPT REALTIME & LOGIC QUẢN TRỊ ĐỘNG -->
+<!-- SCRIPT REALTIME & LOGIC QUẢN TRỊ ĐỘNG -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCzIUPf2Wghh6voay899bdDGN9rQVhHGsU",
@@ -965,6 +965,16 @@
         let globalDynamicModules = {};
         let isFirstBookingLoad = true;
 
+        // Bảng màu phân biệt cho từng trường dữ liệu động
+        const dynFieldColors = [
+            { text: 'text-purple-900', bg: 'bg-purple-50/60', border: 'border-purple-200', badgeBg: 'bg-purple-100 text-purple-800' },
+            { text: 'text-emerald-900', bg: 'bg-emerald-50/60', border: 'border-emerald-200', badgeBg: 'bg-emerald-100 text-emerald-800' },
+            { text: 'text-blue-900', bg: 'bg-blue-50/60', border: 'border-blue-200', badgeBg: 'bg-blue-100 text-blue-800' },
+            { text: 'text-amber-900', bg: 'bg-amber-50/60', border: 'border-amber-200', badgeBg: 'bg-amber-100 text-amber-800' },
+            { text: 'text-rose-900', bg: 'bg-rose-50/60', border: 'border-rose-200', badgeBg: 'bg-rose-100 text-rose-800' },
+            { text: 'text-indigo-900', bg: 'bg-indigo-50/60', border: 'border-indigo-200', badgeBg: 'bg-indigo-100 text-indigo-800' }
+        ];
+
         window.addEventListener('DOMContentLoaded', () => {
             const todayStr = new Date().toISOString().split('T')[0];
             document.getElementById('reportDateSelect').value = todayStr;
@@ -976,15 +986,12 @@
 
             checkSystemHasUsers();
             initWebPushNotifications();
-            
-            // Khởi tạo sẵn 2 cặp trường (tổng 4 ô mặc định)
             initDefaultModuleFields();
         });
 
         function initDefaultModuleFields() {
             const container = document.getElementById('moduleFieldsContainer');
             container.innerHTML = '';
-            // Tạo sẵn 2 cặp (tương ứng 4 trường chuẩn: Khoản Thu/Chi, Danh Mục, Số Tiền, Ngày Thực Hiện)
             addModuleFieldRow('Khoản Thu/Chi', 'text', 'Danh Mục / Mô Tả', 'text');
             addModuleFieldRow('Số Tiền', 'number', 'Ngày Thực Hiện', 'date');
         }
@@ -1051,11 +1058,7 @@
             const todayStr = new Date().toISOString().split('T')[0];
 
             const fullPermissions = { logs: true, booking: true, customers: true, services: true, staff: true };
-
-            const initialHistory = [{
-                baseSalary: 10000000,
-                effectiveDate: todayStr
-            }];
+            const initialHistory = [{ baseSalary: 10000000, effectiveDate: todayStr }];
 
             db.ref('users/' + username).set({
                 fullName, password, role: 'SUPER_ADMIN', baseSalary: 10000000, workingDaysPerMonth: 30, standardHoursPerDay: 8, salaryHistory: initialHistory, permissions: fullPermissions
@@ -1077,12 +1080,7 @@
             db.ref('users/' + username).once('value', (snap) => {
                 const userVal = snap.val();
                 if (userVal && userVal.password === password) {
-                    currentUser = {
-                        username: username,
-                        fullName: userVal.fullName,
-                        role: userVal.role,
-                        permissions: userVal.permissions || {}
-                    };
+                    currentUser = { username: username, fullName: userVal.fullName, role: userVal.role, permissions: userVal.permissions || {} };
                     localStorage.setItem('kimbeauty_user', JSON.stringify(currentUser));
                     applyUserPermissions();
                 } else {
@@ -1223,7 +1221,6 @@
             });
         }
 
-        // HÀM TẠO 2 TRƯỜNG DỮ LIỆU (TƯƠNG ỨNG 4 Ô: 2 Ô TÊN & 2 Ô SELECT)
         function addModuleFieldRow(labelVal1 = '', typeVal1 = 'text', labelVal2 = '', typeVal2 = 'text') {
             const container = document.getElementById('moduleFieldsContainer');
             const groupKey = 'group_' + Date.now() + '_' + Math.floor(Math.random() * 100);
@@ -1235,9 +1232,8 @@
                         <button type="button" onclick="document.getElementById('${groupKey}').remove()" class="text-red-500 font-bold px-2 py-0.5 text-xs bg-white rounded border border-red-200">✕ Xóa cặp này</button>
                     </div>
                     
-                    <!-- Trường thứ nhất -->
                     <div class="dyn-field-row flex items-center gap-2">
-                        <input type="text" value="${labelVal1}" placeholder="Tên trường 1 (Ví dụ: Số tiền...)" class="dyn-field-label w-full px-2.5 py-1.5 bg-white rounded-lg border text-xs font-bold text-purple-900" required>
+                        <input type="text" value="${labelVal1}" placeholder="Tên trường 1 (Ví dụ: Số tiền...)" class="dyn-field-label w-full px-2.5 py-1.5 bg-white rounded-lg border text-xs font-bold text-purple-900">
                         <select class="dyn-field-type w-36 px-2 py-1.5 bg-white rounded-lg border text-xs font-bold text-gray-700">
                             <option value="text" ${typeVal1 === 'text' ? 'selected' : ''}>Chữ / Text</option>
                             <option value="number" ${typeVal1 === 'number' ? 'selected' : ''}>Số / Number</option>
@@ -1245,7 +1241,6 @@
                         </select>
                     </div>
 
-                    <!-- Trường thứ hai -->
                     <div class="dyn-field-row flex items-center gap-2">
                         <input type="text" value="${labelVal2}" placeholder="Tên trường 2 (Ví dụ: Ghi chú...)" class="dyn-field-label w-full px-2.5 py-1.5 bg-white rounded-lg border text-xs font-bold text-purple-900">
                         <select class="dyn-field-type w-36 px-2 py-1.5 bg-white rounded-lg border text-xs font-bold text-gray-700">
@@ -1267,7 +1262,6 @@
             document.getElementById('modId').value = mod.id;
             document.getElementById('modId').readOnly = true;
             document.getElementById('modId').classList.add('bg-gray-100', 'cursor-not-allowed');
-            
             document.getElementById('modTitle').value = mod.title;
             
             document.getElementById('moduleFormHeading').innerText = `✏️ Chỉnh Sửa Module: ${mod.title}`;
@@ -1357,10 +1351,6 @@
             if (configListContainer) configListContainer.innerHTML = '';
 
             const keys = Object.keys(globalDynamicModules);
-            if (keys.length === 0 && configListContainer) {
-                configListContainer.innerHTML = '<p class="text-xs text-gray-400 italic">Chưa có Module động nào được tạo.</p>';
-            }
-
             keys.forEach(modId => {
                 const mod = globalDynamicModules[modId];
 
@@ -1373,13 +1363,15 @@
                 document.getElementById('btn-sitebuilder').insertAdjacentHTML('beforebegin', navBtnHTML);
 
                 let formFieldsHTML = '';
-                mod.fields.forEach(f => {
+                mod.fields.forEach((f, index) => {
                     const todayStr = new Date().toISOString().split('T')[0];
                     const defaultVal = (f.type === 'date') ? `value="${todayStr}"` : '';
+                    const colorScheme = dynFieldColors[index % dynFieldColors.length];
+
                     formFieldsHTML += `
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-600 mb-1">${f.label} *</label>
-                            <input type="${f.type}" data-key="${f.key}" ${defaultVal} required class="dyn-input-${modId} w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs font-bold text-purple-900">
+                            <label class="block text-[11px] font-bold ${colorScheme.text} mb-1">${f.label}</label>
+                            <input type="${f.type}" data-key="${f.key}" ${defaultVal} class="dyn-input-${modId} w-full px-3 py-2 bg-white rounded-xl border ${colorScheme.border} text-xs font-bold ${colorScheme.text}">
                         </div>
                     `;
                 });
@@ -1396,14 +1388,12 @@
                                 </button>
                             </div>
 
-                            <!-- FORM NHẬP DỮ LIỆU ĐỘNG -->
                             <form id="dynForm_${modId}" onsubmit="handleDynamicDataSubmit(event, '${modId}')" class="bg-purple-50/50 p-3.5 rounded-2xl border border-purple-200 space-y-3">
                                 <h3 class="text-xs font-bold text-purple-900 uppercase">Nhập Thông Tin ${mod.title}:</h3>
                                 <div class="grid grid-cols-2 gap-2">${formFieldsHTML}</div>
                                 <button type="submit" class="w-full py-2 bg-purple-700 text-white font-bold rounded-xl text-xs shadow">LƯU DỮ LIỆU</button>
                             </form>
 
-                            <!-- DANH SÁCH DỮ LIỆU ĐÃ LƯU HIỂN THỊ BÊN DƯỚI -->
                             <div class="space-y-2">
                                 <h3 class="text-xs font-bold text-gray-700 uppercase">Danh Sách Dữ Liệu Đã Lưu:</h3>
                                 <div id="dynDataContainer_${modId}" class="space-y-2"></div>
@@ -1471,29 +1461,64 @@
             const mod = globalDynamicModules[modId];
             const isAdmin = currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'MANAGER';
 
+            // Tính tổng cho các trường dạng Number
+            let numberTotals = {};
+            mod.fields.forEach(f => {
+                if (f.type === 'number') numberTotals[f.key] = 0;
+            });
+
             keys.forEach(k => {
                 const item = data[k];
                 let itemDetailsHTML = '';
-                mod.fields.forEach(f => {
+                
+                mod.fields.forEach((f, index) => {
                     let val = item[f.key] || '';
-                    if(f.type === 'date') val = formatDateVN(val);
-                    else if(f.type === 'number' && !isNaN(val) && val !== '') {
+                    const colorScheme = dynFieldColors[index % dynFieldColors.length];
+
+                    if(f.type === 'date') {
+                        val = formatDateVN(val);
+                    } else if(f.type === 'number') {
+                        let numVal = parseFloat(val) || 0;
+                        numberTotals[f.key] += numVal;
                         if(f.label.toLowerCase().includes('tiền') || f.label.toLowerCase().includes('giá') || f.label.toLowerCase().includes('thu') || f.label.toLowerCase().includes('chi')) {
-                            val = formatVND(val);
+                            val = formatVND(numVal);
                         }
                     }
-                    itemDetailsHTML += `<div><span class="text-gray-500">${f.label}:</span> <strong class="text-brand-darkgreen">${val}</strong></div>`;
+
+                    itemDetailsHTML += `<div class="bg-white/70 p-1.5 rounded-lg border border-gray-100"><span class="text-gray-500 text-[10px] block">${f.label}:</span> <strong class="${colorScheme.text} text-xs">${val || '---'}</strong></div>`;
                 });
 
-                const deleteBtn = isAdmin ? `<button onclick="deleteDynamicDataRecord('${modId}', '${k}')" class="text-red-500 font-bold text-xs">🗑 Xóa</button>` : '';
+                const deleteBtn = isAdmin ? `<button onclick="deleteDynamicDataRecord('${modId}', '${k}')" class="text-red-500 font-bold text-xs shrink-0 p-1">🗑 Xóa</button>` : '';
 
                 container.insertAdjacentHTML('afterbegin', `
-                    <div class="p-3 bg-purple-50/40 rounded-2xl border border-purple-100 flex justify-between items-center text-xs">
-                        <div class="grid grid-cols-2 gap-2 w-full pr-2">${itemDetailsHTML}</div>
+                    <div class="p-3 bg-white rounded-2xl border border-purple-100 flex justify-between items-center text-xs shadow-sm gap-2">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full">${itemDetailsHTML}</div>
                         ${deleteBtn}
                     </div>
                 `);
             });
+
+            // Hiển thị dòng tổng nếu module có chứa ít nhất 1 trường Number
+            let hasNumberField = Object.keys(numberTotals).length > 0;
+            if (hasNumberField && keys.length > 0) {
+                let totalsHTML = '';
+                mod.fields.forEach((f, index) => {
+                    const colorScheme = dynFieldColors[index % dynFieldColors.length];
+                    if (f.type === 'number') {
+                        let totalVal = numberTotals[f.key];
+                        let displayTotal = (f.label.toLowerCase().includes('tiền') || f.label.toLowerCase().includes('giá') || f.label.toLowerCase().includes('thu') || f.label.toLowerCase().includes('chi')) ? formatVND(totalVal) : totalVal;
+                        totalsHTML += `<div class="p-1.5"><span class="text-[10px] uppercase font-bold text-gray-500 block">Tổng ${f.label}:</span><strong class="${colorScheme.text} text-sm">${displayTotal}</strong></div>`;
+                    } else {
+                        totalsHTML += `<div></div>`;
+                    }
+                });
+
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="p-3 bg-amber-50/90 rounded-2xl border border-amber-300 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs shadow-sm mt-2">
+                        ${totalsHTML}
+                    </div>
+                `);
+            }
         }
 
         function exportDynamicModuleToExcel(modId) {
@@ -1660,7 +1685,7 @@
                     fullName, phone, password, role, baseSalary, workingDaysPerMonth: workingDays, standardHoursPerDay: standardHours, salaryHistory, permissions
                 }, (err) => {
                     if (!err) {
-                        alert('Đã lưu tài khoản & Cập nhật SĐT định danh thành công!');
+                        alert('Đã lưu tài khoản thành công!');
                         resetFormSelection();
                     }
                 });
@@ -1718,7 +1743,6 @@
             document.getElementById('salaryModalStaffName').innerText = `Bảng Lương: ${staffName}`;
 
             const selectedMonthStr = document.getElementById('staffReportMonth').value;
-
             const staffKey = Object.keys(globalStaff).find(k => globalStaff[k].name === staffName);
             const staffObj = staffKey ? globalStaff[staffKey] : null;
             const staffPhone = staffObj ? staffObj.phone : null;
@@ -1754,13 +1778,11 @@
             const overtimeHours = parseFloat(currentAtt.overtimeHours) || 0;
 
             const deductionAmount = offDays * salaryCalc.latestDailyRate;
-            
             let otDaysBonus = 0;
             let otHoursBonus = 0;
 
             if (currentAtt.otMode === 'MANUAL_AMOUNT') {
                 otDaysBonus = parseFloat(currentAtt.manualOTAmount) || 0;
-                otHoursBonus = 0;
             } else {
                 otDaysBonus = overtimeDays * salaryCalc.latestDailyRate;
                 otHoursBonus = overtimeHours * salaryCalc.latestHourlyRate;
@@ -1768,13 +1790,10 @@
 
             document.getElementById('salaryModalWorkingDays').innerText = `${salaryCalc.workingDaysPerMonth} ngày (${salaryCalc.standardHoursPerDay}h/ngày)`;
             document.getElementById('salaryModalCalculatedBase').innerText = formatVND(salaryCalc.calculatedBaseSalary);
-            
             document.getElementById('salaryModalOffDaysText').innerText = offDays;
             document.getElementById('salaryModalDeduction').innerText = `-${formatVND(deductionAmount)}`;
-
             document.getElementById('salaryModalOTDaysText').innerText = overtimeDays;
             document.getElementById('salaryModalOTDaysBonus').innerText = `+${formatVND(otDaysBonus)}`;
-
             document.getElementById('salaryModalOTHoursText').innerText = overtimeHours;
             document.getElementById('salaryModalOTHoursBonus').innerText = `+${formatVND(otHoursBonus)}`;
 
@@ -1836,7 +1855,7 @@
 
             const userKey = Object.keys(globalUsers).find(k => staffPhone && globalUsers[k].phone === staffPhone);
             if (!userKey) {
-                alert(`Không tìm thấy Tài khoản có SĐT "${staffPhone || 'Chưa nhập'}"! Vui lòng tạo tài khoản ở Form "Tạo tài khoản" trước.`);
+                alert(`Không tìm thấy Tài khoản có SĐT "${staffPhone || 'Chưa nhập'}"!`);
                 return;
             }
 
@@ -1851,15 +1870,11 @@
             db.ref('users/' + userKey).once('value', (snap) => {
                 const existingUser = snap.val() || {};
                 let salaryHistory = existingUser.salaryHistory || [];
-
                 salaryHistory.push({ baseSalary: newBaseSalary, effectiveDate });
 
-                db.ref('users/' + userKey).update({
-                    baseSalary: newBaseSalary,
-                    salaryHistory: salaryHistory
-                }, (err) => {
+                db.ref('users/' + userKey).update({ baseSalary: newBaseSalary, salaryHistory }, (err) => {
                     if (!err) {
-                        alert("Đã cập nhật mức Lương Cơ Bản mới thành công!");
+                        alert("Đã cập nhật mức Lương Cơ Bản thành công!");
                         showSalaryDetailForStaff(currentActiveSalaryStaffName);
                         generateStaffReport();
                     }
@@ -1869,7 +1884,6 @@
 
         function generateStaffReport() {
             const selectedMonthStr = document.getElementById('staffReportMonth').value;
-
             let logsList = [];
             Object.keys(globalServiceLogs).forEach(k => {
                 const log = globalServiceLogs[k];
@@ -1882,7 +1896,7 @@
 
             const staffKeys = Object.keys(globalStaff);
             if(staffKeys.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Chưa có nhân viên nào trong danh sách</p>';
+                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Chưa có nhân viên nào</p>';
                 return;
             }
 
@@ -1891,32 +1905,26 @@
 
             staffKeys.forEach(sKey => {
                 const staff = globalStaff[sKey];
-                
-                let clientCount = 0;
-                let totalCommission = 0;
+                let clientCount = 0, totalCommission = 0;
 
                 logsList.forEach(l => {
                     if (l.items && l.items.length > 0) {
                         const myItems = l.items.filter(it => it.staff === staff.name);
                         if (myItems.length > 0) {
                             clientCount++;
-                            myItems.forEach(it => {
-                                totalCommission += (it.commissionAmount || 0);
-                            });
+                            myItems.forEach(it => { totalCommission += (it.commissionAmount || 0); });
                         }
                     }
                 });
 
                 const userKey = Object.keys(globalUsers).find(k => staff.phone && globalUsers[k].phone === staff.phone);
                 const userObj = userKey ? globalUsers[userKey] : null;
-
                 const salaryCalc = calculateMonthlyBaseSalary(userObj, selectedMonthStr);
                 
                 let attendanceMap = (staff.monthlyAttendance) ? staff.monthlyAttendance : {};
                 let currentAtt = attendanceMap[selectedMonthStr] || { offDays: 0, overtimeDays: 0, overtimeHours: 0, otMode: 'AUTO', manualOTAmount: 0 };
 
                 const deductionAmount = (currentAtt.offDays || 0) * salaryCalc.latestDailyRate;
-                
                 let otBonusAmount = 0;
                 if (currentAtt.otMode === 'MANUAL_AMOUNT') {
                     otBonusAmount = parseFloat(currentAtt.manualOTAmount) || 0;
@@ -1925,36 +1933,27 @@
                 }
 
                 const finalSalary = Math.max(0, salaryCalc.calculatedBaseSalary - deductionAmount) + otBonusAmount + totalCommission;
-
-                const editAccBtn = (isSuperAdmin && userKey) ? `<button onclick="event.stopPropagation(); editAccount('${userKey}')" class="text-blue-600 text-xs font-bold">✏️ Sửa Tài Khoản</button>` : '';
+                const editAccBtn = (isSuperAdmin && userKey) ? `<button onclick="event.stopPropagation(); editAccount('${userKey}')" class="text-blue-600 text-xs font-bold">✏️ Sửa TK</button>` : '';
                 const deleteBtn = isAdmin ? `<button onclick="event.stopPropagation(); deleteStaff('${sKey}')" class="text-red-500 text-xs font-bold">🗑 Xóa</button>` : '';
 
-                const cardHTML = `
+                container.insertAdjacentHTML('afterbegin', `
                     <div onclick="showSalaryDetailForStaff('${staff.name}')" class="p-3.5 bg-brand-cream/40 hover:bg-brand-cream/80 transition rounded-2xl border border-gray-100 space-y-2 cursor-pointer shadow-sm">
                         <div class="flex justify-between items-center">
                             <div>
                                 <span class="font-bold text-brand-darkgreen text-xs">${staff.name}</span>
-                                <span class="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 ml-1">📞 ${staff.phone || 'N/A'}</span>
+                                <span class="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border ml-1">📞 ${staff.phone || 'N/A'}</span>
                                 <span class="text-[10px] text-gray-500 bg-white px-2 py-0.5 rounded border ml-1">${staff.role} - ${staff.level}</span>
-                                ${userKey ? `<span class="text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 ml-1 font-mono">@${userKey}</span>` : '<span class="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 ml-1">Chưa có TK</span>'}
                             </div>
-                            <div class="flex gap-2">
-                                ${editAccBtn}
-                                ${deleteBtn}
-                            </div>
+                            <div class="flex gap-2">${editAccBtn} ${deleteBtn}</div>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-gray-100">
                             <div>Lượt phục vụ: <strong>${clientCount} lượt</strong></div>
                             <div>Ngày nghỉ: <strong class="text-red-600">${currentAtt.offDays || 0} ngày</strong></div>
-                            <div>Thưởng OT/Thêm: <strong class="text-indigo-800">${formatVND(otBonusAmount)}</strong></div>
+                            <div>Thưởng OT: <strong class="text-indigo-800">${formatVND(otBonusAmount)}</strong></div>
                             <div>Lương thực nhận: <strong class="text-emerald-700 font-extrabold text-sm">${formatVND(finalSalary)}</strong></div>
                         </div>
-                        <div class="flex justify-between items-center pt-1 text-xs text-brand-green font-bold">
-                            <span>▶ Click xem Bảng Lương & Chấm Công Chi Tiết ➔</span>
-                        </div>
                     </div>
-                `;
-                container.insertAdjacentHTML('afterbegin', cardHTML);
+                `);
             });
         }
 
@@ -1972,7 +1971,7 @@
                 const attObj = { offDays, overtimeDays, overtimeHours, otMode, manualOTAmount };
                 db.ref(`staff/${staffKey}/monthlyAttendance/${selectedMonthStr}`).set(attObj, (err) => {
                     if (!err) {
-                        alert("Đã lưu dữ liệu Chấm công & OT thành công!");
+                        alert("Đã lưu chấm công thành công!");
                         showSalaryDetailForStaff(currentActiveSalaryStaffName);
                         generateStaffReport();
                     }
@@ -2011,14 +2010,14 @@
 
             db.ref('services').push({ name, price, type, sessions, commType, commissions: comms }, (err) => {
                 if(!err) {
-                    alert('Lưu dữ liệu & Cấu hình Hoa hồng thành công!');
+                    alert('Lưu cấu hình dịch vụ thành công!');
                     document.getElementById('servName').value = '';
                     document.getElementById('servPrice').value = '';
                 }
             });
         }
 
-        function deleteService(key) { if(confirm('Xóa mục này khỏi danh mục?')) db.ref('services/' + key).remove(); }
+        function deleteService(key) { if(confirm('Xóa mục này?')) db.ref('services/' + key).remove(); }
 
         function renderServicesUI() {
             const containerSingle = document.getElementById('singleServiceListContainer');
@@ -2034,13 +2033,12 @@
 
             Object.keys(globalServices).forEach(key => {
                 const s = globalServices[key];
-                
                 const commBadges = isAdmin ? globalLevels.map(lvl => {
                     const r = (s.commissions && s.commissions[lvl]) ? s.commissions[lvl] : 0;
                     return `<span class="bg-brand-green/10 text-brand-darkgreen px-1.5 py-0.5 rounded text-[10px] font-semibold">${lvl}: ${s.commType === 'FIXED' ? formatVND(r) : r + '%'}</span>`;
                 }).join(' ') : '';
 
-                const deleteBtn = isAdmin ? `<button onclick="deleteService('${key}')" class="text-red-500 hover:text-red-700 text-xs font-bold p-1">🗑 Xóa</button>` : '';
+                const deleteBtn = isAdmin ? `<button onclick="deleteService('${key}')" class="text-red-500 font-bold text-xs p-1">🗑 Xóa</button>` : '';
 
                 const cardHTML = `
                     <div class="p-3 bg-brand-cream/40 rounded-2xl border border-gray-100 space-y-1.5">
@@ -2107,20 +2105,13 @@
             filteredKeys.forEach(key => {
                 const log = globalServiceLogs[key];
                 let cleanCustomerName = log.customer || '';
-                if (cleanCustomerName.includes('(')) {
-                    cleanCustomerName = cleanCustomerName.split('(')[0].trim();
-                }
+                if (cleanCustomerName.includes('(')) cleanCustomerName = cleanCustomerName.split('(')[0].trim();
 
                 if (log.items && log.items.length > 0) {
                     log.items.forEach(it => {
                         excelRows.push({
-                            "STT": stt++, 
-                            "Tên khách hàng": cleanCustomerName, 
-                            "Tên dịch vụ / Sản phẩm": it.service || '',
-                            "Số tiền": it.price || 0, 
-                            "Nhân viên phục vụ": it.staff || '', 
-                            "Hoa hồng nhân viên": it.commissionAmount || 0,
-                            "Ngày sử dụng": formatDateVN(log.date)
+                            "STT": stt++, "Tên khách hàng": cleanCustomerName, "Tên dịch vụ / Sản phẩm": it.service || '',
+                            "Số tiền": it.price || 0, "Nhân viên phục vụ": it.staff || '', "Hoa hồng": it.commissionAmount || 0, "Ngày sử dụng": formatDateVN(log.date)
                         });
                     });
                 }
@@ -2128,7 +2119,7 @@
 
             const worksheet = XLSX.utils.json_to_sheet(excelRows);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "NhatKyDichVu_SanPham");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "NhatKy");
             XLSX.writeFile(workbook, `Nhat_Ky_KimBeauty_${new Date().toISOString().slice(0, 10)}.xlsx`);
         }
 
@@ -2154,7 +2145,6 @@
             }
 
             const items = [];
-
             const comboBoxes = document.querySelectorAll('.combo-checkbox:checked');
             for (let cb of comboBoxes) {
                 const comboKey = cb.getAttribute('data-combokey');
@@ -2164,7 +2154,7 @@
                 const usedSessions = parseInt(parent.querySelector('.combo-used-sessions').value) || 1;
                 const staffName = parent.querySelector('.combo-staff-select').value;
 
-                if (!staffName) { alert(`Vui lòng chọn KTV cho Combo "${servName}"!`); return; }
+                if (!staffName) { alert(`Chọn KTV cho Combo "${servName}"!`); return; }
 
                 const staffKey = Object.keys(globalStaff).find(k => globalStaff[k].name === staffName);
                 const staffObj = staffKey ? globalStaff[staffKey] : null;
@@ -2172,20 +2162,9 @@
                 const servObj = servKey ? globalServices[servKey] : null;
 
                 let commVal = (staffObj && servObj && servObj.commissions) ? (servObj.commissions[staffObj.level] || 0) : 0;
-                
-                let sessionCommAmount = 0;
-                if (servObj && servObj.commType === 'FIXED') {
-                    sessionCommAmount = commVal * usedSessions;
-                } else {
-                    sessionCommAmount = (perSessionPrice * commVal) / 100 * usedSessions;
-                }
+                let sessionCommAmount = (servObj && servObj.commType === 'FIXED') ? (commVal * usedSessions) : ((perSessionPrice * commVal) / 100 * usedSessions);
 
-                items.push({
-                    service: `${servName} (Liệu trình ${usedSessions} buổi)`,
-                    price: 0,
-                    staff: staffName,
-                    commissionAmount: sessionCommAmount
-                });
+                items.push({ service: `${servName} (Liệu trình ${usedSessions} buổi)`, price: 0, staff: staffName, commissionAmount: sessionCommAmount });
 
                 if (actualCustKey && comboKey && globalCustomers[actualCustKey].combos[comboKey]) {
                     const currentRem = globalCustomers[actualCustKey].combos[comboKey].remainingSessions || 0;
@@ -2201,7 +2180,7 @@
                 const itemType = row.getAttribute('data-itemtype') || 'SINGLE';
 
                 if (serviceName) {
-                    if (!staffName) { alert(`Chọn nhân viên phục vụ/bán cho "${serviceName}"!`); return; }
+                    if (!staffName) { alert(`Chọn nhân viên cho "${serviceName}"!`); return; }
 
                     const staffKey = Object.keys(globalStaff).find(k => globalStaff[k].name === staffName);
                     const staffObj = staffKey ? globalStaff[staffKey] : null;
@@ -2209,20 +2188,9 @@
                     const servObj = servKey ? globalServices[servKey] : null;
 
                     let commVal = (staffObj && servObj && servObj.commissions) ? (servObj.commissions[staffObj.level] || 0) : 0;
+                    let commAmount = (servObj && servObj.commType === 'FIXED') ? commVal : ((price * commVal) / 100);
 
-                    let commAmount = 0;
-                    if (servObj && servObj.commType === 'FIXED') {
-                        commAmount = commVal;
-                    } else {
-                        commAmount = (price * commVal) / 100;
-                    }
-
-                    items.push({
-                        service: itemType === 'PRODUCT' ? `[Sản phẩm] ${serviceName}` : serviceName,
-                        price: price, 
-                        staff: staffName, 
-                        commissionAmount: commAmount
-                    });
+                    items.push({ service: itemType === 'PRODUCT' ? `[Sản phẩm] ${serviceName}` : serviceName, price, staff: staffName, commissionAmount: commAmount });
 
                     if (servObj && servObj.type === 'COMBO' && actualCustKey) {
                         const totalS = servObj.sessions || 10;
@@ -2243,54 +2211,26 @@
             const totalCommissionAmount = items.reduce((sum, i) => sum + i.commissionAmount, 0);
 
             db.ref('service_logs').push({
-                date, customer: customerName, service: serviceListText, cash, transfer, total: actualTotalPaid, staff: staffListText, commissionPercent: 0, commissionAmount: totalCommissionAmount, items: items
+                date, customer: customerName, service: serviceListText, cash, transfer, total: actualTotalPaid, staff: staffListText, commissionAmount: totalCommissionAmount, items
             }, (err) => {
                 if(!err) {
                     const bookingKey = document.getElementById('logFromBookingKey').value;
                     if (bookingKey) db.ref('bookings/' + bookingKey).update({ status: 'Đã xong' });
                     toggleAddLogForm();
-                    alert(`HOÀN THÀNH!\n- Khách: ${customerName}\n- Tổng thu: ${formatVND(actualTotalPaid)}\n- Nhân viên: ${staffListText}\n- Hoa hồng NV: ${formatVND(totalCommissionAmount)}`);
+                    alert(`HOÀN THÀNH!\n- Khách: ${customerName}\n- Tổng thu: ${formatVND(actualTotalPaid)}`);
                 }
             });
         }
 
-        function deleteAccount(username) {
-            if (currentUser.role !== 'SUPER_ADMIN') return;
-            if (username === currentUser.username) {
-                alert('Không thể xóa chính tài khoản đang đăng nhập!');
-                return;
-            }
-            if (confirm(`Xóa vĩnh viễn tài khoản "${username}"?`)) {
-                db.ref('users/' + username).remove();
-            }
-        }
-
         function toggleServiceTypeInput() {
             const selectedType = document.querySelector('input[name="servType"]:checked').value;
-            const isCombo = selectedType === 'COMBO';
-            const isProduct = selectedType === 'PRODUCT';
-
-            document.getElementById('comboSessionsBox').classList.toggle('hidden', !isCombo);
-
-            const nameLabel = document.getElementById('servNameLabel');
-            const priceLabel = document.getElementById('servPriceLabel');
-
-            if (isCombo) {
-                nameLabel.innerText = "Tên Gói Combo / Liệu Trình *";
-                priceLabel.innerText = "Giá trọn gói Combo (VNĐ) *";
-            } else if (isProduct) {
-                nameLabel.innerText = "Tên Sản Phẩm Bán *";
-                priceLabel.innerText = "Giá bán lẻ sản phẩm (VNĐ) *";
-            } else {
-                nameLabel.innerText = "Tên Dịch vụ lẻ *";
-                priceLabel.innerText = "Giá dịch vụ lẻ (VNĐ) *";
-            }
+            document.getElementById('comboSessionsBox').classList.toggle('hidden', selectedType !== 'COMBO');
         }
 
         function renderCustomerSelectInLogUI() {
             const select = document.getElementById('logCustomerSelect');
             if(!select) return;
-            let html = `<option value="KHACH_LA">-- Chọn Khách lạ --</option><option value="NEW_CUSTOMER">+ Thêm Khách mới (Lưu danh bạ)...</option>`;
+            let html = `<option value="KHACH_LA">-- Chọn Khách lạ --</option><option value="NEW_CUSTOMER">+ Thêm Khách mới...</option>`;
             Object.keys(globalCustomers).forEach(k => {
                 const c = globalCustomers[k];
                 html += `<option value="${k}">${c.name} (${c.phone})</option>`;
@@ -2314,7 +2254,7 @@
                 if (customer && customer.combos) {
                     let activeCombosHTML = '';
                     let count = 0;
-                    let staffOptionsHTML = '<option value="">-- Chọn KTV phục vụ --</option>';
+                    let staffOptionsHTML = '<option value="">-- Chọn KTV --</option>';
                     Object.keys(globalStaff).forEach(k => {
                         const st = globalStaff[k];
                         staffOptionsHTML += `<option value="${st.name}">${st.name} (${st.level})</option>`;
@@ -2331,16 +2271,16 @@
                                             <input type="checkbox" class="combo-checkbox w-4 h-4 text-amber-600 rounded" data-combokey="${cKey}" data-servname="${cb.serviceName}" data-perprice="${cb.pricePerSession}" onchange="calculateLogTotal()">
                                             <span>${cb.serviceName}</span>
                                         </label>
-                                        <span class="text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full text-[11px]">Còn: <strong>${cb.remainingSessions}</strong> / ${cb.totalSessions} buổi</span>
+                                        <span class="text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full text-[11px]">Còn: <strong>${cb.remainingSessions}</strong> buổi</span>
                                     </div>
                                     <div class="grid grid-cols-2 gap-2 text-xs">
                                         <div>
-                                            <span class="text-[10px] font-bold text-gray-500">Số buổi làm hôm nay:</span>
-                                            <input type="number" min="1" max="${cb.remainingSessions}" value="1" class="combo-used-sessions w-full px-2 py-1 bg-brand-cream/50 rounded-lg border border-gray-200 font-bold" onchange="calculateLogTotal()">
+                                            <span class="text-[10px] font-bold text-gray-500">Số buổi dùng:</span>
+                                            <input type="number" min="1" max="${cb.remainingSessions}" value="1" class="combo-used-sessions w-full px-2 py-1 bg-brand-cream/50 rounded-lg border" onchange="calculateLogTotal()">
                                         </div>
                                         <div>
-                                            <span class="text-[10px] font-bold text-amber-800">👤 KTV Làm Combo:</span>
-                                            <select class="combo-staff-select w-full px-2 py-1 bg-amber-50 rounded-lg border border-amber-300 text-xs font-bold text-brand-darkgreen">${staffOptionsHTML}</select>
+                                            <span class="text-[10px] font-bold text-amber-800">👤 KTV:</span>
+                                            <select class="combo-staff-select w-full px-2 py-1 bg-amber-50 rounded-lg border text-xs font-bold">${staffOptionsHTML}</select>
                                         </div>
                                     </div>
                                 </div>
@@ -2362,12 +2302,9 @@
         function addServiceRowToLog(itemType = 'SINGLE', presetService = '', presetPrice = 0) {
             const container = document.getElementById('serviceRowsContainer');
             const rowId = 'row_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-
             const isProduct = itemType === 'PRODUCT';
-            const labelTitle = isProduct ? '📦 Sản phẩm bán:' : '💆 Dịch vụ lẻ:';
-            const borderClass = isProduct ? 'border-blue-200 bg-blue-50/30' : 'border-gray-200 bg-white';
 
-            let itemOptionsHTML = `<option value="">-- Chọn ${isProduct ? 'Sản phẩm' : 'Dịch vụ lẻ'} --</option>`;
+            let itemOptionsHTML = `<option value="">-- Chọn --</option>`;
             Object.keys(globalServices).forEach(k => {
                 const s = globalServices[k];
                 if ((isProduct && s.type === 'PRODUCT') || (!isProduct && s.type !== 'PRODUCT')) {
@@ -2376,23 +2313,22 @@
                 }
             });
 
-            let staffOptionsHTML = '<option value="">-- Chọn NV phục vụ / Bán hàng --</option>';
+            let staffOptionsHTML = '<option value="">-- Chọn NV --</option>';
             Object.keys(globalStaff).forEach(k => {
                 const st = globalStaff[k];
                 staffOptionsHTML += `<option value="${st.name}">${st.name} (${st.level})</option>`;
             });
 
             const rowHTML = `
-                <div id="${rowId}" data-itemtype="${itemType}" class="service-row p-2.5 rounded-xl border ${borderClass} space-y-2">
-                    <div class="text-[10px] font-bold ${isProduct ? 'text-blue-800' : 'text-brand-darkgreen'} uppercase">${labelTitle}</div>
+                <div id="${rowId}" data-itemtype="${itemType}" class="service-row p-2.5 rounded-xl border ${isProduct ? 'border-blue-200 bg-blue-50/30' : 'border-gray-200 bg-white'} space-y-2">
                     <div class="flex items-center gap-2">
-                        <select onchange="onServiceRowSelectChange('${rowId}')" class="serv-select w-full px-2.5 py-1.5 bg-white rounded-lg border border-gray-200 text-xs font-bold text-brand-darkgreen">${itemOptionsHTML}</select>
-                        <input type="number" onchange="calculateLogTotal()" min="0" placeholder="Giá thu" value="${presetPrice}" class="serv-price w-32 px-2 py-1.5 bg-white rounded-lg border border-gray-200 text-xs font-bold text-emerald-700">
+                        <select onchange="onServiceRowSelectChange('${rowId}')" class="serv-select w-full px-2.5 py-1.5 bg-white rounded-lg border text-xs font-bold">${itemOptionsHTML}</select>
+                        <input type="number" onchange="calculateLogTotal()" min="0" placeholder="Giá" value="${presetPrice}" class="serv-price w-32 px-2 py-1.5 bg-white rounded-lg border text-xs font-bold text-emerald-700">
                         <button type="button" onclick="removeServiceRow('${rowId}')" class="text-red-500 font-bold px-2 py-1 text-xs shrink-0">✕</button>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-bold text-amber-800 shrink-0">👤 NV Phục vụ / Bán:</span>
-                        <select class="staff-select w-full px-2.5 py-1.5 bg-amber-50 rounded-lg border border-amber-300 text-xs font-bold text-brand-darkgreen">${staffOptionsHTML}</select>
+                        <span class="text-[10px] font-bold text-amber-800 shrink-0">👤 NV:</span>
+                        <select class="staff-select w-full px-2.5 py-1.5 bg-amber-50 rounded-lg border text-xs font-bold">${staffOptionsHTML}</select>
                     </div>
                 </div>
             `;
@@ -2401,18 +2337,15 @@
         }
 
         function removeServiceRow(rowId) {
-            const row = document.getElementById(rowId);
-            if (row) row.remove();
+            document.getElementById(rowId).remove();
             calculateLogTotal();
         }
 
         function onServiceRowSelectChange(rowId) {
             const row = document.getElementById(rowId);
-            if (!row) return;
             const select = row.querySelector('.serv-select');
-            const priceInp = row.querySelector('.serv-price');
             const selectedOpt = select.options[select.selectedIndex];
-            priceInp.value = selectedOpt ? (parseFloat(selectedOpt.getAttribute('data-price')) || 0) : 0;
+            row.querySelector('.serv-price').value = selectedOpt ? (parseFloat(selectedOpt.getAttribute('data-price')) || 0) : 0;
             calculateLogTotal();
         }
 
@@ -2457,7 +2390,6 @@
             const container = document.getElementById('pendingBookingsInLogContainer');
             if(!container) return;
             container.innerHTML = '';
-
             const pendingKeys = Object.keys(globalBookings).filter(k => globalBookings[k].status === 'Đang chờ');
             document.getElementById('pendingBookingCount').innerText = `${pendingKeys.length} lịch chờ`;
 
@@ -2469,12 +2401,12 @@
             pendingKeys.forEach(key => {
                 const b = globalBookings[key];
                 container.insertAdjacentHTML('afterbegin', `
-                    <div class="bg-white p-3 rounded-2xl border border-amber-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div class="bg-white p-3 rounded-2xl border border-amber-200 flex justify-between items-center">
                         <div>
                             <div class="font-bold text-xs text-brand-darkgreen">${b.name} (${b.phone})</div>
-                            <div class="text-[11px] text-gray-600">Dịch vụ/SP: <strong class="text-brand-green">${b.service}</strong> - Giờ: <strong>${b.time}</strong></div>
+                            <div class="text-[11px] text-gray-600">${b.service} - ${b.time}</div>
                         </div>
-                        <button onclick="startServiceFromBooking('${key}', '${b.name}', '${b.phone}', '${b.service}')" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow">▶ Phục vụ ngay</button>
+                        <button onclick="startServiceFromBooking('${key}', '${b.name}', '${b.phone}', '${b.service}')" class="bg-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow">▶ Phục vụ</button>
                     </div>
                 `);
             });
@@ -2498,10 +2430,7 @@
 
             const servKey = Object.keys(globalServices).find(k => globalServices[k].name === serviceName);
             const servObj = servKey ? globalServices[servKey] : null;
-            const price = servObj ? (servObj.price || 0) : 0;
-            const type = servObj ? (servObj.type === 'PRODUCT' ? 'PRODUCT' : 'SINGLE') : 'SINGLE';
-
-            addServiceRowToLog(type, serviceName, price);
+            addServiceRowToLog(servObj && servObj.type === 'PRODUCT' ? 'PRODUCT' : 'SINGLE', serviceName, servObj ? servObj.price : 0);
         }
 
         function handleLogFilterModeChange() {
@@ -2516,7 +2445,6 @@
             const container = document.getElementById('serviceLogsContainer');
             if(!container) return;
             container.innerHTML = '';
-
             const keys = Object.keys(globalServiceLogs);
             if(keys.length === 0) {
                 container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Chưa có nhật ký</p>';
@@ -2532,47 +2460,31 @@
 
             let filteredKeys = keys.filter(key => {
                 const log = globalServiceLogs[key];
-                let timeMatch = true;
-                if (filterMode === 'TODAY') timeMatch = (log.date === todayStr);
-                else if (filterMode === 'SPECIFIC_DATE') timeMatch = (log.date === specificDate);
-                else if (filterMode === 'MONTH_YEAR') timeMatch = log.date.startsWith(monthYear);
-                else if (filterMode === 'YEAR') timeMatch = log.date.startsWith(yearVal);
-
-                let kwMatch = true;
-                if (keyword) kwMatch = `${log.customer} ${log.service} ${log.staff} ${log.date}`.toLowerCase().includes(keyword);
+                let timeMatch = (filterMode === 'TODAY') ? (log.date === todayStr) : ((filterMode === 'SPECIFIC_DATE') ? (log.date === specificDate) : ((filterMode === 'MONTH_YEAR') ? log.date.startsWith(monthYear) : ((filterMode === 'YEAR') ? log.date.startsWith(yearVal) : true)));
+                let kwMatch = keyword ? `${log.customer} ${log.service} ${log.staff} ${log.date}`.toLowerCase().includes(keyword) : true;
                 return timeMatch && kwMatch;
             });
 
             const isAdmin = currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'MANAGER';
-
             filteredKeys.forEach(key => {
                 const log = globalServiceLogs[key];
-                const deleteBtn = isAdmin ? `<button onclick="deleteLog('${key}')" class="text-red-500 hover:text-red-700 text-xs font-bold">🗑 Xóa</button>` : '';
-
-                let itemsDetailHTML = '';
-                if (log.items && log.items.length > 0) {
-                    itemsDetailHTML = log.items.map(it => `
-                        <div class="flex justify-between items-center text-[11px] text-gray-700 bg-white p-1.5 rounded-lg border border-gray-100">
-                            <span>• <strong>${it.service}</strong> (${formatVND(it.price)})</span>
-                            <span class="text-amber-800">NV: <strong>${it.staff}</strong> (+${formatVND(it.commissionAmount)})</span>
-                        </div>
-                    `).join('');
-                }
+                const deleteBtn = isAdmin ? `<button onclick="deleteLog('${key}')" class="text-red-500 font-bold text-xs">🗑 Xóa</button>` : '';
+                let itemsDetailHTML = log.items ? log.items.map(it => `<div class="flex justify-between items-center text-[11px] text-gray-700 bg-white p-1.5 rounded-lg border"><span>• <strong>${it.service}</strong> (${formatVND(it.price)})</span><span class="text-amber-800">NV: ${it.staff}</span></div>`).join('') : '';
 
                 container.insertAdjacentHTML('afterbegin', `
                     <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-brand-green/10 space-y-1.5">
                         <div class="flex justify-between items-start">
                             <div>
                                 <h3 class="font-bold text-brand-darkgreen text-sm">${log.customer}</h3>
-                                <p class="text-[11px] text-gray-500 font-bold">📅 Ngày: ${formatDateVN(log.date)}</p>
+                                <p class="text-[11px] text-gray-500 font-bold">📅 ${formatDateVN(log.date)}</p>
                             </div>
                             ${deleteBtn}
                         </div>
                         <div class="bg-brand-cream/50 p-2.5 rounded-xl text-xs space-y-1.5">
                             <div class="space-y-1">${itemsDetailHTML || `<div class="font-bold text-brand-green">${log.service}</div>`}</div>
                             <div class="flex justify-between border-t pt-1 font-bold">
-                                <span>Tổng thu thực tế: ${formatVND(log.total)}</span>
-                                <span class="text-amber-700">Hoa hồng NV: ${formatVND(log.commissionAmount)}</span>
+                                <span>Tổng thu: ${formatVND(log.total)}</span>
+                                <span class="text-amber-700">Hoa hồng: ${formatVND(log.commissionAmount)}</span>
                             </div>
                         </div>
                     </div>
@@ -2582,7 +2494,7 @@
 
         function deleteLog(key) {
             if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER') return;
-            if(confirm('Xóa lượt dịch vụ/bán hàng này?')) db.ref('service_logs/' + key).remove();
+            if(confirm('Xóa lượt dịch vụ này?')) db.ref('service_logs/' + key).remove();
         }
 
         function toggleLevelModal() { document.getElementById('levelModal').classList.toggle('hidden'); }
@@ -2606,7 +2518,7 @@
             bookSelect.innerHTML = '';
             Object.keys(globalServices).forEach(k => {
                 const s = globalServices[k];
-                bookSelect.innerHTML += `<option value="${s.name}">${s.name} (${s.type === 'COMBO' ? s.sessions + ' buổi' : (s.type === 'PRODUCT' ? 'Sản phẩm' : 'Lẻ')})</option>`;
+                bookSelect.innerHTML += `<option value="${s.name}">${s.name}</option>`;
             });
         }
 
@@ -2617,9 +2529,9 @@
             Object.keys(globalCustomers).forEach(key => {
                 const c = globalCustomers[key];
                 container.insertAdjacentHTML('afterbegin', `
-                    <div id="cust-${key}" onclick="showCustomerDetails('${key}', '${c.name}', '${c.phone}', '${c.address}')" class="cust-card bg-white p-4 rounded-2xl shadow-sm border border-brand-green/10 cursor-pointer flex items-center justify-between hover:bg-brand-cream/30 transition">
+                    <div onclick="showCustomerDetails('${key}', '${c.name}', '${c.phone}', '${c.address}')" class="cust-card bg-white p-4 rounded-2xl shadow-sm border border-brand-green/10 cursor-pointer flex items-center justify-between hover:bg-brand-cream/30 transition">
                         <div class="flex items-center gap-3.5">
-                            <div class="w-11 h-11 rounded-2xl bg-brand-green text-white font-bold flex items-center justify-center text-sm shadow-sm">${c.name ? c.name.substring(0,2).toUpperCase() : 'KH'}</div>
+                            <div class="w-11 h-11 rounded-2xl bg-brand-green text-white font-bold flex items-center justify-center text-sm">${c.name ? c.name.substring(0,2).toUpperCase() : 'KH'}</div>
                             <div>
                                 <h3 class="font-bold text-brand-darkgreen text-sm">${c.name}</h3>
                                 <p class="text-xs text-gray-500">📞 ${c.phone}</p>
@@ -2637,14 +2549,14 @@
             if(!container) return;
             container.innerHTML = '';
             if(!data || Object.keys(data).length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Chưa có lịch hẹn nào</p>';
+                container.innerHTML = '<p class="text-center text-gray-400 text-xs py-4">Chưa có lịch hẹn</p>';
                 return;
             }
 
             Object.keys(data).forEach(key => {
                 const b = data[key];
                 const statusClass = b.status === 'Đã xong' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
-                const completeBtn = b.status === 'Đang chờ' ? `<button onclick="startServiceFromBooking('${key}', '${b.name}', '${b.phone}', '${b.service}'); switchTab('logs');" class="bg-amber-600 text-white text-xs px-3 py-1 rounded-lg font-bold shadow">▶ Phục vụ</button>` : '';
+                const completeBtn = b.status === 'Đang chờ' ? `<button onclick="startServiceFromBooking('${key}', '${b.name}', '${b.phone}', '${b.service}'); switchTab('logs');" class="bg-amber-600 text-white text-xs px-3 py-1 rounded-lg font-bold">▶ Phục vụ</button>` : '';
 
                 container.insertAdjacentHTML('afterbegin', `
                     <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-brand-green/10 space-y-2">
@@ -2656,10 +2568,10 @@
                             <span class="${statusClass} text-[10px] px-2 py-0.5 rounded-full font-bold">${b.status}</span>
                         </div>
                         <div class="bg-brand-cream/50 p-2 rounded-xl text-xs space-y-0.5">
-                            <div><strong class="text-gray-700">Dịch vụ / SP:</strong> <span class="text-brand-green font-bold">${b.service}</span></div>
-                            <div><strong class="text-gray-700">Giờ hẹn:</strong> ${b.time}</div>
+                            <div><strong>Dịch vụ:</strong> <span class="text-brand-green font-bold">${b.service}</span></div>
+                            <div><strong>Giờ hẹn:</strong> ${b.time}</div>
                         </div>
-                        <div class="flex justify-end gap-2 pt-1 border-t border-gray-100">
+                        <div class="flex justify-end gap-2 pt-1 border-t">
                             ${completeBtn}
                             <button onclick="deleteBooking('${key}')" class="bg-red-50 text-red-600 text-xs px-2.5 py-1 rounded-lg font-bold">🗑 Xóa</button>
                         </div>
@@ -2677,51 +2589,38 @@
             });
             const worksheet = XLSX.utils.json_to_sheet(excelData);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "KhachHang_KimBeauty");
-            XLSX.writeFile(workbook, `Danh_Sach_Khach_Hang_KimBeauty_${new Date().toISOString().slice(0, 10)}.xlsx`);
+            XLSX.utils.book_append_sheet(workbook, worksheet, "KhachHang");
+            XLSX.writeFile(workbook, `Danh_Sach_Khach_Hang_${new Date().toISOString().slice(0, 10)}.xlsx`);
         }
 
         function saveNewCustomer(e) {
             e.preventDefault();
-            const name = document.getElementById('newCustName').value.trim();
-            const phone = document.getElementById('newCustPhone').value.trim();
-            const address = document.getElementById('newCustAddress').value.trim();
-            db.ref('customers').push({ name, phone, address }, (err) => { 
-                if(!err) {
-                    alert('Đã thêm khách hàng!');
-                    closeAddCustomerModal(); 
-                }
-            });
+            db.ref('customers').push({
+                name: document.getElementById('newCustName').value.trim(),
+                phone: document.getElementById('newCustPhone').value.trim(),
+                address: document.getElementById('newCustAddress').value.trim()
+            }, (err) => { if(!err) { alert('Đã thêm khách hàng!'); closeAddCustomerModal(); } });
         }
 
         function saveNewBooking(e) {
             e.preventDefault();
-            const name = document.getElementById('bookCustName').value.trim();
-            const phone = document.getElementById('bookCustPhone').value.trim();
-            const service = document.getElementById('bookService').value;
-            const time = document.getElementById('bookTime').value;
-            const status = document.getElementById('bookStatus').value;
-            db.ref('bookings').push({ name, phone, service, time, status }, (err) => { 
-                if(!err) {
-                    alert('Đã tạo lịch hẹn!');
-                    closeBookingModal(); 
-                }
-            });
+            db.ref('bookings').push({
+                name: document.getElementById('bookCustName').value.trim(),
+                phone: document.getElementById('bookCustPhone').value.trim(),
+                service: document.getElementById('bookService').value,
+                time: document.getElementById('bookTime').value,
+                status: document.getElementById('bookStatus').value
+            }, (err) => { if(!err) { alert('Đã tạo lịch hẹn!'); closeBookingModal(); } });
         }
 
         function deleteCurrentCustomer() {
             if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER') return;
-            if(confirm('Xóa vĩnh viễn khách hàng này cùng dữ liệu combo liên quan?')) {
-                if(currentActiveCustKey) { 
-                    db.ref('customers/' + currentActiveCustKey).remove(); 
-                    closeModal(); 
-                }
+            if(confirm('Xóa vĩnh viễn khách hàng này?')) {
+                if(currentActiveCustKey) { db.ref('customers/' + currentActiveCustKey).remove(); closeModal(); }
             }
         }
 
-        function deleteBooking(key) { 
-            if(confirm('Xóa lịch hẹn này?')) db.ref('bookings/' + key).remove(); 
-        }
+        function deleteBooking(key) { if(confirm('Xóa lịch hẹn?')) db.ref('bookings/' + key).remove(); }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -2736,11 +2635,7 @@
             const activeBtn = document.getElementById('btn-' + tabId);
             if (activeBtn) {
                 activeBtn.classList.remove('text-gray-400', 'font-medium');
-                if (tabId === 'sitebuilder') {
-                    activeBtn.classList.add('text-purple-600', 'font-bold');
-                } else {
-                    activeBtn.classList.add('text-brand-green', 'font-bold');
-                }
+                activeBtn.classList.add(tabId === 'sitebuilder' ? 'text-purple-600' : 'text-brand-green', 'font-bold');
             }
         }
 
@@ -2765,11 +2660,9 @@
                         <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex justify-between items-center text-xs">
                             <div>
                                 <div class="font-bold text-amber-900">${cb.serviceName}</div>
-                                <div class="text-[10px] text-gray-500 mt-0.5">Ngày mua: ${formatDateVN(cb.buyDate)}</div>
+                                <div class="text-[10px] text-gray-500">Mua: ${formatDateVN(cb.buyDate)}</div>
                             </div>
-                            <span class="bg-amber-200 text-amber-900 px-3 py-1 rounded-full font-bold">
-                                Còn ${cb.remainingSessions} / ${cb.totalSessions} buổi
-                            </span>
+                            <span class="bg-amber-200 text-amber-900 px-3 py-1 rounded-full font-bold">Còn ${cb.remainingSessions} buổi</span>
                         </div>
                     `;
                 });
