@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Hub Admin - Quản Lý Đa Spa (Drive Riêng)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen p-4 md:p-8">
+
+    <!-- MÀN HÌNH ĐĂNG NHẬP ADMIN (BẢO MẬT) -->
+    <div id="authScreen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-2xl text-center">
+            <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <h2 class="text-lg font-bold text-gray-800">MASTER ADMIN HUB</h2>
+            <p class="text-xs text-gray-500">Xác thực quyền Quản trị viên duy nhất</p>
+            <input type="password" id="adminMasterPass" placeholder="Nhập Mật Khẩu Admin..." class="w-full px-4 py-2.5 bg-gray-50 border rounded-2xl text-center text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <button onclick="checkAdminAuth()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-2xl text-xs shadow-lg transition">ĐĂNG NHẬP TỔNG</button>
+        </div>
+    </div>
+
+    <!-- MAIN APP HUB -->
+    <div id="mainHubApp" class="max-w-5xl mx-auto space-y-6 hidden">
+        
+        <!-- Header Hub -->
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-purple-600 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg">
+                    <i class="fa-solid fa-cubes"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-800">Hệ Thống Quản Lý Đa Spa</h1>
+                    <p class="text-xs text-gray-500">Cấp phát trang POS & Lưu trữ trên Google Drive riêng của cơ sở</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="openAddSpaModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-md flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Kết Nối Spa Mới
+                </button>
+                <button onclick="logoutAdmin()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-2.5 rounded-2xl text-xs font-bold">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Danh sách Các Spa -->
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
+            <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center justify-between">
+                <span>Danh Sách Cơ Sở Đang Quản Lý</span>
+                <span id="spaTotalCount" class="bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full text-[10px]">0 Spa</span>
+            </h2>
+
+            <div id="spaListContainer" class="space-y-3">
+                <!-- Data Render qua JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM / KẾT NỐI SPA MỚI -->
+    <div id="addSpaModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-6 rounded-3xl space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-gray-800 text-sm"><i class="fa-solid fa-link text-purple-600"></i> Kết Nối Google Sheet Của Spa Mới</h3>
+                <button onclick="closeAddSpaModal()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+            </div>
+            
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-gray-600 mb-1">1. Tên Spa / Cơ sở *</label>
+                    <input type="text" id="newSpaName" placeholder="Ví dụ: Spa Linh An" class="w-full px-3 py-2 border rounded-xl font-bold">
+                </div>
+                
+                <div>
+                    <label class="block font-bold text-gray-600 mb-1">2. Link Google Sheet (Trên Drive của Spa) *</label>
+                    <input type="text" id="newSheetUrl" placeholder="Dán đường dẫn (Link) file Google Sheet của Spa vào đây..." class="w-full px-3 py-2 border rounded-xl font-mono text-blue-700 font-semibold">
+                    <p class="text-[10px] text-gray-400 mt-1">💡 Hướng dẫn chủ Spa: Tạo 1 Google Sheet trên Drive của họ ➔ Mở quyền "Bất kỳ ai có liên kết đều có thể chỉnh sửa" ➔ Copy Link dán vào đây.</p>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-gray-600 mb-1">3. Thời Gian Sử Dụng Phân Quyền *</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="durationSelect" onchange="toggleCustomDate()" class="w-full px-3 py-2 border rounded-xl font-bold text-gray-700">
+                            <option value="1M">1 Tháng</option>
+                            <option value="3M">3 Tháng</option>
+                            <option value="6M">6 Tháng</option>
+                            <option value="1Y" selected>1 Năm (12 Tháng)</option>
+                            <option value="CUSTOM">Tùy chọn Ngày...</option>
+                        </select>
+                        <input type="date" id="customExpireDate" class="hidden w-full px-3 py-2 border rounded-xl font-bold text-purple-700">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-3 border-t">
+                <button onclick="closeAddSpaModal()" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold text-xs">Hủy</button>
+                <button onclick="saveNewSpa()" class="px-4 py-2 bg-purple-600 text-white rounded-xl font-bold text-xs shadow">🔗 KẾT NỐI SPA</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_PASS = "123456"; // Mật khẩu Admin của bạn
+
+        let spas = JSON.parse(localStorage.getItem('master_spas_v2')) || [];
+        let timerInterval = null;
+
+        function checkAdminAuth() {
+            const input = document.getElementById('adminMasterPass').value;
+            if (input === ADMIN_PASS) {
+                sessionStorage.setItem('admin_auth', 'true');
+                document.getElementById('authScreen').classList.add('hidden');
+                document.getElementById('mainHubApp').classList.remove('hidden');
+                initHub();
+            } else {
+                alert("Mật khẩu Admin không chính xác!");
+            }
+        }
+
+        function logoutAdmin() {
+            sessionStorage.removeItem('admin_auth');
+            location.reload();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('admin_auth') === 'true') {
+                document.getElementById('authScreen').classList.add('hidden');
+                document.getElementById('mainHubApp').classList.remove('hidden');
+                initHub();
+            }
+        });
+
+        function initHub() {
+            renderSpaList();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateAllCountdowns, 1000);
+        }
+
+        function toggleCustomDate() {
+            const val = document.getElementById('durationSelect').value;
+            document.getElementById('customExpireDate').classList.toggle('hidden', val !== 'CUSTOM');
+        }
+
+        // Hàm trích xuất File ID từ đường dẫn Google Sheet do chủ Spa cung cấp
+        function extractSheetId(urlOrId) {
+            if (!urlOrId) return '';
+            if (urlOrId.includes('/d/')) {
+                const parts = urlOrId.split('/d/');
+                return parts[1].split('/')[0];
+            }
+            return urlOrId.trim();
+        }
+
+        function renderSpaList() {
+            const container = document.getElementById('spaListContainer');
+            document.getElementById('spaTotalCount').innerText = `${spas.length} Spa`;
+            container.innerHTML = '';
+
+            if (spas.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-400 text-xs py-8">Chưa có cơ sở Spa nào được kết nối.</p>`;
+                return;
+            }
+
+            spas.forEach((spa, index) => {
+                container.innerHTML += `
+                    <div class="p-4 bg-gray-50 rounded-2xl border border-gray-200/80 flex flex-wrap justify-between items-center text-xs gap-3">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <strong class="text-sm font-bold text-gray-800">${spa.name}</strong>
+                                <span class="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">ID: ${spa.id}</span>
+                            </div>
+                            <p class="text-[11px] text-gray-500">Sheet ID: <span class="font-mono text-blue-800 font-semibold">${spa.sheetId || 'Chưa nhận'}</span></p>
+                        </div>
+
+                        <!-- ĐỒNG HỒ ĐẾM NGƯỢC REALTIME -->
+                        <div class="bg-white px-3 py-2 rounded-xl border shadow-sm text-center">
+                            <span class="text-[10px] text-gray-400 font-bold block">Thời gian còn lại:</span>
+                            <div id="countdown_${index}" class="font-mono font-bold text-xs text-purple-700">Đang tính...</div>
+                        </div>
+
+                        <!-- HÀNH ĐỘNG -->
+                        <div class="flex items-center gap-2">
+                            <button onclick="extendDuration(${index})" class="px-2.5 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 font-bold rounded-xl hover:bg-amber-100" title="+30 Ngày">
+                                ➕ Gia Hạn
+                            </button>
+                            <a href="${spa.link}" target="_blank" class="px-3 py-1.5 bg-purple-600 text-white font-bold rounded-xl shadow-sm hover:bg-purple-700">
+                                🔗 Truy Cập POS
+                            </a>
+                            <button onclick="deleteSpa(${index})" class="px-2 py-1.5 bg-white text-red-500 border border-gray-200 font-bold rounded-xl">
+                                🗑
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            updateAllCountdowns();
+        }
+
+        function updateAllCountdowns() {
+            const now = new Date().getTime();
+
+            spas.forEach((spa, index) => {
+                const el = document.getElementById(`countdown_${index}`);
+                if (!el) return;
+
+                const expireTime = new Date(spa.expireAt).getTime();
+                const distance = expireTime - now;
+
+                if (distance < 0) {
+                    el.innerHTML = `<span class="text-red-600 font-bold">⛔ ĐÃ HẾT HẠN</span>`;
+                } else {
+                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    el.innerHTML = `<span class="text-emerald-700 font-bold">${days}d ${hours}h ${minutes}m ${seconds}s</span>`;
+                }
+            });
+        }
+
+        function saveNewSpa() {
+            const name = document.getElementById('newSpaName').value.trim();
+            const sheetUrl = document.getElementById('newSheetUrl').value.trim();
+            const durationType = document.getElementById('durationSelect').value;
+
+            if (!name || !sheetUrl) { 
+                alert("Vui lòng nhập đầy đủ Tên Spa và Đường dẫn Google Sheet!"); 
+                return; 
+            }
+
+            const sheetId = extractSheetId(sheetUrl);
+
+            // Tính ngày hết hạn
+            let expireDate = new Date();
+            if (durationType === '1M') expireDate.setMonth(expireDate.getMonth() + 1);
+            else if (durationType === '3M') expireDate.setMonth(expireDate.getMonth() + 3);
+            else if (durationType === '6M') expireDate.setMonth(expireDate.getMonth() + 6);
+            else if (durationType === '1Y') expireDate.setFullYear(expireDate.getFullYear() + 1);
+            else if (durationType === 'CUSTOM') {
+                const custVal = document.getElementById('customExpireDate').value;
+                if (!custVal) { alert("Chưa chọn ngày hết hạn!"); return; }
+                expireDate = new Date(custVal);
+            }
+
+            const spaId = 'spa_' + Date.now();
+
+            spas.push({
+                id: spaId,
+                name: name,
+                sheetId: sheetId,
+                expireAt: expireDate.toISOString(),
+                link: `kimbeauty_pos.html?spaId=${spaId}&sheet=${sheetId}`
+            });
+
+            localStorage.setItem('master_spas_v2', JSON.stringify(spas));
+            renderSpaList();
+            closeAddSpaModal();
+            
+            document.getElementById('newSpaName').value = '';
+            document.getElementById('newSheetUrl').value = '';
+            
+            alert(`🎉 Đã kết nối thành công Spa "${name}" với Google Sheet riêng trên Drive của cơ sở!`);
+        }
+
+        function extendDuration(index) {
+            let current = new Date(spas[index].expireAt);
+            if (isNaN(current.getTime()) || current.getTime() < new Date().getTime()) current = new Date();
+            current.setDate(current.getDate() + 30);
+
+            spas[index].expireAt = current.toISOString();
+            localStorage.setItem('master_spas_v2', JSON.stringify(spas));
+            renderSpaList();
+            alert(`Đã gia hạn thêm 30 ngày cho ${spas[index].name}!`);
+        }
+
+        function deleteSpa(index) {
+            if (confirm(`Xóa vĩnh viễn cơ sở "${spas[index].name}" khỏi hệ thống?`)) {
+                spas.splice(index, 1);
+                localStorage.setItem('master_spas_v2', JSON.stringify(spas));
+                renderSpaList();
+            }
+        }
+
+        function openAddSpaModal() { document.getElementById('addSpaModal').classList.remove('hidden'); }
+        function closeAddSpaModal() { document.getElementById('addSpaModal').classList.add('hidden'); }
+    </script>
+</body>
+</html>
