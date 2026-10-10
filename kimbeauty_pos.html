@@ -2655,8 +2655,7 @@
             document.getElementById('modalCustName').innerText = name;
             document.getElementById('modalCustPhone').innerText = '📞 ' + phone;
             document.getElementById('modalCustAddress').innerText = '📍 ' + address;
-
-            const comboListContainer = document.getElementById('modalCustomerComboList');
+const comboListContainer = document.getElementById('modalCustomerComboList');
             comboListContainer.innerHTML = '';
             const c = globalCustomers[key];
             if (c && c.combos && Object.keys(c.combos).length > 0) {
@@ -2686,54 +2685,58 @@
                 card.style.display = card.innerText.toLowerCase().includes(input) ? 'flex' : 'none';
             });
         }
+
+        // --- BẮT ĐẦU: KHAI BÁO CẤU HÌNH API ĐA CHI NHÁNH ---
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbykgZ0soQMcwZer8XKGBAM95v66wEg9Lh8aMPIP7LkdxMG9jBjN0yg3wVsS1JNsdx_6Hw/exec";
+
         // --- BẮT ĐẦU: ĐOẠN MÃ KẾT NỐI MASTER HUB & KHÓA HẠN BẢN QUYỀN ---
-const urlParams = new URLSearchParams(window.location.search);
-const currentSpaId = urlParams.get('spaId');
-const currentSheetId = urlParams.get('sheet');
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentSpaId = urlParams.get('spaId');
+        const currentSheetId = urlParams.get('sheet');
 
-window.addEventListener('DOMContentLoaded', () => {
-    // 1. Kiểm tra tham số định danh từ URL
-    if (!currentSpaId || !currentSheetId) {
-        document.body.innerHTML = `
-            <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#0f172a; color:white; font-family:sans-serif; text-align:center; padding:20px;">
-                <h1 style="font-size:20px; color:#f87171; font-weight:bold;">LỖI TRUY CẬP HỆ THỐNG</h1>
-                <p style="font-size:14px; color:#cbd5e1; margin-top:10px;">Đường dẫn thiếu thông tin định danh cơ sở hoặc Sheet ID.</p>
-            </div>
-        `;
-        return;
-    }
-
-    // 2. Kiểm tra thời hạn từ Master Hub trong localStorage
-    const masterSpas = JSON.parse(localStorage.getItem('master_spas_v2')) || [];
-    const currentSpa = masterSpas.find(s => s.id === currentSpaId);
-
-    if (currentSpa) {
-        const expireTime = new Date(currentSpa.expireAt).getTime();
-        const now = new Date().getTime();
-
-        if (now > expireTime) {
-            // Màn hình khóa khi hết hạn đúng theo yêu cầu của bạn
-            document.body.innerHTML = `
-                <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#0f172a; color:white; font-family:sans-serif; text-align:center; padding:20px;">
-                    <div style="font-size:64px; margin-bottom:15px;">🔒</div>
-                    <h1 style="font-size:22px; color:#f87171; font-weight:bold; margin-bottom:12px; max-width:500px; line-height:1.4;">
-                        Thời gian sử dụng của bạn đã hết, vui lòng liên hệ Admin:
-                    </h1>
-                    <div style="background:#1e293b; border:1px solid #334155; padding:16px 24px; border-radius:16px; margin-top:8px;">
-                        <p style="font-size:16px; color:#38bdf8; font-weight:bold; margin:0;">
-                            Zalo / SĐT: 097.897.1331 / 077.770.1992
-                        </p>
+        window.addEventListener('DOMContentLoaded', () => {
+            // 1. Kiểm tra tham số định danh từ URL
+            if (!currentSpaId || !currentSheetId) {
+                document.body.innerHTML = `
+                    <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#0f172a; color:white; font-family:sans-serif; text-align:center; padding:20px;">
+                        <h1 style="font-size:20px; color:#f87171; font-weight:bold;">LỖI TRUY CẬP HỆ THỐNG</h1>
+                        <p style="font-size:14px; color:#cbd5e1; margin-top:10px;">Đường dẫn thiếu thông tin định danh cơ sở hoặc Sheet ID.</p>
                     </div>
-                    <p style="font-size:14px; color:#94a3b8; margin-top:16px;">
-                        để được mở khóa!
-                    </p>
-                </div>
-            `;
-            return;
-        }
-    }
-});
-// --- KẾT THÚC ĐOẠN MÃ BẢO MẬT ---
+                `;
+                return;
+            }
+
+            // 2. Kiểm tra thời hạn từ Master Hub trong localStorage
+            const masterSpas = JSON.parse(localStorage.getItem('master_spas_v2')) || [];
+            const currentSpa = masterSpas.find(s => s.id === currentSpaId);
+
+            if (currentSpa) {
+                const expireTime = new Date(currentSpa.expireAt).getTime();
+                const now = new Date().getTime();
+
+                if (now > expireTime) {
+                    // Màn hình khóa khi hết hạn
+                    document.body.innerHTML = `
+                        <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#0f172a; color:white; font-family:sans-serif; text-align:center; padding:20px;">
+                            <div style="font-size:64px; margin-bottom:15px;">🔒</div>
+                            <h1 style="font-size:22px; color:#f87171; font-weight:bold; margin-bottom:12px; max-width:500px; line-height:1.4;">
+                                Thời gian sử dụng của bạn đã hết, vui lòng liên hệ Admin:
+                            </h1>
+                            <div style="background:#1e293b; border:1px solid #334155; padding:16px 24px; border-radius:16px; margin-top:8px;">
+                                <p style="font-size:16px; color:#38bdf8; font-weight:bold; margin:0;">
+                                    Zalo / SĐT: 097.897.1331 / 077.770.1992
+                                </p>
+                            </div>
+                            <p style="font-size:14px; color:#94a3b8; margin-top:16px;">
+                                để được mở khóa!
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+            }
+        });
+        // --- KẾT THÚC ĐOẠN MÃ BẢO MẬT ---
     </script>
 </body>
 </html>
