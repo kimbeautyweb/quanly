@@ -23,9 +23,6 @@
     <!-- FontAwesome & SheetJS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 pb-20 sm:pb-6">
 
@@ -464,7 +461,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-bold text-gray-600 mb-1">Mật khẩu *</label>
-                                    <input type="password" id="accPassword" required placeholder="••••••" class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs">
+                                    <input type="password" id="accPassword" placeholder="Để trống = giữ nguyên" autocomplete="new-password" class="w-full px-3 py-2 bg-white rounded-xl border border-gray-200 text-xs">
                                 </div>
                             </div>
 
@@ -937,19 +934,244 @@
     </div>
 <!-- SCRIPT REALTIME & LOGIC QUẢN TRỊ ĐỘNG -->
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCzIUPf2Wghh6voay899bdDGN9rQVhHGsU",
-            authDomain: "kimbeauty-11b61.firebaseapp.com",
-            databaseURL: "https://kimbeauty-11b61-default-rtdb.firebaseio.com",
-            projectId: "kimbeauty-11b61",
-            storageBucket: "kimbeauty-11b61.firebasestorage.app",
-            messagingSenderId: "1074549280539",
-            appId: "1:1074549280539:web:0bbef93442aed637e7cdbe",
-            measurementId: "G-WYF12RE8ZV"
-        };
+        // ===================== CẤU HÌNH =====================
+        // Dán URL Web App của Google Apps Script (kết thúc bằng /exec). Phải giống với hub.html
+        const API_URL = "https://script.google.com/macros/s/AKfycbykgZ0soQMcwZer8XKGBAM95v66wEg9Lh8aMPIP7LkdxMG9jBjN0yg3wVsS1JNsdx_6Hw/exec";
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        const _qs = new URLSearchParams(window.location.search);
+        const currentSpaId = (_qs.get('spaId') || '').trim().replace(/[^A-Za-z0-9_-]/g, '');
+        // Mã cơ sở dùng làm tiền tố đường dẫn dữ liệu; SheetDB tự bỏ tiền tố này khi gửi lên server
+        const SPA_PATH = currentSpaId ? `spas/${currentSpaId}` : null;
+        // Phiên đăng nhập tách riêng theo chi nhánh
+        const SESSION_KEY = `kimbeauty_user_${currentSpaId || 'none'}`;
+        let listenersAttached = false;
+        const dynListeners = {};
+        let session = null;      // { token, user }
+        let spaMeta = {};
+
+        // ===================== GỌI API APPS SCRIPT =====================
+        async function api(action, body = {}) {
+            let res;
+            try {
+                res = await fetch(API_URL, {
+                    method: 'POST', // không đặt header -> text/plain, tránh preflight CORS với Apps Script
+                    body: JSON.stringify({ action, spaId: currentSpaId, token: session ? session.token : undefined, ...body })
+                });
+            } catch (e) { e.network = true; throw e; }
+            let json;
+            try { json = await res.json(); } catch (e) { e.network = true; throw e; }
+            if (json.status === 'expired') { showExpiredScreen(); throw new Error('expired'); }
+            if (json.status === 'unauthorized' && session) {
+                forceLogout(SheetDB.isReady() ? (json.message || 'Phiên đăng nhập đã hết hạn.') : '');
+                throw new Error('unauthorized');
+            }
+            return json;
+        }
+
+        // ===================== SHEETDB: DB "GIỐNG FIREBASE" LƯU TRÊN GOOGLE SHEET =====================
+        // Giữ nguyên giao diện db.ref(path).on/once/set/update/push/remove để toàn bộ code POS dùng lại được.
+        // Dữ liệu nằm trong bộ nhớ, ghi lạc quan (hiện ngay) rồi đẩy lên Sheet; định kỳ kiểm tra thay đổi từ máy khác.
+        const SheetDB = (() => {
+            let cache = {}, ready = false, version = null, me = null;
+            let pending = [], flushing = false, flushTimer = null, editSeq = 0, pollTimer = null;
+            const listeners = [], whenReady = [];
+
+            const segsOf = (p) => {
+                let s = String(p || '').split('/').filter(Boolean);
+                if (s[0] === 'spas' && s[1] === currentSpaId) s = s.slice(2);
+                return s;
+            };
+            const clone = (v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
+            const getIn = (o, segs) => segs.reduce((x, k) => (x == null ? undefined : x[k]), o);
+            function setIn(o, segs, v) {
+                for (let i = 0; i < segs.length - 1; i++) {
+                    if (o[segs[i]] == null || typeof o[segs[i]] !== 'object') o[segs[i]] = {};
+                    o = o[segs[i]];
+                }
+                o[segs[segs.length - 1]] = v;
+            }
+            function removeIn(o, segs) {
+                for (let i = 0; i < segs.length - 1; i++) { if (o[segs[i]] == null) return; o = o[segs[i]]; }
+                if (Array.isArray(o)) o.splice(Number(segs[segs.length - 1]), 1);
+                else delete o[segs[segs.length - 1]];
+            }
+            const toMap = (v) => Array.isArray(v) ? Object.fromEntries(v.map((x, i) => [String(i), x])) : v;
+            function scrubUsers() { Object.values(cache.users || {}).forEach(u => { if (u) delete u.password; }); }
+
+            function applyLocal(segs, op, value) {
+                if (!segs.length) return;
+                const coll = segs[0];
+                if (segs.length === 1) {
+                    if (op === 'set' && value != null) cache[coll] = toMap(clone(value)); else delete cache[coll];
+                } else {
+                    cache[coll] = cache[coll] || {};
+                    if (op === 'remove' || value == null) removeIn(cache[coll], segs.slice(1));
+                    else setIn(cache[coll], segs.slice(1), clone(value));
+                }
+                if (coll === 'users') scrubUsers();
+            }
+
+            function snapshot(segs) {
+                const v = getIn(cache, segs);
+                const copy = v === undefined ? null : clone(v);
+                return { val: () => copy, exists: () => copy !== null, key: segs[segs.length - 1] || null };
+            }
+            function notifyOne(l, force) {
+                const snap = snapshot(l.segs);
+                const ser = JSON.stringify(snap.val());
+                if (force || l.last !== ser) {
+                    l.last = ser;
+                    try { l.cb(snap); } catch (e) { console.error(e); }
+                }
+            }
+            function notify(force) { listeners.slice().forEach(l => notifyOne(l, force)); }
+
+            // ---- Badge trạng thái đồng bộ ----
+            let badgeTimer = null;
+            function setStatus(state, msg) {
+                let el = document.getElementById('syncBadge');
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = 'syncBadge';
+                    el.className = 'fixed bottom-20 sm:bottom-4 left-3 z-[60] text-[10px] font-bold px-2.5 py-1 rounded-full shadow border transition-opacity';
+                    document.body.appendChild(el);
+                }
+                const styles = { saving: ['⏳ Đang lưu lên Google Sheet...', 'bg-amber-50 text-amber-800 border-amber-200'],
+                                 ok: ['✅ Đã đồng bộ Google Sheet', 'bg-emerald-50 text-emerald-800 border-emerald-200'],
+                                 error: [msg || '⚠️ Mất kết nối, đang thử lại...', 'bg-red-50 text-red-700 border-red-200'] };
+                const [text, cls] = styles[state];
+                el.textContent = text;
+                el.className = 'fixed bottom-20 sm:bottom-4 left-3 z-[60] text-[10px] font-bold px-2.5 py-1 rounded-full shadow border transition-opacity ' + cls;
+                el.style.opacity = '1';
+                clearTimeout(badgeTimer);
+                if (state === 'ok') badgeTimer = setTimeout(() => { el.style.opacity = '0'; }, 1800);
+            }
+
+            // ---- Đẩy thao tác ghi lên server (gộp lô) ----
+            function enqueue(op, cb) {
+                editSeq++;
+                pending.push({ op, cb });
+                setStatus('saving');
+                if (!flushTimer) flushTimer = setTimeout(flush, 150);
+            }
+            async function flush() {
+                flushTimer = null;
+                if (flushing || !pending.length) return;
+                flushing = true;
+                const batch = pending.splice(0, pending.length);
+                let retry = false;
+                try {
+                    const r = await api('ops', { ops: batch.map(b => b.op) });
+                    if (r.status !== 'success') throw new Error(r.message || 'Lỗi lưu dữ liệu');
+                    batch.forEach(b => b.cb && b.cb(null));
+                } catch (err) {
+                    if (err.network) {
+                        pending.unshift(...batch); retry = true;
+                        setStatus('error');
+                    } else if (err.message !== 'expired' && err.message !== 'unauthorized') {
+                        batch.forEach(b => b.cb && b.cb(err));
+                        alert('Không lưu được: ' + err.message);
+                        try { await loadAll(); } catch (e) {}
+                    }
+                } finally {
+                    flushing = false;
+                    if (retry) flushTimer = setTimeout(flush, 5000);
+                    else if (pending.length) flushTimer = setTimeout(flush, 0);
+                    else if (ready) setStatus('ok');
+                }
+            }
+
+            function write(segs, op, value, cb) {
+                if (!segs.length) { cb && cb(new Error('Đường dẫn rỗng')); return; }
+                applyLocal(segs, op, value);
+                notify(false);
+                enqueue({ op, path: segs.join('/'), value: value === undefined ? null : clone(value) }, cb);
+            }
+
+            // ---- Tải dữ liệu ----
+            async function loadAll() {
+                const r = await api('getAll', {});
+                if (r.status !== 'success') throw new Error(r.message || 'Không tải được dữ liệu');
+                cache = r.data || {}; version = r.version; me = r.me;
+                const first = !ready;
+                ready = true;
+                notify(true);
+                if (first) whenReady.splice(0).forEach(fn => fn());
+            }
+            async function poll() {
+                if (!ready || document.hidden || flushing || pending.length) return;
+                const seq = editSeq;
+                try {
+                    const r = await api('getAll', { since: version, sinceUser: session.user.username });
+                    if (editSeq !== seq || flushing || pending.length) return; // có thay đổi cục bộ -> bỏ kết quả cũ
+                    if (r.status === 'success' && !r.unchanged) {
+                        cache = r.data || {}; version = r.version; me = r.me;
+                        notify(false);
+                        if (SheetDB.onMe) SheetDB.onMe(me);
+                    }
+                    if (!pending.length) setStatus('ok');
+                } catch (e) { if (e.network) setStatus('error'); }
+            }
+
+            return {
+                onMe: null,
+                isReady: () => ready,
+                hasPending: () => pending.length > 0 || flushing,
+                getMe: () => me,
+                async start() {
+                    await loadAll();
+                    clearInterval(pollTimer);
+                    pollTimer = setInterval(poll, 8000);
+                },
+                stop() {
+                    clearInterval(pollTimer); clearTimeout(flushTimer); flushTimer = null;
+                    cache = {}; ready = false; version = null; me = null; pending = [];
+                },
+                refresh: poll,
+                ref(path) {
+                    const segs = segsOf(path);
+                    const self = {
+                        on(_e, cb) {
+                            const l = { segs, cb, last: undefined };
+                            listeners.push(l);
+                            if (ready) setTimeout(() => notifyOne(l, true), 0);
+                            return cb;
+                        },
+                        off(_e, cb) {
+                            for (let i = listeners.length - 1; i >= 0; i--) {
+                                if (listeners[i].cb === cb || (!cb && listeners[i].segs.join('/') === segs.join('/'))) listeners.splice(i, 1);
+                            }
+                        },
+                        once(_e, cb) {
+                            return new Promise(resolve => {
+                                const run = () => { const s = snapshot(segs); if (cb) cb(s); resolve(s); };
+                                ready ? run() : whenReady.push(run);
+                            });
+                        },
+                        set(value, cb) { write(segs, 'set', value, cb); return Promise.resolve(); },
+                        update(obj, cb) {
+                            const keys = Object.keys(obj || {});
+                            if (!keys.length) { cb && cb(null); return Promise.resolve(); }
+                            keys.forEach((k, i) => write(segs.concat(k.split('/')), 'set', obj[k], i === keys.length - 1 ? cb : undefined));
+                            return Promise.resolve();
+                        },
+                        remove(cb) { write(segs, 'remove', null, cb); return Promise.resolve(); },
+                        push(value, cb) {
+                            const key = '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+                            write(segs.concat(key), 'set', value, cb);
+                            return { key };
+                        }
+                    };
+                    return self;
+                }
+            };
+        })();
+        const db = { ref: (p) => SheetDB.ref(p) };
+
+        // Cảnh báo nếu đóng trang khi dữ liệu chưa kịp lưu
+        window.addEventListener('beforeunload', (e) => {
+            if (SheetDB.hasPending()) { e.preventDefault(); e.returnValue = ''; }
+        });
 
         let currentUser = null;
         let currentActiveCustKey = null;
@@ -984,9 +1206,9 @@
             document.getElementById('staffReportMonth').value = todayStr.substring(0, 7);
             document.getElementById('accSalaryEffectiveDate').value = todayStr;
 
-            checkSystemHasUsers();
             initWebPushNotifications();
             initDefaultModuleFields();
+            bootTenant(); // luôn chạy cuối cùng (có thể thay thế toàn bộ giao diện nếu hết hạn / thiếu link)
         });
 
         function initDefaultModuleFields() {
@@ -1027,75 +1249,148 @@
             }
         }
 
-        function checkSystemHasUsers() {
-            db.ref(SPA_PATH + '/users').once('value', (snap) => {
-                const users = snap.val();
-                if (!users || Object.keys(users).length === 0) {
-                    document.getElementById('loginForm').classList.add('hidden');
-                    document.getElementById('initSuperAdminForm').classList.remove('hidden');
-                    document.getElementById('authSubtitle').innerText = 'Hệ thống cần khởi tạo Super Admin!';
-                    document.getElementById('authScreen').classList.remove('hidden');
-                } else {
-                    const savedUser = localStorage.getItem('kimbeauty_user');
-                    if (savedUser) {
-                        currentUser = JSON.parse(savedUser);
-                        applyUserPermissions();
-                    } else {
-                        document.getElementById('initSuperAdminForm').classList.add('hidden');
-                        document.getElementById('loginForm').classList.remove('hidden');
-                        document.getElementById('authSubtitle').innerText = 'Đăng nhập để vào hệ thống Online';
-                        document.getElementById('authScreen').classList.remove('hidden');
-                    }
-                }
-            });
+        function showAuthForm(mode) {
+            const loginForm = document.getElementById('loginForm');
+            const initForm = document.getElementById('initSuperAdminForm');
+            const subtitle = document.getElementById('authSubtitle');
+            if (mode === 'init') {
+                loginForm.classList.add('hidden');
+                initForm.classList.remove('hidden');
+                subtitle.innerText = 'Cơ sở này chưa có tài khoản. Vui lòng tạo Super Admin đầu tiên!';
+            } else {
+                initForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                subtitle.innerText = 'Đăng nhập hệ thống quản lý Spa';
+            }
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('authScreen').classList.remove('hidden');
         }
 
-        function handleInitSuperAdmin(e) {
+        // Vào ứng dụng sau khi đã có token hợp lệ
+        async function enterApp(token, user) {
+            session = { token, user };
+            await SheetDB.start();                       // tải dữ liệu từ Google Sheet của cơ sở
+            const me = SheetDB.getMe() || user;
+            currentUser = { username: me.username, fullName: me.fullName, role: me.role, permissions: me.permissions || {}, spaId: currentSpaId };
+            session.user = currentUser;
+            localStorage.setItem(SESSION_KEY, JSON.stringify({ spaId: currentSpaId, token, user: currentUser }));
+            applyUserPermissions();
+        }
+
+        // Quyền của tài khoản bị đổi từ máy khác -> áp dụng ngay
+        SheetDB.onMe = (me) => {
+            if (!currentUser || !me) return;
+            if (me.role !== currentUser.role || JSON.stringify(me.permissions || {}) !== JSON.stringify(currentUser.permissions || {}) || me.fullName !== currentUser.fullName) {
+                currentUser = { ...currentUser, fullName: me.fullName, role: me.role, permissions: me.permissions || {} };
+                session.user = currentUser;
+                localStorage.setItem(SESSION_KEY, JSON.stringify({ spaId: currentSpaId, token: session.token, user: currentUser }));
+                applyUserPermissions();
+            }
+        };
+
+        function forceLogout(msg) {
+            localStorage.removeItem(SESSION_KEY);
+            session = null; currentUser = null;
+            SheetDB.stop();
+            showAuthForm('login');
+            if (msg) alert(msg);
+        }
+
+        async function checkSystemHasUsers() {
+            if (!SPA_PATH) return;
+            try {
+                const st = await api('spaStatus');
+                if (st.status !== 'success') {
+                    showFatalScreen('⚠️', 'KHÔNG THỂ MỞ CƠ SỞ', `<p style="font-size:14px; color:#cbd5e1;">${st.message || 'Lỗi không xác định'}</p>`);
+                    return;
+                }
+                spaMeta = st;
+                if (st.name) {
+                    document.title = st.name + ' - POS';
+                    document.querySelectorAll('#authScreen h1, #mainApp header h2').forEach(el => el.textContent = st.name);
+                }
+
+                // Cơ sở mới tinh -> bắt buộc tạo Super Admin đầu tiên
+                if (!st.hasUsers) {
+                    localStorage.removeItem(SESSION_KEY);
+                    showAuthForm('init');
+                    return;
+                }
+
+                // Có phiên đã lưu -> server xác thực lại token
+                const saved = localStorage.getItem(SESSION_KEY);
+                if (saved) {
+                    try {
+                        const s = JSON.parse(saved);
+                        if (s && s.spaId === currentSpaId && s.token) {
+                            await enterApp(s.token, s.user || {});
+                            return;
+                        }
+                    } catch (e) {
+                        if (e.message === 'expired') return;
+                    }
+                    localStorage.removeItem(SESSION_KEY);
+                    session = null;
+                }
+                showAuthForm('login');
+            } catch (err) {
+                if (err.message === 'expired' || err.message === 'unauthorized') return;
+                console.error(err);
+                document.getElementById('authSubtitle').innerText = 'Không kết nối được hệ thống: ' + err.message;
+                document.getElementById('authScreen').classList.remove('hidden');
+            }
+        }
+
+        async function handleInitSuperAdmin(e) {
             e.preventDefault();
+            if (!SPA_PATH) return;
+            const btn = e.target.querySelector('button[type=submit]');
             const fullName = document.getElementById('initFullName').value.trim();
             const username = document.getElementById('initUsername').value.trim().toLowerCase();
             const password = document.getElementById('initPassword').value;
-            const todayStr = new Date().toISOString().split('T')[0];
 
-            const fullPermissions = { logs: true, booking: true, customers: true, services: true, staff: true };
-            const initialHistory = [{ baseSalary: 10000000, effectiveDate: todayStr }];
+            if (!/^[a-z0-9_]{3,30}$/.test(username)) {
+                alert('Tên đăng nhập chỉ gồm chữ thường không dấu, số, dấu _ (3-30 ký tự).');
+                return;
+            }
+            if (password.length < 6) { alert('Mật khẩu tối thiểu 6 ký tự.'); return; }
 
-            db.ref(SPA_PATH + '/users/' + username).set({
-                fullName, password, role: 'SUPER_ADMIN', baseSalary: 10000000, workingDaysPerMonth: 30, standardHoursPerDay: 8, salaryHistory: initialHistory, permissions: fullPermissions
-            }, (err) => {
-                if (!err) {
-                    currentUser = { username, fullName, role: 'SUPER_ADMIN', permissions: fullPermissions };
-                    localStorage.setItem('kimbeauty_user', JSON.stringify(currentUser));
-                    alert('Khởi tạo Super Admin thành công!');
-                    applyUserPermissions();
+            btn.disabled = true;
+            try {
+                const r = await api('initAdmin', { fullName, username, password });
+                if (r.status !== 'success') {
+                    alert(r.message);
+                    if (/đã có tài khoản/.test(r.message || '')) checkSystemHasUsers();
+                    return;
                 }
-            });
+                await enterApp(r.token, r.user);
+                alert('Khởi tạo Super Admin thành công cho cơ sở này!');
+            } catch (err) {
+                if (err.message !== 'expired') alert('Lỗi: ' + err.message);
+            } finally { btn.disabled = false; }
         }
 
-        function handleLogin(e) {
+        async function handleLogin(e) {
             e.preventDefault();
+            const btn = e.target.querySelector('button[type=submit]');
             const username = document.getElementById('loginUsername').value.trim().toLowerCase();
             const password = document.getElementById('loginPassword').value;
-
-            db.ref(SPA_PATH + '/users/' + username).once('value', (snap) => {
-                const userVal = snap.val();
-                if (userVal && userVal.password === password) {
-                    currentUser = { username: username, fullName: userVal.fullName, role: userVal.role, permissions: userVal.permissions || {} };
-                    localStorage.setItem('kimbeauty_user', JSON.stringify(currentUser));
-                    applyUserPermissions();
-                } else {
-                    alert('Sai tên đăng nhập hoặc mật khẩu!');
-                }
-            });
+            btn.disabled = true;
+            try {
+                const r = await api('login', { username, password });
+                if (r.status !== 'success') { alert(r.message || 'Sai tên đăng nhập hoặc mật khẩu!'); return; }
+                document.getElementById('loginPassword').value = '';
+                await enterApp(r.token, r.user);
+            } catch (err) {
+                if (err.message !== 'expired') alert('Lỗi kết nối: ' + err.message);
+            } finally { btn.disabled = false; }
         }
 
         function handleLogout() {
             if (confirm('Bạn muốn đăng xuất khỏi ứng dụng?')) {
-                localStorage.removeItem('kimbeauty_user');
-                currentUser = null;
                 document.getElementById('mainApp').classList.add('hidden');
                 document.getElementById('userMenuDropdown').classList.add('hidden');
-                checkSystemHasUsers();
+                forceLogout('');
             }
         }
 
@@ -1153,14 +1448,16 @@
                 else el.classList.add('hidden');
             });
 
-            initFirebaseListeners();
+            initDataListeners();
         }
 
         function formatVND(val) {
             return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Math.round(val || 0));
         }
 
-        function initFirebaseListeners() {
+        function initDataListeners() {
+            if (listenersAttached) return;
+            listenersAttached = true;
             db.ref(SPA_PATH + '/users').on('value', (snap) => {
                 globalUsers = snap.val() || {};
                 generateStaffReport();
@@ -1422,9 +1719,11 @@
                     `;
                 }
 
-                db.ref(SPA_PATH + '/dyn_data_' + modId).on('value', (snap) => {
-                    renderDynamicDataList(modId, snap.val() || {});
-                });
+                if (dynListeners[modId]) dynListeners[modId].ref.off('value', dynListeners[modId].cb);
+                const dynRef = db.ref(SPA_PATH + '/dyn_data_' + modId);
+                const dynCb = (snap) => renderDynamicDataList(modId, snap.val() || {});
+                dynRef.on('value', dynCb);
+                dynListeners[modId] = { ref: dynRef, cb: dynCb };
             });
         }
 
@@ -1562,7 +1861,7 @@
 
         function deleteDynamicDataRecord(modId, recordKey) {
             if (confirm("Xóa dòng dữ liệu này?")) {
-                db.ref(SPA_PATH + '/dyn_data_${modId}/${recordKey}`).remove();
+                db.ref(`${SPA_PATH}/dyn_data_${modId}/${recordKey}`).remove();
             }
         }
 
@@ -1659,12 +1958,29 @@
             const fullName = document.getElementById('accFullName').value.trim();
             const phone = document.getElementById('accPhone').value.trim();
             const username = editUsername || document.getElementById('accUsername').value.trim().toLowerCase();
+            if (!/^[a-z0-9_]{3,30}$/.test(username)) {
+                alert('Tên đăng nhập chỉ gồm chữ thường không dấu, số, dấu _ (3-30 ký tự).');
+                return;
+            }
             const password = document.getElementById('accPassword').value;
             const role = document.getElementById('accRole').value;
             const baseSalary = parseFloat(document.getElementById('accBaseSalary').value) || 0;
             const workingDays = parseInt(document.getElementById('accWorkingDays').value) || 30;
             const standardHours = parseInt(document.getElementById('accStandardHours').value) || 8;
             const effectiveDate = document.getElementById('accSalaryEffectiveDate').value;
+
+            if (!editUsername && password.length < 6) {
+                alert('Tài khoản mới cần mật khẩu tối thiểu 6 ký tự.');
+                return;
+            }
+            if (editUsername && password && password.length < 6) {
+                alert('Mật khẩu mới tối thiểu 6 ký tự.');
+                return;
+            }
+            if (editUsername && editUsername === currentUser.username && role !== 'SUPER_ADMIN') {
+                alert('Bạn không thể tự hạ quyền Super Admin của chính mình.');
+                return;
+            }
 
             const permissions = {
                 logs: document.getElementById('perm_logs').checked,
@@ -1675,6 +1991,10 @@
             };
 
             db.ref(SPA_PATH + '/users/' + username).once('value', (snap) => {
+                if (!editUsername && snap.exists()) {
+                    alert('Tên đăng nhập "' + username + '" đã tồn tại trong cơ sở này. Vui lòng chọn tên khác.');
+                    return;
+                }
                 const existingUser = snap.val() || {};
                 let salaryHistory = existingUser.salaryHistory || [];
 
@@ -1688,7 +2008,7 @@
                 }
 
                 db.ref(SPA_PATH + '/users/' + username).update({
-                    fullName, phone, password, role, baseSalary, workingDaysPerMonth: workingDays, standardHoursPerDay: standardHours, salaryHistory, permissions
+                    fullName, phone, ...(password ? { password } : {}), role, baseSalary, workingDaysPerMonth: workingDays, standardHoursPerDay: standardHours, salaryHistory, permissions
                 }, (err) => {
                     if (!err) {
                         alert('Đã lưu tài khoản thành công!');
@@ -1711,7 +2031,7 @@
             document.getElementById('accFullName').value = u.fullName || '';
             document.getElementById('accPhone').value = u.phone || '';
             document.getElementById('accUsername').value = username;
-            document.getElementById('accPassword').value = u.password || '';
+            document.getElementById('accPassword').value = '';
             document.getElementById('accRole').value = u.role || 'STAFF';
             document.getElementById('accBaseSalary').value = u.baseSalary || 0;
             document.getElementById('accWorkingDays').value = u.workingDaysPerMonth || 30;
@@ -1975,7 +2295,7 @@
             const staffKey = Object.keys(globalStaff).find(k => globalStaff[k].name === currentActiveSalaryStaffName);
             if (staffKey) {
                 const attObj = { offDays, overtimeDays, overtimeHours, otMode, manualOTAmount };
-                db.ref(SPA_PATH + '/staff/${staffKey}/monthlyAttendance/${selectedMonthStr}`).set(attObj, (err) => {
+                db.ref(`${SPA_PATH}/staff/${staffKey}/monthlyAttendance/${selectedMonthStr}`).set(attObj, (err) => {
                     if (!err) {
                         alert("Đã lưu chấm công thành công!");
                         showSalaryDetailForStaff(currentActiveSalaryStaffName);
@@ -2174,7 +2494,7 @@
 
                 if (actualCustKey && comboKey && globalCustomers[actualCustKey].combos[comboKey]) {
                     const currentRem = globalCustomers[actualCustKey].combos[comboKey].remainingSessions || 0;
-                    db.ref(SPA_PATH + '/customers/${actualCustKey}/combos/${comboKey}/remainingSessions`).set(Math.max(0, currentRem - usedSessions));
+                    db.ref(`${SPA_PATH}/customers/${actualCustKey}/combos/${comboKey}/remainingSessions`).set(Math.max(0, currentRem - usedSessions));
                 }
             }
 
@@ -2200,7 +2520,7 @@
 
                     if (servObj && servObj.type === 'COMBO' && actualCustKey) {
                         const totalS = servObj.sessions || 10;
-                        db.ref(SPA_PATH + '/customers/${actualCustKey}/combos`).push({
+                        db.ref(`${SPA_PATH}/customers/${actualCustKey}/combos`).push({
                             serviceName: serviceName, totalSessions: totalS, remainingSessions: totalS, totalPrice: price, pricePerSession: price / totalS, buyDate: date
                         });
                     }
@@ -2620,32 +2940,15 @@
         }
 
         function deleteCurrentCustomer() {
-    if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER') return;
-    if (confirm('Xóa vĩnh viễn khách hàng này?')) {
-        if (currentActiveCustKey) {
-            // 1. Xóa đúng nhánh trên Firebase của Spa hiện tại
-            if (typeof SPA_PATH !== 'undefined' && SPA_PATH) {
-                db.ref(SPA_PATH + '/customers/' + currentActiveCustKey).remove();
-            } else {
-                db.ref(SPA_PATH + '/customers/' + currentActiveCustKey).remove();
-            }
+            if (!currentUser || (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER')) return;
+            if (!currentActiveCustKey || !SPA_PATH) return;
+            if (!confirm('Xóa vĩnh viễn khách hàng này?')) return;
 
-            // 2. Gửi yêu cầu xóa kèm theo sheetId riêng của Spa xuống Google Apps Script
-            if (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) {
-                fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        sheetId: currentSheetId, // 👈 Truyền đúng ID file Sheet của cơ sở này
-                        action: 'deleteData',
-                        payload: { type: 'customer', id: currentActiveCustKey }
-                    })
-                }).catch(err => console.error("Lỗi đồng bộ xóa Sheet:", err));
-            }
-
+            const key = currentActiveCustKey;
+            // Xoá trong Google Sheet riêng của chi nhánh hiện tại
+            db.ref(`${SPA_PATH}/customers/${key}`).remove();
             closeModal();
         }
-    }
-}
 
         function deleteBooking(key) { if(confirm('Xóa lịch hẹn?')) db.ref(SPA_PATH + '/bookings/' + key).remove(); }
 
@@ -2707,122 +3010,36 @@ const comboListContainer = document.getElementById('modalCustomerComboList');
             });
         }
 
-        // --- BẮT ĐẦU: KHAI BÁO CẤU HÌNH API ĐA CHI NHÁNH ---
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbykgZ0soQMcwZer8XKGBAM95v66wEg9Lh8aMPIP7LkdxMG9jBjN0yg3wVsS1JNsdx_6Hw/exec";
 
-        // --- BẮT ĐẦU: ĐOẠN MÃ KẾT NỐI MASTER HUB & KHÓA HẠN BẢN QUYỀN ---
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentSpaId = urlParams.get('spaId');
-        const currentSheetId = urlParams.get('sheet');
-        const SPA_PATH = currentSpaId ? `spas/${currentSpaId}` : null;
-
-        window.addEventListener('DOMContentLoaded', () => {
-            // 1. Kiểm tra tham số định danh từ URL
-            if (!currentSpaId || !currentSheetId) {
-                document.body.innerHTML = `
-                    <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#0f172a; color:white; font-family:sans-serif; text-align:center; padding:20px;">
-                        <h1 style="font-size:20px; color:#f87171; font-weight:bold;">LỖI TRUY CẬP HỆ THỐNG</h1>
-                        <p style="font-size:14px; color:#cbd5e1; margin-top:10px;">Đường dẫn thiếu thông tin định danh cơ sở hoặc Sheet ID.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // 2. Kiểm tra thời hạn từ Master Hub trong localStorage
-            const masterSpas = JSON.parse(localStorage.getItem('master_spas_v2')) || [];
-            const currentSpa = masterSpas.find(s => s.id === currentSpaId);
-
-            if (currentSpa) {
-                const expireTime = new Date(currentSpa.expireAt).getTime();
-                const now = new Date().getTime();
-
-                if (now > expireTime) {
-                    // Màn hình khóa khi hết hạn
-                    document.body.innerHTML = `
-                        <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#0f172a; color:white; font-family:sans-serif; text-align:center; padding:20px;">
-                            <div style="font-size:64px; margin-bottom:15px;">🔒</div>
-                            <h1 style="font-size:22px; color:#f87171; font-weight:bold; margin-bottom:12px; max-width:500px; line-height:1.4;">
-                                Thời gian sử dụng của bạn đã hết, vui lòng liên hệ Admin:
-                            </h1>
-                            <div style="background:#1e293b; border:1px solid #334155; padding:16px 24px; border-radius:16px; margin-top:8px;">
-                                <p style="font-size:16px; color:#38bdf8; font-weight:bold; margin:0;">
-                                    Zalo / SĐT: 097.897.1331 / 077.770.1992
-                                </p>
-                            </div>
-                            <p style="font-size:14px; color:#94a3b8; margin-top:16px;">
-                                để được mở khóa!
-                            </p>
-                        </div>
-                    `;
-                    return;
-                }
-            }
-        });
-        // --- KẾT THÚC ĐOẠN MÃ BẢO MẬT ---
-        // 1. CẤU HÌNH API GOOGLE APPS SCRIPT ĐỂ TÁCH SHEET TỪNG SPA
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbykgZ0soQMcwZer8XKGBAM95v66wEg9Lh8aMPIP7LkdxMG9jBjN0yg3wVsS1JNsdx_6Hw/exec";
-
-// 2. LẤY THAM SỐ ĐỊNH DANH ĐỘC LẬP TỪ URL
-const urlParams = new URLSearchParams(window.location.search);
-const currentSpaId = urlParams.get('spaId');
-const currentSheetId = urlParams.get('sheet');
-
-// Đường dẫn phân tách dữ liệu trên Firebase riêng theo từng Spa
-const SPA_PATH = currentSpaId ? `spas/${currentSpaId}` : null;
-        // --- 1. KIỂM TRA TRẠNG THÁI TÀI KHOẢN KHI VỪA MỞ TRANG ---
-        window.addEventListener('DOMContentLoaded', () => {
-            // Kiểm tra bảo mật URL và hạn dùng (giữ nguyên các đoạn code cũ của bạn)
-            if (!currentSpaId || !currentSheetId) return;
-
-            // 🟢 GỌI HÀM KIỂM TRA TÀI KHOẢN RIÊNG CỦA SPA NÀY Ở ĐÂY:
-            checkSpaAdminStatus();
-        });
-
-        // --- 2. HÀM KIỂM TRA TÀI KHOẢN TRÊN FIREBASE THEO TỪNG SPA ---
-        function checkSpaAdminStatus() {
-            if (typeof db !== 'undefined' && SPA_PATH) {
-                db.ref(SPA_PATH + '/users').once('value', (snapshot) => {
-                    const users = snapshot.val();
-                    
-                    const authSubtitle = document.getElementById('authSubtitle');
-                    const loginForm = document.getElementById('loginForm');
-                    const initForm = document.getElementById('initSuperAdminForm');
-
-                    // Nếu Spa này CHƯA có tài khoản nào -> Hiện form khởi tạo Super Admin riêng
-                    if (!users || Object.keys(users).length === 0) {
-                        if(authSubtitle) authSubtitle.innerText = "Cơ sở này chưa có tài khoản. Vui lòng tạo Super Admin!";
-                        if(loginForm) loginForm.classList.add('hidden');
-                        if(initForm) initForm.classList.remove('hidden');
-                    } else {
-                        // Nếu ĐÃ CÓ tài khoản -> Hiện form đăng nhập bình thường
-                        if(authSubtitle) authSubtitle.innerText = "Đăng nhập hệ thống quản lý Spa";
-                        if(loginForm) loginForm.classList.remove('hidden');
-                        if(initForm) initForm.classList.add('hidden');
-                    }
-                });
-            }
+        // =====================================================================
+        //  MULTI-TENANT: KHỞI ĐỘNG CƠ SỞ
+        // =====================================================================
+        function showFatalScreen(icon, title, bodyHtml) {
+            document.body.innerHTML = `
+                <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#0f172a; color:white; font-family:sans-serif; text-align:center; padding:20px;">
+                    <div style="font-size:60px; margin-bottom:15px;">${icon}</div>
+                    <h1 style="font-size:20px; color:#f87171; font-weight:bold; margin-bottom:12px; max-width:520px; line-height:1.4;">${title}</h1>
+                    ${bodyHtml}
+                </div>`;
         }
 
-        // --- 3. XỬ LÝ KHỞI TẠO SUPER ADMIN CHO RIÊNG SPA NÀY ---
-        function handleInitSuperAdmin(e) {
-            e.preventDefault();
-            const fullName = document.getElementById('initFullName').value.trim();
-            const username = document.getElementById('initUsername').value.trim().toLowerCase();
-            const password = document.getElementById('initPassword').value.trim();
+        function showExpiredScreen() {
+            SheetDB.stop();
+            showFatalScreen('🔒', 'Thời gian sử dụng của bạn đã hết, vui lòng liên hệ Admin:',
+                `<div style="background:#1e293b; border:1px solid #334155; padding:16px 24px; border-radius:16px; margin-top:8px;">
+                    <p style="font-size:16px; color:#38bdf8; font-weight:bold; margin:0;">Zalo / SĐT: 097.897.1331 / 077.770.1992</p>
+                 </div>
+                 <p style="font-size:14px; color:#94a3b8; margin-top:16px;">để được mở khóa!</p>`);
+        }
 
-            const newUser = { fullName, username, password, role: 'SUPER_ADMIN' };
-
-            if (typeof db !== 'undefined' && SPA_PATH) {
-                // Lưu vào đúng nhánh spas/spaId/users/username
-                db.ref(SPA_PATH + '/users/' + username).set(newUser, (err) => {
-                    if (!err) {
-                        alert("Khởi tạo Super Admin thành công cho riêng cơ sở này!");
-                        checkSpaAdminStatus(); // Tải lại để chuyển sang màn hình đăng nhập
-                    } else {
-                        alert("Lỗi: " + err.message);
-                    }
-                });
+        function bootTenant() {
+            // Bắt buộc có spaId - không có thì chặn hẳn, không đụng tới dữ liệu nào
+            if (!SPA_PATH) {
+                showFatalScreen('⚠️', 'LỖI TRUY CẬP HỆ THỐNG',
+                    '<p style="font-size:14px; color:#cbd5e1;">Đường dẫn thiếu mã cơ sở. Vui lòng mở đúng link do Admin cấp (có dạng <b>?spaId=...</b>).</p>');
+                return;
             }
+            checkSystemHasUsers(); // hết hạn / bị khóa được server kiểm tra và trả về 'expired'
         }
     </script>
 </body>
