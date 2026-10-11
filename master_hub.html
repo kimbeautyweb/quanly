@@ -102,7 +102,7 @@
 
     <script>
         // ====== CẤU HÌNH (phải khớp với kimbeauty_pos.html) ======
-        const API_URL = "https://script.google.com/macros/s/AKfycbwVab72W2ibS98zF5iagwcjtHc0cCbM5_ayQvvJolaPH_iGo7UJMCwTSi6sRz9ylwrFOA/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycby_yU8z-A_XCmunaH5rHLPz7vlWYC5V1uzKnheWN49FXUd-Yn7bdojdfA0wcr_H_CMLCg/exec";
         const POS_PAGE = "kimbeauty_pos.html"; // tên file POS (cùng thư mục với hub.html)
 
         let spas = [];
@@ -279,7 +279,7 @@
             if (username === null) return;
             const pw = prompt('Nhập mật khẩu mới (tối thiểu 6 ký tự):');
             if (!pw) return;
-            const r = await hubApi('hubResetPassword', { id: spa.id, username: username.trim().toLowerCase(), newPassword: pw });
+             r = await hubApi('hubResetPassword', { id: spa.id, username: username.trim().toLowerCase(), newPassword: pw });
             alert(r.status === 'success' ? `Đã đặt lại mật khẩu cho @${r.username}` : '❌ ' + r.message);
         }
 
