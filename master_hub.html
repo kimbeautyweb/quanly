@@ -53,6 +53,60 @@
         </div>
     </div>
 
+    <!-- MODAL ĐỔI GOOGLE SHEET -->
+    <div id="changeSheetModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md max-h-[92vh] overflow-y-auto p-6 rounded-3xl space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-gray-800 text-sm">🔄 Đổi Google Sheet: <span id="chgSpaName" class="text-purple-700"></span></h3>
+                <button onclick="closeChangeSheetModal()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+            </div>
+            <div class="text-xs space-y-3">
+                <p class="text-gray-500">Link POS và mã cơ sở <b>giữ nguyên</b>, khách vẫn dùng link cũ. Chỉ nơi lưu dữ liệu được chuyển sang Sheet mới.</p>
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 leading-relaxed text-[11px] text-gray-700 space-y-1">
+                    <p class="font-bold text-amber-800">Làm theo thứ tự:</p>
+                    <p>1. Tạo 1 Google Sheet <b>trống</b> mới ➔ <b>Chia sẻ</b> cho <b id="chgOwnerEmail" class="text-purple-700 select-all"></b> quyền <b>Người chỉnh sửa</b>.</p>
+                    <p>2. <b>Muốn giữ dữ liệu cũ:</b> mở Sheet cũ, với từng tab cần giữ, bấm chuột phải vào tên tab ➔ <b>Sao chép đến</b> ➔ <b>Bảng tính hiện có</b> ➔ chọn Sheet mới. Sang Sheet mới, đổi tên "Bản sao của ..." về <b>đúng tên gốc</b> (Users, Levels, Staff, Customers, Services, ServiceLogs, Bookings, DynamicModules, DynamicData).</p>
+                    <p>3. Dán link Sheet mới vào ô bên dưới rồi bấm Đổi.</p>
+                    <p class="text-red-600">Nếu bỏ qua bước 2, Sheet mới sẽ trống: chủ Spa phải tạo lại tài khoản Super Admin và dữ liệu mới bắt đầu từ đầu. Sheet cũ vẫn còn nguyên để lưu trữ.</p>
+                </div>
+                <p class="text-gray-500 break-all">Sheet hiện tại: <a id="chgCurrentLink" target="_blank" class="font-mono text-blue-800 underline"></a></p>
+                <div>
+                    <label class="block font-bold text-gray-600 mb-1">Link Google Sheet mới *</label>
+                    <input type="text" id="chgNewUrl" placeholder="Dán link Google Sheet mới..." class="w-full px-3 py-2 border rounded-xl font-mono text-blue-700 font-semibold">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t">
+                <button onclick="closeChangeSheetModal()" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold text-xs">Hủy</button>
+                <button id="btnConfirmChangeSheet" onclick="confirmChangeSheet()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow">ĐỔI SHEET</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GIA HẠN -->
+    <div id="extendModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm p-6 rounded-3xl space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-gray-800 text-sm">➕ Gia hạn: <span id="extendSpaName" class="text-purple-700"></span></h3>
+                <button onclick="closeExtendModal()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+            </div>
+            <div class="text-xs space-y-3">
+                <p class="text-gray-500">Hạn hiện tại: <b id="extendCurrent" class="text-gray-800"></b><br>
+                   <span class="text-[10px]">Nếu còn hạn: cộng nối tiếp vào ngày hết hạn. Nếu đã hết hạn: tính từ hôm nay.</span></p>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="extend-opt flex items-center gap-2 p-2.5 border rounded-xl cursor-pointer font-bold text-gray-700"><input type="radio" name="extendDur" value="1M"> 1 Tháng</label>
+                    <label class="extend-opt flex items-center gap-2 p-2.5 border rounded-xl cursor-pointer font-bold text-gray-700"><input type="radio" name="extendDur" value="3M"> 3 Tháng</label>
+                    <label class="extend-opt flex items-center gap-2 p-2.5 border rounded-xl cursor-pointer font-bold text-gray-700"><input type="radio" name="extendDur" value="6M"> 6 Tháng</label>
+                    <label class="extend-opt flex items-center gap-2 p-2.5 border rounded-xl cursor-pointer font-bold text-gray-700"><input type="radio" name="extendDur" value="1Y" checked> 1 Năm</label>
+                </div>
+                <p class="text-gray-500">Hạn mới: <b id="extendPreview" class="text-emerald-700"></b></p>
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t">
+                <button onclick="closeExtendModal()" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-bold text-xs">Hủy</button>
+                <button id="btnConfirmExtend" onclick="confirmExtend()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-xs shadow">XÁC NHẬN GIA HẠN</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL KẾT NỐI SPA MỚI -->
     <div id="addSpaModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-3xl space-y-4 shadow-2xl">
@@ -106,6 +160,7 @@
         const POS_PAGE = "kimbeauty_pos.html"; // tên file POS (cùng thư mục với hub.html)
 
         let spas = [];
+        let scriptOwnerEmail = '';
         let adminPass = sessionStorage.getItem('hub_admin_pass') || '';
         let timerInterval = null;
 
@@ -148,7 +203,7 @@
 
         function applyList(r) {
             spas = r.spas || [];
-            if (r.scriptOwner) document.getElementById('scriptOwnerEmail').innerText = r.scriptOwner;
+            if (r.scriptOwner) { scriptOwnerEmail = r.scriptOwner; document.getElementById('scriptOwnerEmail').innerText = r.scriptOwner; }
             renderSpaList();
         }
 
@@ -194,9 +249,10 @@
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
-                        <button onclick="extendDuration(${i})" class="px-2.5 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 font-bold rounded-xl hover:bg-amber-100">➕ Gia hạn 30 ngày</button>
+                        <button onclick="openExtendModal(${i})" class="px-2.5 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 font-bold rounded-xl hover:bg-amber-100">➕ Gia hạn</button>
                         <button onclick="copyLink(${i})" class="px-2.5 py-1.5 bg-white text-gray-700 border border-gray-200 font-bold rounded-xl hover:bg-gray-100">📋 Copy link</button>
                         <a href="${esc(posLink(spa))}" target="_blank" class="px-3 py-1.5 bg-purple-600 text-white font-bold rounded-xl shadow-sm hover:bg-purple-700">🔗 Truy cập POS</a>
+                        <button onclick="openChangeSheetModal(${i})" class="px-2.5 py-1.5 bg-white text-emerald-700 border border-emerald-200 font-bold rounded-xl hover:bg-emerald-50">🔄 Đổi Sheet</button>
                         <button onclick="toggleDisabled(${i})" class="px-2.5 py-1.5 bg-white text-gray-700 border border-gray-200 font-bold rounded-xl hover:bg-gray-100">${spa.disabled ? '🔓 Mở khóa' : '⛔ Khóa'}</button>
                         <button onclick="resetPassword(${i})" class="px-2.5 py-1.5 bg-white text-blue-700 border border-blue-200 font-bold rounded-xl hover:bg-blue-50">🔑 Đặt lại MK Admin spa</button>
                         <button onclick="deleteSpa(${i})" class="ml-auto px-2 py-1.5 bg-white text-red-500 border border-gray-200 font-bold rounded-xl">🗑</button>
@@ -259,12 +315,84 @@
             return true;
         }
 
-        async function extendDuration(i) {
+        let changeSheetIndex = -1;
+        const sheetIdOf = (v) => { const m = String(v || '').match(/\/d\/([a-zA-Z0-9-_]+)/); return m ? m[1] : ''; };
+
+        function openChangeSheetModal(i) {
+            changeSheetIndex = i;
             const spa = spas[i];
-            let cur = new Date(spa.expireAt);
-            if (isNaN(cur.getTime()) || cur.getTime() < Date.now()) cur = new Date();
-            cur.setDate(cur.getDate() + 30);
-            if (await updateSpa(spa, { expireAt: cur.toISOString() })) alert(`Đã gia hạn thêm 30 ngày cho ${spa.name}!`);
+            document.getElementById('chgSpaName').innerText = spa.name;
+            document.getElementById('chgOwnerEmail').innerText = scriptOwnerEmail || '(email chủ Apps Script)';
+            const link = document.getElementById('chgCurrentLink');
+            link.href = 'https://docs.google.com/spreadsheets/d/' + spa.sheetId; link.innerText = spa.sheetId;
+            document.getElementById('chgNewUrl').value = '';
+            document.getElementById('changeSheetModal').classList.remove('hidden');
+        }
+        function closeChangeSheetModal() { document.getElementById('changeSheetModal').classList.add('hidden'); changeSheetIndex = -1; }
+
+        async function confirmChangeSheet() {
+            if (changeSheetIndex < 0) return;
+            const spa = spas[changeSheetIndex];
+            const url = document.getElementById('chgNewUrl').value.trim();
+            const newId = sheetIdOf(url);
+            if (!newId) { alert('Link không hợp lệ. Hãy dán đầy đủ link Google Sheet (có dạng .../d/xxxx/edit).'); return; }
+            if (newId === spa.sheetId) { alert('Đây vẫn là Sheet hiện tại.'); return; }
+            if (!confirm(`Chuyển "${spa.name}" sang Google Sheet mới?\n\nLink POS giữ nguyên. Dữ liệu sẽ đọc/ghi ở Sheet mới từ bây giờ.`)) return;
+            const btn = document.getElementById('btnConfirmChangeSheet');
+            btn.disabled = true; btn.innerText = 'Đang kết nối...';
+            try {
+                if (await updateSpa(spa, { sheetId: newId })) {
+                    closeChangeSheetModal();
+                    alert('Đã đổi Sheet. Các máy đang mở POS hãy tải lại trang (F5) để nhận dữ liệu mới.');
+                }
+            } finally { btn.disabled = false; btn.innerText = 'ĐỔI SHEET'; }
+        }
+
+        let extendIndex = -1;
+        const fmtDate = (d) => d.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        function calcNewExpiry(spa, type) {
+            let base = new Date(spa.expireAt);
+            if (isNaN(base.getTime()) || base.getTime() < Date.now()) base = new Date();
+            const months = { '1M': 1, '3M': 3, '6M': 6, '1Y': 12 }[type] || 1;
+            base.setMonth(base.getMonth() + months);
+            return base;
+        }
+
+        function updateExtendPreview() {
+            if (extendIndex < 0) return;
+            const type = document.querySelector('input[name="extendDur"]:checked').value;
+            document.getElementById('extendPreview').innerText = fmtDate(calcNewExpiry(spas[extendIndex], type));
+            document.querySelectorAll('.extend-opt').forEach(l => {
+                const on = l.querySelector('input').checked;
+                l.classList.toggle('border-amber-400', on); l.classList.toggle('bg-amber-50', on);
+            });
+        }
+
+        function openExtendModal(i) {
+            extendIndex = i;
+            const spa = spas[i], cur = new Date(spa.expireAt);
+            document.getElementById('extendSpaName').innerText = spa.name;
+            document.getElementById('extendCurrent').innerText = isNaN(cur.getTime()) ? 'Không xác định' : fmtDate(cur) + (cur.getTime() < Date.now() ? ' (đã hết hạn)' : '');
+            document.querySelectorAll('input[name="extendDur"]').forEach(r => { r.checked = r.value === '1Y'; r.onchange = updateExtendPreview; });
+            updateExtendPreview();
+            document.getElementById('extendModal').classList.remove('hidden');
+        }
+        function closeExtendModal() { document.getElementById('extendModal').classList.add('hidden'); extendIndex = -1; }
+
+        async function confirmExtend() {
+            if (extendIndex < 0) return;
+            const spa = spas[extendIndex];
+            const type = document.querySelector('input[name="extendDur"]:checked').value;
+            const newExp = calcNewExpiry(spa, type);
+            const btn = document.getElementById('btnConfirmExtend');
+            btn.disabled = true; btn.innerText = 'Đang lưu...';
+            try {
+                if (await updateSpa(spa, { expireAt: newExp.toISOString() })) {
+                    closeExtendModal();
+                    alert(`Đã gia hạn cho ${spa.name}!\nHạn mới: ${fmtDate(newExp)}`);
+                }
+            } finally { btn.disabled = false; btn.innerText = 'XÁC NHẬN GIA HẠN'; }
         }
 
         async function toggleDisabled(i) {
@@ -279,7 +407,7 @@
             if (username === null) return;
             const pw = prompt('Nhập mật khẩu mới (tối thiểu 6 ký tự):');
             if (!pw) return;
-             r = await hubApi('hubResetPassword', { id: spa.id, username: username.trim().toLowerCase(), newPassword: pw });
+            const r = await hubApi('hubResetPassword', { id: spa.id, username: username.trim().toLowerCase(), newPassword: pw });
             alert(r.status === 'success' ? `Đã đặt lại mật khẩu cho @${r.username}` : '❌ ' + r.message);
         }
 
