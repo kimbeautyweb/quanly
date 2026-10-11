@@ -2769,6 +2769,61 @@ const currentSheetId = urlParams.get('sheet');
 
 // Đường dẫn phân tách dữ liệu trên Firebase riêng theo từng Spa
 const SPA_PATH = currentSpaId ? `spas/${currentSpaId}` : null;
+        // --- 1. KIỂM TRA TRẠNG THÁI TÀI KHOẢN KHI VỪA MỞ TRANG ---
+        window.addEventListener('DOMContentLoaded', () => {
+            // Kiểm tra bảo mật URL và hạn dùng (giữ nguyên các đoạn code cũ của bạn)
+            if (!currentSpaId || !currentSheetId) return;
+
+            // 🟢 GỌI HÀM KIỂM TRA TÀI KHOẢN RIÊNG CỦA SPA NÀY Ở ĐÂY:
+            checkSpaAdminStatus();
+        });
+
+        // --- 2. HÀM KIỂM TRA TÀI KHOẢN TRÊN FIREBASE THEO TỪNG SPA ---
+        function checkSpaAdminStatus() {
+            if (typeof db !== 'undefined' && SPA_PATH) {
+                db.ref(SPA_PATH + '/users').once('value', (snapshot) => {
+                    const users = snapshot.val();
+                    
+                    const authSubtitle = document.getElementById('authSubtitle');
+                    const loginForm = document.getElementById('loginForm');
+                    const initForm = document.getElementById('initSuperAdminForm');
+
+                    // Nếu Spa này CHƯA có tài khoản nào -> Hiện form khởi tạo Super Admin riêng
+                    if (!users || Object.keys(users).length === 0) {
+                        if(authSubtitle) authSubtitle.innerText = "Cơ sở này chưa có tài khoản. Vui lòng tạo Super Admin!";
+                        if(loginForm) loginForm.classList.add('hidden');
+                        if(initForm) initForm.classList.remove('hidden');
+                    } else {
+                        // Nếu ĐÃ CÓ tài khoản -> Hiện form đăng nhập bình thường
+                        if(authSubtitle) authSubtitle.innerText = "Đăng nhập hệ thống quản lý Spa";
+                        if(loginForm) loginForm.classList.remove('hidden');
+                        if(initForm) initForm.classList.add('hidden');
+                    }
+                });
+            }
+        }
+
+        // --- 3. XỬ LÝ KHỞI TẠO SUPER ADMIN CHO RIÊNG SPA NÀY ---
+        function handleInitSuperAdmin(e) {
+            e.preventDefault();
+            const fullName = document.getElementById('initFullName').value.trim();
+            const username = document.getElementById('initUsername').value.trim().toLowerCase();
+            const password = document.getElementById('initPassword').value.trim();
+
+            const newUser = { fullName, username, password, role: 'SUPER_ADMIN' };
+
+            if (typeof db !== 'undefined' && SPA_PATH) {
+                // Lưu vào đúng nhánh spas/spaId/users/username
+                db.ref(SPA_PATH + '/users/' + username).set(newUser, (err) => {
+                    if (!err) {
+                        alert("Khởi tạo Super Admin thành công cho riêng cơ sở này!");
+                        checkSpaAdminStatus(); // Tải lại để chuyển sang màn hình đăng nhập
+                    } else {
+                        alert("Lỗi: " + err.message);
+                    }
+                });
+            }
+        }
     </script>
 </body>
 </html>
