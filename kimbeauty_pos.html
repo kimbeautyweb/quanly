@@ -1028,7 +1028,7 @@
         }
 
         function checkSystemHasUsers() {
-            db.ref('users').once('value', (snap) => {
+            db.ref(SPA_PATH + '/users').once('value', (snap) => {
                 const users = snap.val();
                 if (!users || Object.keys(users).length === 0) {
                     document.getElementById('loginForm').classList.add('hidden');
@@ -1060,7 +1060,7 @@
             const fullPermissions = { logs: true, booking: true, customers: true, services: true, staff: true };
             const initialHistory = [{ baseSalary: 10000000, effectiveDate: todayStr }];
 
-            db.ref('users/' + username).set({
+            db.ref(SPA_PATH + '/users/' + username).set({
                 fullName, password, role: 'SUPER_ADMIN', baseSalary: 10000000, workingDaysPerMonth: 30, standardHoursPerDay: 8, salaryHistory: initialHistory, permissions: fullPermissions
             }, (err) => {
                 if (!err) {
@@ -1077,7 +1077,7 @@
             const username = document.getElementById('loginUsername').value.trim().toLowerCase();
             const password = document.getElementById('loginPassword').value;
 
-            db.ref('users/' + username).once('value', (snap) => {
+            db.ref(SPA_PATH + '/users/' + username).once('value', (snap) => {
                 const userVal = snap.val();
                 if (userVal && userVal.password === password) {
                     currentUser = { username: username, fullName: userVal.fullName, role: userVal.role, permissions: userVal.permissions || {} };
@@ -1110,7 +1110,7 @@
             e.preventDefault();
             const newPass = document.getElementById('newPasswordInput').value;
             if (newPass && currentUser) {
-                db.ref('users/' + currentUser.username + '/password').set(newPass, (err) => {
+                db.ref(SPA_PATH + '/users/' + currentUser.username + '/password').set(newPass, (err) => {
                     if (!err) {
                         alert('Đổi mật khẩu thành công!');
                         closeChangePasswordModal();
@@ -1161,42 +1161,42 @@
         }
 
         function initFirebaseListeners() {
-            db.ref('users').on('value', (snap) => {
+            db.ref(SPA_PATH + '/users').on('value', (snap) => {
                 globalUsers = snap.val() || {};
                 generateStaffReport();
             });
 
-            db.ref('levels').on('value', (snap) => {
+            db.ref(SPA_PATH + '/levels').on('value', (snap) => {
                 const data = snap.val();
                 if (data) globalLevels = Object.values(data);
                 renderLevelsUI();
             });
 
-            db.ref('staff').on('value', (snap) => {
+            db.ref(SPA_PATH + '/staff').on('value', (snap) => {
                 globalStaff = snap.val() || {};
                 generateStaffReport();
             });
 
-            db.ref('customers').on('value', (snap) => {
+            db.ref(SPA_PATH + '/customers').on('value', (snap) => {
                 globalCustomers = snap.val() || {};
                 renderCustomersUI();
                 renderCustomerSelectInLogUI();
             });
 
-            db.ref('services').on('value', (snap) => {
+            db.ref(SPA_PATH + '/services').on('value', (snap) => {
                 globalServices = snap.val() || {};
                 renderServicesUI();
                 renderServiceSelectUI();
             });
 
-            db.ref('service_logs').on('value', (snap) => {
+            db.ref(SPA_PATH + '/service_logs').on('value', (snap) => {
                 globalServiceLogs = snap.val() || {};
                 renderServiceLogsUI();
                 generateDailyReport();
                 generateStaffReport();
             });
 
-            db.ref('bookings').on('value', (snap) => {
+            db.ref(SPA_PATH + '/bookings').on('value', (snap) => {
                 const newBookings = snap.val() || {};
                 if (!isFirstBookingLoad) {
                     const oldKeys = Object.keys(globalBookings);
@@ -1215,7 +1215,7 @@
                 renderPendingBookingsInLogUI();
             });
 
-            db.ref('system_modules').on('value', (snap) => {
+            db.ref(SPA_PATH + '/system_modules').on('value', (snap) => {
                 globalDynamicModules = snap.val() || {};
                 renderDynamicModulesUI();
             });
@@ -1324,7 +1324,7 @@
                 return;
             }
 
-            db.ref('system_modules/' + modId).set({
+            db.ref(SPA_PATH + '/system_modules/' + modId).set({
                 id: modId, title: modTitle, fields: fields
             }, (err) => {
                 if (!err) {
@@ -1337,8 +1337,8 @@
         function deleteDynamicModule(modId) {
             if (currentUser.role !== 'SUPER_ADMIN') return;
             if (confirm(`Xóa vĩnh viễn Module "${modId}" cùng toàn bộ dữ liệu của nó?`)) {
-                db.ref('system_modules/' + modId).remove();
-                db.ref('dyn_data_' + modId).remove();
+                db.ref(SPA_PATH + '/system_modules/' + modId).remove();
+                db.ref(SPA_PATH + '/dyn_data_' + modId).remove();
             }
         }
 
@@ -1422,7 +1422,7 @@
                     `;
                 }
 
-                db.ref('dyn_data_' + modId).on('value', (snap) => {
+                db.ref(SPA_PATH + '/dyn_data_' + modId).on('value', (snap) => {
                     renderDynamicDataList(modId, snap.val() || {});
                 });
             });
@@ -1439,7 +1439,7 @@
                 record[key] = inp.value;
             });
 
-            db.ref('dyn_data_' + modId).push(record, (err) => {
+            db.ref(SPA_PATH + '/dyn_data_' + modId).push(record, (err) => {
                 if (!err) {
                     alert("Đã lưu dữ liệu thành công!");
                     document.getElementById(`dynForm_${modId}`).reset();
@@ -1528,7 +1528,7 @@
         }
 
         function exportDynamicModuleToExcel(modId) {
-            db.ref('dyn_data_' + modId).once('value', (snap) => {
+            db.ref(SPA_PATH + '/dyn_data_' + modId).once('value', (snap) => {
                 const data = snap.val() || {};
                 const mod = globalDynamicModules[modId];
                 if (!mod) return;
@@ -1562,7 +1562,7 @@
 
         function deleteDynamicDataRecord(modId, recordKey) {
             if (confirm("Xóa dòng dữ liệu này?")) {
-                db.ref(`dyn_data_${modId}/${recordKey}`).remove();
+                db.ref(SPA_PATH + '/dyn_data_${modId}/${recordKey}`).remove();
             }
         }
 
@@ -1674,7 +1674,7 @@
                 staff: document.getElementById('perm_staff').checked
             };
 
-            db.ref('users/' + username).once('value', (snap) => {
+            db.ref(SPA_PATH + '/users/' + username).once('value', (snap) => {
                 const existingUser = snap.val() || {};
                 let salaryHistory = existingUser.salaryHistory || [];
 
@@ -1687,7 +1687,7 @@
                     }
                 }
 
-                db.ref('users/' + username).update({
+                db.ref(SPA_PATH + '/users/' + username).update({
                     fullName, phone, password, role, baseSalary, workingDaysPerMonth: workingDays, standardHoursPerDay: standardHours, salaryHistory, permissions
                 }, (err) => {
                     if (!err) {
@@ -1733,7 +1733,7 @@
             const role = document.getElementById('newStaffRole').value;
             const level = document.getElementById('newStaffLevel').value;
 
-            db.ref('staff').push({ name, phone, role, level }, (err) => {
+            db.ref(SPA_PATH + '/staff').push({ name, phone, role, level }, (err) => {
                 if(!err) { 
                     resetFormSelection();
                     document.getElementById('newStaffName').value = ''; 
@@ -1873,12 +1873,12 @@
                 return;
             }
 
-            db.ref('users/' + userKey).once('value', (snap) => {
+            db.ref(SPA_PATH + '/users/' + userKey).once('value', (snap) => {
                 const existingUser = snap.val() || {};
                 let salaryHistory = existingUser.salaryHistory || [];
                 salaryHistory.push({ baseSalary: newBaseSalary, effectiveDate });
 
-                db.ref('users/' + userKey).update({ baseSalary: newBaseSalary, salaryHistory }, (err) => {
+                db.ref(SPA_PATH + '/users/' + userKey).update({ baseSalary: newBaseSalary, salaryHistory }, (err) => {
                     if (!err) {
                         alert("Đã cập nhật mức Lương Cơ Bản thành công!");
                         showSalaryDetailForStaff(currentActiveSalaryStaffName);
@@ -1975,7 +1975,7 @@
             const staffKey = Object.keys(globalStaff).find(k => globalStaff[k].name === currentActiveSalaryStaffName);
             if (staffKey) {
                 const attObj = { offDays, overtimeDays, overtimeHours, otMode, manualOTAmount };
-                db.ref(`staff/${staffKey}/monthlyAttendance/${selectedMonthStr}`).set(attObj, (err) => {
+                db.ref(SPA_PATH + '/staff/${staffKey}/monthlyAttendance/${selectedMonthStr}`).set(attObj, (err) => {
                     if (!err) {
                         alert("Đã lưu chấm công thành công!");
                         showSalaryDetailForStaff(currentActiveSalaryStaffName);
@@ -2014,7 +2014,7 @@
                 comms[inp.getAttribute('data-level')] = parseFloat(inp.value) || 0;
             });
 
-            db.ref('services').push({ name, price, type, sessions, commType, commissions: comms }, (err) => {
+            db.ref(SPA_PATH + '/services').push({ name, price, type, sessions, commType, commissions: comms }, (err) => {
                 if(!err) {
                     alert('Lưu cấu hình dịch vụ thành công!');
                     document.getElementById('servName').value = '';
@@ -2023,7 +2023,7 @@
             });
         }
 
-        function deleteService(key) { if(confirm('Xóa mục này?')) db.ref('services/' + key).remove(); }
+        function deleteService(key) { if(confirm('Xóa mục này?')) db.ref(SPA_PATH + '/services/' + key).remove(); }
 
         function renderServicesUI() {
             const containerSingle = document.getElementById('singleServiceListContainer');
@@ -2142,7 +2142,7 @@
                 const newPhone = document.getElementById('logNewCustPhone').value.trim();
                 const newAddress = document.getElementById('logNewCustAddress').value.trim();
                 if (!newName || !newPhone) { alert("Vui lòng nhập tên và SĐT!"); return; }
-                actualCustKey = db.ref('customers').push({ name: newName, phone: newPhone, address: newAddress }).key;
+                actualCustKey = db.ref(SPA_PATH + '/customers').push({ name: newName, phone: newPhone, address: newAddress }).key;
                 customerName = `${newName} (${newPhone})`;
             } else if (custSelect !== 'KHACH_LA') {
                 actualCustKey = custSelect;
@@ -2174,7 +2174,7 @@
 
                 if (actualCustKey && comboKey && globalCustomers[actualCustKey].combos[comboKey]) {
                     const currentRem = globalCustomers[actualCustKey].combos[comboKey].remainingSessions || 0;
-                    db.ref(`customers/${actualCustKey}/combos/${comboKey}/remainingSessions`).set(Math.max(0, currentRem - usedSessions));
+                    db.ref(SPA_PATH + '/customers/${actualCustKey}/combos/${comboKey}/remainingSessions`).set(Math.max(0, currentRem - usedSessions));
                 }
             }
 
@@ -2200,7 +2200,7 @@
 
                     if (servObj && servObj.type === 'COMBO' && actualCustKey) {
                         const totalS = servObj.sessions || 10;
-                        db.ref(`customers/${actualCustKey}/combos`).push({
+                        db.ref(SPA_PATH + '/customers/${actualCustKey}/combos`).push({
                             serviceName: serviceName, totalSessions: totalS, remainingSessions: totalS, totalPrice: price, pricePerSession: price / totalS, buyDate: date
                         });
                     }
@@ -2216,12 +2216,12 @@
             const serviceListText = items.map(i => i.service).join(' + ');
             const totalCommissionAmount = items.reduce((sum, i) => sum + i.commissionAmount, 0);
 
-            db.ref('service_logs').push({
+            db.ref(SPA_PATH + '/service_logs').push({
                 date, customer: customerName, service: serviceListText, cash, transfer, total: actualTotalPaid, staff: staffListText, commissionAmount: totalCommissionAmount, items
             }, (err) => {
                 if(!err) {
                     const bookingKey = document.getElementById('logFromBookingKey').value;
-                    if (bookingKey) db.ref('bookings/' + bookingKey).update({ status: 'Đã xong' });
+                    if (bookingKey) db.ref(SPA_PATH + '/bookings/' + bookingKey).update({ status: 'Đã xong' });
                     toggleAddLogForm();
                     alert(`HOÀN THÀNH!\n- Khách: ${customerName}\n- Tổng thu: ${formatVND(actualTotalPaid)}`);
                 }
@@ -2500,14 +2500,14 @@
 
         function deleteLog(key) {
             if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER') return;
-            if(confirm('Xóa lượt dịch vụ này?')) db.ref('service_logs/' + key).remove();
+            if(confirm('Xóa lượt dịch vụ này?')) db.ref(SPA_PATH + '/service_logs/' + key).remove();
         }
 
         function toggleLevelModal() { document.getElementById('levelModal').classList.toggle('hidden'); }
         function saveNewLevel() {
             const val = document.getElementById('newLevelInput').value.trim();
             if (val && !globalLevels.includes(val)) {
-                globalLevels.push(val); db.ref('levels').set(globalLevels);
+                globalLevels.push(val); db.ref(SPA_PATH + '/levels').set(globalLevels);
                 document.getElementById('newLevelInput').value = '';
             }
         }
@@ -2517,7 +2517,7 @@
             renderCommissionInputsInServiceUI();
         }
 
-        function deleteStaff(key) { if(confirm('Xóa nhân viên?')) db.ref('staff/' + key).remove(); }
+        function deleteStaff(key) { if(confirm('Xóa nhân viên?')) db.ref(SPA_PATH + '/staff/' + key).remove(); }
 
         function renderServiceSelectUI() {
             const bookSelect = document.getElementById('bookService');
@@ -2601,7 +2601,7 @@
 
         function saveNewCustomer(e) {
             e.preventDefault();
-            db.ref('customers').push({
+            db.ref(SPA_PATH + '/customers').push({
                 name: document.getElementById('newCustName').value.trim(),
                 phone: document.getElementById('newCustPhone').value.trim(),
                 address: document.getElementById('newCustAddress').value.trim()
@@ -2610,7 +2610,7 @@
 
         function saveNewBooking(e) {
             e.preventDefault();
-            db.ref('bookings').push({
+            db.ref(SPA_PATH + '/bookings').push({
                 name: document.getElementById('bookCustName').value.trim(),
                 phone: document.getElementById('bookCustPhone').value.trim(),
                 service: document.getElementById('bookService').value,
@@ -2627,7 +2627,7 @@
             if (typeof SPA_PATH !== 'undefined' && SPA_PATH) {
                 db.ref(SPA_PATH + '/customers/' + currentActiveCustKey).remove();
             } else {
-                db.ref('customers/' + currentActiveCustKey).remove();
+                db.ref(SPA_PATH + '/customers/' + currentActiveCustKey).remove();
             }
 
             // 2. Gửi yêu cầu xóa kèm theo sheetId riêng của Spa xuống Google Apps Script
@@ -2647,7 +2647,7 @@
     }
 }
 
-        function deleteBooking(key) { if(confirm('Xóa lịch hẹn?')) db.ref('bookings/' + key).remove(); }
+        function deleteBooking(key) { if(confirm('Xóa lịch hẹn?')) db.ref(SPA_PATH + '/bookings/' + key).remove(); }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -2714,6 +2714,7 @@ const comboListContainer = document.getElementById('modalCustomerComboList');
         const urlParams = new URLSearchParams(window.location.search);
         const currentSpaId = urlParams.get('spaId');
         const currentSheetId = urlParams.get('sheet');
+        const SPA_PATH = currentSpaId ? `spas/${currentSpaId}` : null;
 
         window.addEventListener('DOMContentLoaded', () => {
             // 1. Kiểm tra tham số định danh từ URL
