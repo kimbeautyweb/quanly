@@ -936,7 +936,7 @@
     <script>
         // ===================== CẤU HÌNH =====================
         // Dán URL Web App của Google Apps Script (kết thúc bằng /exec). Phải giống với hub.html
-        const API_URL = "https://script.google.com/macros/s/AKfycbzbMnZCUZoVbN1nb-HMHW9jEtMGwifvO3MnjcO4TvY3mEiJRt_p-fJw1PlijqL063f74w/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbykgZ0soQMcwZer8XKGBAM95v66wEg9Lh8aMPIP7LkdxMG9jBjN0yg3wVsS1JNsdx_6Hw/exec";
 
         const _qs = new URLSearchParams(window.location.search);
         const currentSpaId = (_qs.get('spaId') || '').trim().replace(/[^A-Za-z0-9_-]/g, '');
@@ -1465,7 +1465,8 @@
 
             db.ref(SPA_PATH + '/levels').on('value', (snap) => {
                 const data = snap.val();
-                if (data) globalLevels = Object.values(data);
+                const lvlList = data ? Object.values(data).filter(Boolean) : [];
+                if (lvlList.length) globalLevels = lvlList; // Sheet mới chưa có cấp bậc -> giữ mặc định
                 renderLevelsUI();
             });
 
@@ -1611,8 +1612,11 @@
                 const label = row.querySelector('.dyn-field-label').value.trim();
                 const type = row.querySelector('.dyn-field-type').value;
                 if (label) {
-                    const key = label.toLowerCase().replace(/[^a-z0-9àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ]/g, '_');
-                    fields.push({ key, label, type });
+                    let key = label.toLowerCase().replace(/[^a-z0-9àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ]/g, '_');
+                    // Hai trường trùng tên (vd: 2 ô "Danh Mục / Mô Tả") phải có key khác nhau, nếu không dữ liệu sẽ ghi đè nhau
+                    let uniqueKey = key, n = 2;
+                    while (fields.some(f => f.key === uniqueKey)) uniqueKey = key + '_' + (n++);
+                    fields.push({ key: uniqueKey, label, type });
                 }
             });
 
