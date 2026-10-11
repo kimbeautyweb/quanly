@@ -365,6 +365,12 @@
                             </div>
                         </div>
 
+                        <div id="productStockBox" class="hidden">
+                            <label class="block text-[11px] font-bold text-blue-900 mb-1">Số lượng nhập kho *</label>
+                            <input type="number" id="servStock" min="0" step="1" value="0" placeholder="Ví dụ: 20" class="w-full px-3 py-2 bg-white rounded-xl border border-blue-300 text-xs font-bold text-blue-900">
+                            <p class="text-[10px] text-gray-500 mt-1">Mỗi lần bán sản phẩm, hệ thống tự trừ số lượng này.</p>
+                        </div>
+
                         <div id="comboSessionsBox" class="hidden">
                             <label class="block text-[11px] font-bold text-amber-900 mb-1">Số buổi trong gói Combo *</label>
                             <input type="number" id="servSessions" min="1" value="10" placeholder="10" class="w-full px-3 py-2 bg-white rounded-xl border border-amber-300 text-xs font-bold text-amber-900">
@@ -2347,13 +2353,37 @@
                 comms[inp.getAttribute('data-level')] = parseFloat(inp.value) || 0;
             });
 
-            db.ref(SPA_PATH + '/services').push({ name, price, type, sessions, commType, commissions: comms }, (err) => {
+            const newServ = { name, price, type, sessions, commType, commissions: comms };
+            if (type === 'PRODUCT') newServ.stock = Math.max(0, parseInt(document.getElementById('servStock').value) || 0);
+
+            db.ref(SPA_PATH + '/services').push(newServ, (err) => {
                 if(!err) {
                     alert('Lưu cấu hình dịch vụ thành công!');
                     document.getElementById('servName').value = '';
                     document.getElementById('servPrice').value = '';
+                    document.getElementById('servStock').value = 0;
                 }
             });
+        }
+
+        function stockInfoHTML(key, s, isAdmin) {
+            const tracked = typeof s.stock === 'number';
+            const color = !tracked ? 'text-gray-400' : (s.stock <= 0 ? 'text-red-600' : (s.stock <= 3 ? 'text-amber-700' : 'text-blue-800'));
+            const label = !tracked ? 'Chưa theo dõi kho' : (s.stock <= 0 ? '📦 HẾT HÀNG' : `📦 Tồn kho: ${s.stock}`);
+            const btns = isAdmin ? `<button onclick="adjustStock('${key}','ADD')" class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-blue-50 text-blue-800 border border-blue-200">+ Nhập thêm</button>
+                <button onclick="adjustStock('${key}','SET')" class="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-gray-50 text-gray-700 border border-gray-200">✏️ Kiểm kho</button>` : '';
+            return `<div class="flex flex-wrap items-center gap-1.5"><span class="text-[11px] font-extrabold ${color}">${label}</span>${btns}</div>`;
+        }
+
+        function adjustStock(key, mode) {
+            const sv = globalServices[key];
+            if (!sv) return;
+            const cur = typeof sv.stock === 'number' ? sv.stock : 0;
+            const v = prompt(mode === 'ADD' ? `Nhập thêm bao nhiêu "${sv.name}" vào kho? (Hiện còn ${cur})` : `Số lượng THỰC TẾ đang có trong kho của "${sv.name}":`, mode === 'ADD' ? '' : String(cur));
+            if (v === null) return;
+            const n = parseInt(v);
+            if (isNaN(n) || n < 0 || (mode === 'ADD' && n === 0)) { alert('Số lượng không hợp lệ!'); return; }
+            db.ref(SPA_PATH + '/services/' + key + '/stock').set(mode === 'ADD' ? cur + n : n);
         }
 
         function deleteService(key) { if(confirm('Xóa mục này?')) db.ref(SPA_PATH + '/services/' + key).remove(); }
@@ -2389,6 +2419,7 @@
                             ${deleteBtn}
                         </div>
                         ${s.type === 'COMBO' ? `<div class="text-[10px] text-amber-800 font-bold">Số buổi: ${s.sessions} buổi</div>` : ''}
+                        ${s.type === 'PRODUCT' ? stockInfoHTML(key, s, isAdmin) : ''}
                         <div class="flex flex-wrap gap-1">${commBadges}</div>
                     </div>
                 `;
@@ -2483,6 +2514,24 @@
                 customerName = cObj ? `${cObj.name} (${cObj.phone})` : 'Khách hàng';
             }
 
+            // --- Kiểm tra tồn kho trước khi lưu (gộp các dòng cùng 1 sản phẩm) ---
+            const stockNeed = {};
+            for (const row of document.querySelectorAll('.service-row')) {
+                if (row.getAttribute('data-itemtype') !== 'PRODUCT') continue;
+                const nm = row.querySelector('.serv-select').value;
+                if (!nm) continue;
+                const k = Object.keys(globalServices).find(x => globalServices[x].name === nm);
+                if (!k) continue;
+                stockNeed[k] = (stockNeed[k] || 0) + Math.max(1, parseInt(row.querySelector('.serv-qty').value) || 1);
+            }
+            for (const k of Object.keys(stockNeed)) {
+                const sv = globalServices[k];
+                if (sv && typeof sv.stock === 'number' && stockNeed[k] > sv.stock) {
+                    alert(`Sản phẩm "${sv.name}" chỉ còn ${sv.stock} trong kho, không đủ để bán ${stockNeed[k]}!`);
+                    return;
+                }
+            }
+
             const items = [];
             const comboBoxes = document.querySelectorAll('.combo-checkbox:checked');
             for (let cb of comboBoxes) {
@@ -2527,9 +2576,14 @@
                     const servObj = servKey ? globalServices[servKey] : null;
 
                     let commVal = (staffObj && servObj && servObj.commissions) ? (servObj.commissions[staffObj.level] || 0) : 0;
-                    let commAmount = (servObj && servObj.commType === 'FIXED') ? commVal : ((price * commVal) / 100);
+                    const qtyEl = row.querySelector('.serv-qty');
+                    const qty = (itemType === 'PRODUCT' && qtyEl) ? Math.max(1, parseInt(qtyEl.value) || 1) : 1;
+                    // Hoa hồng cố định tính trên từng sản phẩm; hoa hồng % tính trên tổng tiền dòng
+                    let commAmount = (servObj && servObj.commType === 'FIXED') ? (commVal * qty) : ((price * commVal) / 100);
 
-                    items.push({ service: itemType === 'PRODUCT' ? `[Sản phẩm] ${serviceName}` : serviceName, price, staff: staffName, commissionAmount: commAmount });
+                    const itemObj = { service: itemType === 'PRODUCT' ? `[Sản phẩm] ${serviceName}${qty > 1 ? ' x' + qty : ''}` : serviceName, price, staff: staffName, commissionAmount: commAmount };
+                    if (itemType === 'PRODUCT') { itemObj.qty = qty; itemObj.productName = serviceName; }
+                    items.push(itemObj);
 
                     if (servObj && servObj.type === 'COMBO' && actualCustKey) {
                         const totalS = servObj.sessions || 10;
@@ -2553,6 +2607,11 @@
                 date, customer: customerName, service: serviceListText, cash, transfer, total: actualTotalPaid, staff: staffListText, commissionAmount: totalCommissionAmount, items
             }, (err) => {
                 if(!err) {
+                    // Tự động trừ kho các sản phẩm vừa bán
+                    Object.keys(stockNeed).forEach(k => {
+                        const sv = globalServices[k];
+                        if (sv && typeof sv.stock === 'number') db.ref(`${SPA_PATH}/services/${k}/stock`).set(Math.max(0, sv.stock - stockNeed[k]));
+                    });
                     const bookingKey = document.getElementById('logFromBookingKey').value;
                     if (bookingKey) db.ref(SPA_PATH + '/bookings/' + bookingKey).update({ status: 'Đã xong' });
                     toggleAddLogForm();
@@ -2564,6 +2623,7 @@
         function toggleServiceTypeInput() {
             const selectedType = document.querySelector('input[name="servType"]:checked').value;
             document.getElementById('comboSessionsBox').classList.toggle('hidden', selectedType !== 'COMBO');
+            document.getElementById('productStockBox').classList.toggle('hidden', selectedType !== 'PRODUCT');
         }
 
         function renderCustomerSelectInLogUI() {
@@ -2648,7 +2708,8 @@
                 const s = globalServices[k];
                 if ((isProduct && s.type === 'PRODUCT') || (!isProduct && s.type !== 'PRODUCT')) {
                     const selected = (s.name === presetService) ? 'selected' : '';
-                    itemOptionsHTML += `<option value="${s.name}" data-price="${s.price}" ${selected}>${s.name} (${formatVND(s.price)})</option>`;
+                    const stockTxt = (s.type === 'PRODUCT' && typeof s.stock === 'number') ? (s.stock <= 0 ? ' - HẾT HÀNG' : ` - còn ${s.stock}`) : '';
+                    itemOptionsHTML += `<option value="${s.name}" data-price="${s.price}" ${selected}>${s.name} (${formatVND(s.price)})${stockTxt}</option>`;
                 }
             });
 
@@ -2659,12 +2720,14 @@
             });
 
             const rowHTML = `
-                <div id="${rowId}" data-itemtype="${itemType}" class="service-row p-2.5 rounded-xl border ${isProduct ? 'border-blue-200 bg-blue-50/30' : 'border-gray-200 bg-white'} space-y-2">
+                <div id="${rowId}" data-itemtype="${itemType}" data-unit="${presetPrice}" class="service-row p-2.5 rounded-xl border ${isProduct ? 'border-blue-200 bg-blue-50/30' : 'border-gray-200 bg-white'} space-y-2">
                     <div class="flex items-center gap-2">
                         <select onchange="onServiceRowSelectChange('${rowId}')" class="serv-select w-full px-2.5 py-1.5 bg-white rounded-lg border text-xs font-bold">${itemOptionsHTML}</select>
+                        ${isProduct ? `<input type="number" oninput="onServiceRowQtyChange('${rowId}')" min="1" step="1" value="1" title="Số lượng" placeholder="SL" class="serv-qty w-16 px-2 py-1.5 bg-white rounded-lg border border-blue-300 text-xs font-bold text-blue-800 text-center">` : ''}
                         <input type="number" onchange="calculateLogTotal()" min="0" placeholder="Giá" value="${presetPrice}" class="serv-price w-32 px-2 py-1.5 bg-white rounded-lg border text-xs font-bold text-emerald-700">
                         <button type="button" onclick="removeServiceRow('${rowId}')" class="text-red-500 font-bold px-2 py-1 text-xs shrink-0">✕</button>
                     </div>
+                    ${isProduct ? '<div class="stock-hint text-[10px] font-bold"></div>' : ''}
                     <div class="flex items-center gap-2">
                         <span class="text-[10px] font-bold text-amber-800 shrink-0">👤 NV:</span>
                         <select class="staff-select w-full px-2.5 py-1.5 bg-amber-50 rounded-lg border text-xs font-bold">${staffOptionsHTML}</select>
@@ -2672,6 +2735,7 @@
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', rowHTML);
+            updateRowStockHint(document.getElementById(rowId));
             if (presetPrice > 0) calculateLogTotal();
         }
 
@@ -2684,8 +2748,34 @@
             const row = document.getElementById(rowId);
             const select = row.querySelector('.serv-select');
             const selectedOpt = select.options[select.selectedIndex];
-            row.querySelector('.serv-price').value = selectedOpt ? (parseFloat(selectedOpt.getAttribute('data-price')) || 0) : 0;
+            const unit = selectedOpt ? (parseFloat(selectedOpt.getAttribute('data-price')) || 0) : 0;
+            row.setAttribute('data-unit', unit);
+            const qtyEl = row.querySelector('.serv-qty');
+            const qty = qtyEl ? Math.max(1, parseInt(qtyEl.value) || 1) : 1;
+            row.querySelector('.serv-price').value = unit * qty;
+            updateRowStockHint(row);
             calculateLogTotal();
+        }
+
+        function onServiceRowQtyChange(rowId) {
+            const row = document.getElementById(rowId);
+            if (!row) return;
+            const qty = Math.max(1, parseInt(row.querySelector('.serv-qty').value) || 1);
+            row.querySelector('.serv-price').value = (parseFloat(row.getAttribute('data-unit')) || 0) * qty;
+            updateRowStockHint(row);
+            calculateLogTotal();
+        }
+
+        function updateRowStockHint(row) {
+            const hint = row && row.querySelector('.stock-hint');
+            if (!hint) return;
+            const name = row.querySelector('.serv-select').value;
+            const key = Object.keys(globalServices).find(k => globalServices[k].name === name);
+            const sv = key ? globalServices[key] : null;
+            if (!sv || typeof sv.stock !== 'number') { hint.textContent = ''; return; }
+            const qty = Math.max(1, parseInt(row.querySelector('.serv-qty').value) || 1);
+            if (qty > sv.stock) { hint.className = 'stock-hint text-[10px] font-bold text-red-600'; hint.textContent = `⚠ Kho chỉ còn ${sv.stock}, không đủ bán ${qty}`; }
+            else { hint.className = 'stock-hint text-[10px] font-bold text-blue-700'; hint.textContent = `📦 Kho còn ${sv.stock} (sau khi bán còn ${sv.stock - qty})`; }
         }
 
         function calculateLogTotal() {
@@ -2833,7 +2923,21 @@
 
         function deleteLog(key) {
             if (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'MANAGER') return;
-            if(confirm('Xóa lượt dịch vụ này?')) db.ref(SPA_PATH + '/service_logs/' + key).remove();
+            if (!confirm('Xóa lượt dịch vụ này?')) return;
+            // Nếu lượt này có bán sản phẩm (đã ghi số lượng) -> hỏi có hoàn lại kho không
+            const lg = globalServiceLogs[key];
+            const back = {};
+            ((lg && lg.items) || []).forEach(it => {
+                if (it.productName && it.qty > 0) {
+                    const k = Object.keys(globalServices).find(x => globalServices[x].name === it.productName);
+                    if (k && typeof globalServices[k].stock === 'number') back[k] = (back[k] || 0) + it.qty;
+                }
+            });
+            const backKeys = Object.keys(back);
+            if (backKeys.length && confirm('Lượt này có bán sản phẩm. Hoàn lại số lượng vào kho?\n\n' + backKeys.map(k => `- ${globalServices[k].name}: +${back[k]}`).join('\n'))) {
+                backKeys.forEach(k => db.ref(SPA_PATH + '/services/' + k + '/stock').set(globalServices[k].stock + back[k]));
+            }
+            db.ref(SPA_PATH + '/service_logs/' + key).remove();
         }
 
         function toggleLevelModal() { document.getElementById('levelModal').classList.toggle('hidden'); }
