@@ -1226,7 +1226,7 @@
         ];
 
         window.addEventListener('DOMContentLoaded', () => {
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = todayLocalStr();
             document.getElementById('reportDateSelect').value = todayStr;
             document.getElementById('logDate').value = todayStr;
             document.getElementById('logFilterDate').value = todayStr;
@@ -1245,6 +1245,65 @@
             addModuleFieldRow('Khoản Thu/Chi', 'text', 'Danh Mục / Mô Tả', 'text');
             addModuleFieldRow('Số Tiền', 'number', 'Ngày Thực Hiện', 'date');
         }
+
+
+        // Ngày hôm nay theo GIỜ MÁY (toISOString dùng giờ UTC nên trước 7h sáng ở VN sẽ ra ngày hôm qua)
+        function todayLocalStr() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        // ===== HIỂN THỊ NGÀY DD/MM/YYYY (và THÁNG MM/YYYY) cho mọi ô chọn ngày =====
+        // Ô gốc vẫn giữ nguyên giá trị yyyy-mm-dd để mọi chức năng cũ chạy như cũ, chỉ đổi cách hiển thị.
+        (function () {
+            const valDesc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+            const isDate = (el) => el.type === 'date';
+            function fmt(el) {
+                const v = valDesc.get.call(el);
+                if (!v) return '';
+                const m = isDate(el) ? v.match(/^(\d{4})-(\d{2})-(\d{2})$/) : v.match(/^(\d{4})-(\d{2})$/);
+                if (!m) return v;
+                return isDate(el) ? `${m[3]}/${m[2]}/${m[1]}` : `${m[2]}/${m[1]}`;
+            }
+            function enhance(el) {
+                if (el.dataset.vnDate) return;
+                el.dataset.vnDate = '1';
+                const wrap = document.createElement('div');
+                const keep = Array.from(el.classList).filter(c => /^(w-|min-w|max-w|flex-|grow|shrink|col-|row-|self-|m[trblxy]?-)/.test(c));
+                wrap.className = keep.join(' ');
+                wrap.style.cssText = 'position:relative;display:' + (el.classList.contains('w-full') ? 'block' : 'inline-block') + ';';
+                const view = document.createElement('div');
+                view.className = Array.from(el.classList).filter(c => !keep.includes(c)).join(' ');
+                view.style.cssText = 'box-sizing:border-box;width:100%;min-height:30px;white-space:nowrap;display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;';
+                el.parentNode.insertBefore(wrap, el);
+                wrap.appendChild(view);
+                wrap.appendChild(el);
+                el.style.cssText += ';position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0;';
+                const sync = () => {
+                    const t = fmt(el);
+                    view.innerHTML = '';
+                    const a = document.createElement('span');
+                    a.textContent = t || (isDate(el) ? 'dd/mm/yyyy' : 'mm/yyyy');
+                    if (!t) a.style.opacity = '.45';
+                    const b = document.createElement('span');
+                    b.textContent = '📅'; b.style.cssText = 'font-size:11px;opacity:.7;';
+                    view.appendChild(a); view.appendChild(b);
+                };
+                Object.defineProperty(el, 'value', { configurable: true, get() { return valDesc.get.call(this); }, set(v) { valDesc.set.call(this, v); sync(); } });
+                el.addEventListener('input', sync);
+                el.addEventListener('change', sync);
+                el.addEventListener('click', () => { try { el.showPicker(); } catch (e) {} });
+                sync();
+            }
+            const scan = (root) => (root.querySelectorAll ? root : document).querySelectorAll('input[type="date"],input[type="month"]').forEach(enhance);
+            const start = () => {
+                scan(document);
+                new MutationObserver(muts => {
+                    for (const m of muts) m.addedNodes.forEach(n => { if (n.nodeType === 1) { if (n.matches && n.matches('input[type="date"],input[type="month"]')) enhance(n); scan(n); } });
+                }).observe(document.body, { childList: true, subtree: true });
+            };
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+        })();
 
         function formatDateVN(dateStr) {
             if(!dateStr) return '';
@@ -1699,7 +1758,7 @@
 
                 let formFieldsHTML = '';
                 mod.fields.forEach((f, index) => {
-                    const todayStr = new Date().toISOString().split('T')[0];
+                    const todayStr = todayLocalStr();
                     const defaultVal = (f.type === 'date') ? `value="${todayStr}"` : '';
                     const colorScheme = dynFieldColors[index % dynFieldColors.length];
 
@@ -1781,7 +1840,7 @@
                     alert("Đã lưu dữ liệu thành công!");
                     document.getElementById(`dynForm_${modId}`).reset();
                     document.querySelectorAll(`.dyn-input-${modId}[type="date"]`).forEach(dInp => {
-                        dInp.value = new Date().toISOString().split('T')[0];
+                        dInp.value = todayLocalStr();
                     });
                 }
             });
@@ -1893,7 +1952,7 @@
                 const worksheet = XLSX.utils.json_to_sheet(excelRows);
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, mod.title);
-                XLSX.writeFile(workbook, `${mod.id}_KimBeauty_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                XLSX.writeFile(workbook, `${mod.id}_KimBeauty_${todayLocalStr().split('-').reverse().join('-')}.xlsx`);
             });
         }
 
@@ -2074,7 +2133,7 @@
             document.getElementById('accBaseSalary').value = u.baseSalary || 0;
             document.getElementById('accWorkingDays').value = u.workingDaysPerMonth || 30;
             document.getElementById('accStandardHours').value = u.standardHoursPerDay || 8;
-            document.getElementById('accSalaryEffectiveDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('accSalaryEffectiveDate').value = todayLocalStr();
 
             const p = u.permissions || {};
             document.getElementById('perm_logs').checked = !!p.logs;
@@ -2123,7 +2182,7 @@
             const salaryCalc = calculateMonthlyBaseSalary(userObj, selectedMonthStr);
             document.getElementById('modalCurrentBaseSalaryInput').value = formatVND(salaryCalc.latestBaseSalary);
             document.getElementById('modalNewBaseSalaryInput').value = salaryCalc.latestBaseSalary;
-            document.getElementById('modalSalaryEffectiveDateInput').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modalSalaryEffectiveDateInput').value = todayLocalStr();
 
             let attendanceMap = (staffObj && staffObj.monthlyAttendance) ? staffObj.monthlyAttendance : {};
             let currentAtt = attendanceMap[selectedMonthStr] || { offDays: 0, overtimeDays: 0, overtimeHours: 0, otMode: 'AUTO', manualOTAmount: 0 };
@@ -2470,7 +2529,7 @@
             const monthYear = document.getElementById('logFilterMonth').value;
             const yearVal = document.getElementById('logFilterYear').value;
             const keyword = document.getElementById('logSearchKeyword').value.trim().toLowerCase();
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = todayLocalStr();
 
             const keys = Object.keys(globalServiceLogs);
             if (keys.length === 0) { alert("Chưa có dữ liệu!"); return; }
@@ -2509,7 +2568,7 @@
             const worksheet = XLSX.utils.json_to_sheet(excelRows);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "NhatKy");
-            XLSX.writeFile(workbook, `Nhat_Ky_KimBeauty_${new Date().toISOString().slice(0, 10)}.xlsx`);
+            XLSX.writeFile(workbook, `Nhat_Ky_KimBeauty_${todayLocalStr().split('-').reverse().join('-')}.xlsx`);
         }
 
         function saveCustomerLog(e) {
@@ -2904,7 +2963,7 @@
             const monthYear = document.getElementById('logFilterMonth').value;
             const yearVal = document.getElementById('logFilterYear').value;
             const keyword = document.getElementById('logSearchKeyword').value.trim().toLowerCase();
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = todayLocalStr();
 
             let filteredKeys = keys.filter(key => {
                 const log = globalServiceLogs[key];
@@ -3052,7 +3111,7 @@
             const worksheet = XLSX.utils.json_to_sheet(excelData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "KhachHang");
-            XLSX.writeFile(workbook, `Danh_Sach_Khach_Hang_${new Date().toISOString().slice(0, 10)}.xlsx`);
+            XLSX.writeFile(workbook, `Danh_Sach_Khach_Hang_${todayLocalStr().split('-').reverse().join('-')}.xlsx`);
         }
 
         function saveNewCustomer(e) {
