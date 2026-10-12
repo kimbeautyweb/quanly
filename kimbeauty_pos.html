@@ -45,6 +45,9 @@
                     <label class="block text-xs font-bold text-gray-600 mb-1">Mật khẩu *</label>
                     <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-brand-cream/50 rounded-xl border border-gray-200 text-sm font-medium">
                 </div>
+                <label class="flex items-center gap-2 text-xs font-semibold text-gray-600 cursor-pointer select-none">
+                    <input type="checkbox" id="loginRemember" checked class="w-4 h-4 accent-green-700"> Ghi nhớ đăng nhập trên thiết bị này
+                </label>
                 <button type="submit" class="w-full py-3 bg-brand-green hover:bg-brand-darkgreen text-white font-bold rounded-xl shadow-lg transition text-sm">
                     ĐĂNG NHẬP HỆ THỐNG
                 </button>
@@ -954,6 +957,17 @@
         const SPA_PATH = currentSpaId ? `spas/${currentSpaId}` : null;
         // Phiên đăng nhập tách riêng theo chi nhánh
         const SESSION_KEY = `kimbeauty_user_${currentSpaId || 'none'}`;
+        // Ghi nhớ đăng nhập: tick = lưu lâu dài trên thiết bị (localStorage), bỏ tick = chỉ giữ đến khi đóng trình duyệt (sessionStorage)
+        const LASTUSER_KEY = `kimbeauty_lastuser_${currentSpaId || 'none'}`;
+        let rememberLogin = !sessionStorage.getItem(SESSION_KEY);
+        function saveSession(obj) {
+            const v = JSON.stringify(obj);
+            if (rememberLogin) { localStorage.setItem(SESSION_KEY, v); sessionStorage.removeItem(SESSION_KEY); }
+            else { sessionStorage.setItem(SESSION_KEY, v); localStorage.removeItem(SESSION_KEY); }
+        }
+        function loadSession() { return localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY); }
+        function clearSession() { localStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(SESSION_KEY); }
+
         let listenersAttached = false;
         const dynListeners = {};
         let session = null;      // { token, user }
@@ -1275,6 +1289,9 @@
                 initForm.classList.add('hidden');
                 loginForm.classList.remove('hidden');
                 subtitle.innerText = 'Đăng nhập hệ thống quản lý Spa';
+                const lastUser = localStorage.getItem(LASTUSER_KEY);
+                const uEl = document.getElementById('loginUsername');
+                if (lastUser && uEl && !uEl.value) { uEl.value = lastUser; document.getElementById('loginPassword').focus(); }
             }
             document.getElementById('mainApp').classList.add('hidden');
             document.getElementById('authScreen').classList.remove('hidden');
@@ -1287,7 +1304,7 @@
             const me = SheetDB.getMe() || user;
             currentUser = { username: me.username, fullName: me.fullName, role: me.role, permissions: me.permissions || {}, spaId: currentSpaId };
             session.user = currentUser;
-            localStorage.setItem(SESSION_KEY, JSON.stringify({ spaId: currentSpaId, token, user: currentUser }));
+            saveSession({ spaId: currentSpaId, token, user: currentUser });
             applyUserPermissions();
         }
 
@@ -1297,13 +1314,13 @@
             if (me.role !== currentUser.role || JSON.stringify(me.permissions || {}) !== JSON.stringify(currentUser.permissions || {}) || me.fullName !== currentUser.fullName) {
                 currentUser = { ...currentUser, fullName: me.fullName, role: me.role, permissions: me.permissions || {} };
                 session.user = currentUser;
-                localStorage.setItem(SESSION_KEY, JSON.stringify({ spaId: currentSpaId, token: session.token, user: currentUser }));
+                saveSession({ spaId: currentSpaId, token: session.token, user: currentUser });
                 applyUserPermissions();
             }
         };
 
         function forceLogout(msg) {
-            localStorage.removeItem(SESSION_KEY);
+            clearSession();
             session = null; currentUser = null;
             SheetDB.stop();
             showAuthForm('login');
@@ -1327,13 +1344,13 @@
 
                 // Cơ sở mới tinh -> bắt buộc tạo Super Admin đầu tiên
                 if (!st.hasUsers) {
-                    localStorage.removeItem(SESSION_KEY);
+                    clearSession();
                     showAuthForm('init');
                     return;
                 }
 
                 // Có phiên đã lưu -> server xác thực lại token
-                const saved = localStorage.getItem(SESSION_KEY);
+                const saved = loadSession();
                 if (saved) {
                     try {
                         const s = JSON.parse(saved);
@@ -1344,7 +1361,7 @@
                     } catch (e) {
                         if (e.message === 'expired') return;
                     }
-                    localStorage.removeItem(SESSION_KEY);
+                    clearSession();
                     session = null;
                 }
                 showAuthForm('login');
@@ -1395,6 +1412,8 @@
                 const r = await api('login', { username, password });
                 if (r.status !== 'success') { alert(r.message || 'Sai tên đăng nhập hoặc mật khẩu!'); return; }
                 document.getElementById('loginPassword').value = '';
+                rememberLogin = document.getElementById('loginRemember').checked;
+                if (rememberLogin) localStorage.setItem(LASTUSER_KEY, username); else localStorage.removeItem(LASTUSER_KEY);
                 await enterApp(r.token, r.user);
             } catch (err) {
                 if (err.message !== 'expired') alert('Lỗi kết nối: ' + err.message);
